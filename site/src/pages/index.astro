@@ -176,14 +176,10 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
           </p>
         </div>
         <div class="panel bench-teaser">
-          <table>
-            <thead><tr><th>kernel</th><th>metric</th><th>value</th><th>chip</th></tr></thead>
-            <tbody>
-              {benchTeaser.map((r) => (
-                <tr><td>{r.kernel}</td><td>{r.metric}</td><td class="val">{r.value}</td><td>{r.chip}</td></tr>
-              ))}
-            </tbody>
-          </table>
+          <div class="bt-head">roofline-predicted floors · v5e · hardware rows replace these</div>
+          {benchTeaser.map((r) => (
+            <div class="bt-row"><span class="bt-k">{r.kernel}</span><span class="bt-v">{r.value}</span></div>
+          ))}
           <div class="provenance"><a href="/bench">the full bench →</a></div>
         </div>
       </div>
@@ -303,10 +299,10 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
   @media (max-width: 1000px) { .receipts { grid-template-columns: 1fr; } }
   .ws-head { display: block; margin-bottom: 0.625rem; color: var(--copper-deep); }
   .ws-prose p { font-family: var(--serif); font-size: 1rem; line-height: 1.65; color: var(--ink); }
-  .bench-teaser table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
-  .bench-teaser th { text-align: left; font-weight: 500; font-size: 0.6875rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--panel-mute); padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--panel-rule); }
-  .bench-teaser td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--panel-rule); }
-  .bench-teaser .val { color: var(--copper); }
+  .bt-head { font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--panel-mute); padding: 0.75rem 0.875rem; border-bottom: 1px solid var(--panel-rule); }
+  .bt-row { display: flex; justify-content: space-between; align-items: baseline; gap: 1.5rem; font-family: var(--mono); font-size: 0.8125rem; padding: 0.625rem 0.875rem; border-bottom: 1px solid var(--panel-rule); }
+  .bt-k { color: var(--panel-ink); }
+  .bt-v { color: var(--copper); white-space: nowrap; font-size: 0.9375rem; }
   .bench-teaser .provenance a { color: var(--copper); text-decoration: none; }
 
   /* the depth gauge */

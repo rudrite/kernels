@@ -1,0 +1,47 @@
+---
+// Progressive enhancement for every code block inside a panel: a copy button
+// in the top corner. No framework, no markup changes at the source; blocks
+// read fine without JS.
+---
+
+<script>
+  const pres = Array.from(document.querySelectorAll<HTMLPreElement>('.panel pre'))
+  for (const pre of pres) {
+    if (pre.closest('.pal')) continue
+    if ((pre.textContent ?? '').trim().length < 20) continue
+    pre.style.position = 'relative'
+    const btn = document.createElement('button')
+    btn.type = 'button'
+    btn.className = 'copy-btn'
+    btn.textContent = 'copy'
+    btn.setAttribute('aria-label', 'Copy code')
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(pre.textContent ?? '')
+        btn.textContent = 'copied ✓'
+        btn.classList.add('ok')
+      } catch {
+        btn.textContent = 'select + copy'
+      }
+      setTimeout(() => {
+        btn.textContent = 'copy'
+        btn.classList.remove('ok')
+      }, 1600)
+    })
+    pre.appendChild(btn)
+  }
+</script>
+
+<style is:global>
+  .copy-btn {
+    position: absolute; top: 0.4rem; right: 0.4rem;
+    font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.06em;
+    background: #1a1d21; color: var(--panel-mute);
+    border: 1px solid var(--panel-rule); border-radius: 2px;
+    padding: 0.2rem 0.5rem; cursor: pointer;
+    opacity: 0; transition: opacity 120ms;
+  }
+  .panel pre:hover .copy-btn, .copy-btn:focus-visible { opacity: 1; }
+  .copy-btn:hover { color: var(--copper); border-color: var(--copper); }
+  .copy-btn.ok { color: var(--pass); border-color: var(--pass); opacity: 1; }
+</style>

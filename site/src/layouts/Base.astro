@@ -10,6 +10,7 @@ import '../styles/global.css'
 import Lockup from '../components/Lockup.astro'
 import ProgressKit from '../components/ProgressKit.astro'
 import SearchPalette from '../exhibits/SearchPalette'
+import CodeChrome from '../components/CodeChrome.astro'
 import { SEARCH_INDEX } from '../lib/search-index'
 
 interface Props {
@@ -66,6 +67,7 @@ const ogImage = new URL(`/og/${ogSlug}.png`, Astro.site)
     </footer>
     <SearchPalette index={SEARCH_INDEX} client:load />
     <ProgressKit />
+    <CodeChrome />
   </body>
 </html>
 
