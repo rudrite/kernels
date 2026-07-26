@@ -178,7 +178,7 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
           </p>
         </div>
         <div class="panel bench-teaser">
-          <div class="bt-head">roofline-predicted floors · v5e · hardware rows replace these</div>
+          <div class="bt-head">measured on v6e-1 · the power rows · full provenance on the bench</div>
           {benchTeaser.map((r) => (
             <div class="bt-row"><span class="bt-k">{r.kernel}</span><span class="bt-v">{r.value}</span></div>
           ))}
@@ -302,9 +302,9 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
   .ws-head { display: block; margin-bottom: 0.625rem; color: var(--copper-deep); }
   .ws-prose p { font-family: var(--serif); font-size: 1rem; line-height: 1.65; color: var(--ink); }
   .bt-head { font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--panel-mute); padding: 0.75rem 0.875rem; border-bottom: 1px solid var(--panel-rule); }
-  .bt-row { display: flex; justify-content: space-between; align-items: baseline; gap: 1.5rem; font-family: var(--mono); font-size: 0.8125rem; padding: 0.625rem 0.875rem; border-bottom: 1px solid var(--panel-rule); }
-  .bt-k { color: var(--panel-ink); }
-  .bt-v { color: var(--copper); white-space: nowrap; font-size: 0.9375rem; }
+  .bt-row { display: flex; flex-direction: column; gap: 0.25rem; font-family: var(--mono); font-size: 0.8125rem; padding: 0.625rem 0.875rem; border-bottom: 1px solid var(--panel-rule); }
+  .bt-k { color: var(--panel-mute); font-size: 0.6875rem; letter-spacing: 0.05em; }
+  .bt-v { color: var(--copper); font-size: 0.9375rem; overflow-wrap: break-word; }
   .bench-teaser .provenance a { color: var(--copper); text-decoration: none; }
 
   /* the depth gauge */
