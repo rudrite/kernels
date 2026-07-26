@@ -37,7 +37,7 @@ const MOTIFS: Record<string, string[]> = {
   mosaic: ['(8, 128) register tiles · VLIW bundles', 'you read its errors; you never write it'],
   tpu: [
     `${(v5e.bf16FlopsPerSec / 1e12).toFixed(0)} bf16 TFLOP/s · ${(v5e.hbmBytesPerSec / 1e9).toFixed(0)} GB/s HBM`,
-    `${(v5e.vmemBytes! / 1048576).toFixed(0)} MiB VMEM · ridge ${(v5e.bf16FlopsPerSec / v5e.hbmBytesPerSec).toFixed(0)} F/B`,
+    `ridge ${(v5e.bf16FlopsPerSec / v5e.hbmBytesPerSec).toFixed(0)} F/B · the GPU for contrast: warps, not pipelines`,
   ],
   ici: [`${(v5e.iciBytesPerSecOneWay / 1e9).toFixed(1)} GB/s per link, each way · chips form rings`],
 }

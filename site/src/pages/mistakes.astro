@@ -1,6 +1,7 @@
 ---
 import { Code } from 'astro:components'
 import Base from '../layouts/Base.astro'
+import Rich from '../components/Rich.astro'
 import mistakes from '../data/mistakes.json'
 
 interface Mistake {
@@ -44,7 +45,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
             <span class="wtag">exhibit<br />{pad(i + 1)}/{pad(entries.length)}</span>
             <article>
               <h2 class="wh2">{m.title}</h2>
-              <p class="why">{m.why}</p>
+              <p class="why"><Rich text={m.why} /></p>
               <div class="pair">
                 <figure class="panel half">
                   <figcaption class="provenance top fail">the failing code</figcaption>

@@ -3,7 +3,7 @@
 // its fusion ops lit and the spill-carrying lines flagged. Dumps captured
 // on a real TPU by labs/capture-hlo.ipynb; nothing retyped, no line pairing
 // invented: fusion rewrites wholesale, so each side explains itself.
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import pairs from '../data/hlo-pairs.json'
 
 const COPPER = '#c88a70'
@@ -27,6 +27,21 @@ const SPILL_TOKEN: Record<string, string> = {
   attention: 'bf16[1024,1024]',
   mlp: 'bf16[256,2048]',
   softmax: 'bf16[1024,512]',
+}
+
+// deterministic syntax tint, same regex server and client; vesper family
+const TOKEN_RE = /(\btensor<[^>]+>|\b(?:bf16|f32|f16|s32|i32|u32|u8|pred)\[[^\]]*\]|\bstablehlo\.\w+|\bfunc\.func\b|kind=k\w+|%[\w.]+|\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)/g
+const tint = (line: string): ReactNode[] => {
+  const parts = line.split(TOKEN_RE)
+  return parts.map((part, i) => {
+    if (i % 2 === 0) return part
+    let color = '#c9cdd1'
+    if (part.startsWith('tensor<') || /^\w+\[/.test(part)) color = '#8fa8bb'
+    else if (part.startsWith('stablehlo.') || part === 'func.func' || part.startsWith('kind=')) color = '#e8b088'
+    else if (part.startsWith('%')) color = '#b7bfc7'
+    else color = '#a8c4b0'
+    return <span key={i} style={{ color }}>{part}</span>
+  })
 }
 
 const classify = (line: string): { cls: string; note: string } => {
@@ -74,7 +89,7 @@ export default function FusionXray() {
               className={`ln ${cls} ${spill ? 'spill' : ''}`}
               onMouseEnter={() => setNote(spill ? `${lineNote} · carries ${spillToken}: the spill, visible in the plan` : lineNote)}
             >
-              {line || ' '}
+              {line ? tint(line) : ' '}
               {'\n'}
             </span>
           )
@@ -128,8 +143,9 @@ export default function FusionXray() {
         .fxray pre { margin: 0; padding: 0.5rem 0.75rem; overflow: auto; max-height: 28rem; font-size: 0.75rem; line-height: 1.7; }
         .fxray .ln { display: block; white-space: pre; color: ${PANEL_MUTE}; opacity: 0.85; cursor: default; }
         .fxray .ln.dim { opacity: 0.45; }
+        .fxray .ln.dim span { color: inherit !important; }
         .fxray .ln.hot { color: ${PANEL_INK}; opacity: 1; }
-        .fxray .ln.fus { color: ${COPPER}; opacity: 1; }
+        .fxray .ln.fus, .fxray .ln.fus span { color: ${COPPER} !important; opacity: 1; }
         .fxray .ln.spill { text-decoration: underline; text-decoration-color: ${FAIL}; text-underline-offset: 3px; }
 
         .fxray .legend { font-size: 0.6875rem; color: ${PANEL_MUTE}; padding: 0.625rem 0.125rem 0; margin: 0; }

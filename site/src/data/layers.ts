@@ -226,7 +226,7 @@ func.func @transform_1(%arg0: i32, %arg1: i32, %arg2: i32) -> (i32, i32) {
   },
   {
     id: 'tpu',
-    title: 'TPU chip',
+    title: 'The machines',
     lede: 'Two compute units, one scratchpad, one far memory. Every performance question resolves here.',
     sections: [
       {

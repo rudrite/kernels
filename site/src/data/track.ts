@@ -453,7 +453,7 @@ export const LAYERS: Layer[] = [
   },
   { id: 'pallas', label: 'Pallas', desc: 'Hand choreography: BlockSpecs, grids, VMEM residency, DMA.', kind: 'layer' },
   { id: 'mosaic', label: 'Mosaic → LLO', desc: 'The TPU backend. Kernels compile here; you never touch it.', kind: 'layer' },
-  { id: 'tpu', label: 'TPU chip', desc: 'MXU, VPU, VMEM, HBM. Where all the time is actually spent.', kind: 'layer' },
+  { id: 'tpu', label: 'The machines', desc: 'MXU, VPU, VMEM, HBM. Where all the time is actually spent; the GPU taught alongside, for contrast.', kind: 'layer' },
   { id: 'ici', label: 'ICI ⇄ chips', desc: 'The inter-chip links. Collectives are kernels here too.', kind: 'ici' },
 ]
 
