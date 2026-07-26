@@ -4,6 +4,7 @@ import Rich from '../../components/Rich.astro'
 import TitleBlock from '../../components/TitleBlock.astro'
 import SectionHead from '../../components/SectionHead.astro'
 import ReadingRails from '../../components/ReadingRails.astro'
+import PathPager from '../../components/PathPager.astro'
 import GateStamp from '../../components/GateStamp.astro'
 import LabCard from '../../components/LabCard.astro'
 import Spine from '../../components/Spine.astro'
@@ -39,8 +40,6 @@ export function getStaticPaths() {
 }
 
 const { stage } = Astro.props
-const prev = STAGES.find((s) => s.num === stage.num - 1)
-const next = STAGES.find((s) => s.num === stage.num + 1)
 
 const tracesByStage: Record<string, { designator: string; trace: TraceDoc }[]> = {
   pallas: [
@@ -280,10 +279,7 @@ const toc = [...chapterToc, ...fixedToc]
         <p class="artifact prose">Public artifact for this stage: {stage.artifact.replace(/^Explainers?: /, '')}.</p>
       </section>
 
-      <nav class="pager" aria-label="The path">
-        {prev ? <a href={`/s/${prev.id}`}>← ch {String(10 + prev.num).padStart(2, '0')} · {prev.title}</a> : <a href="/l/ici">← ch 09 · ICI ⇄ chips</a>}
-        {next ? <a href={`/s/${next.id}`}>ch {String(10 + next.num).padStart(2, '0')} · {next.title} →</a> : <a href="/bench">the bench →</a>}
-      </nav>
+      <PathPager chapterKey={`s:${stage.id}`} />
     </article>
 
     <aside class="right">
@@ -313,8 +309,6 @@ const toc = [...chapterToc, ...fixedToc]
           <span class="rail-head">part of</span>
           <ul>
             <li><a href="/">the path · fifteen chapters</a></li>
-            {prev && <li><a href={`/s/${prev.id}`}>before: {prev.title}</a></li>}
-            {next && <li><a href={`/s/${next.id}`}>next: {next.title}</a></li>}
           </ul>
         </div>
         <div>
@@ -360,7 +354,4 @@ const toc = [...chapterToc, ...fixedToc]
   .canyou-panel { padding-top: 0.5rem; }
   .artifact { margin-top: 1rem; color: var(--ink-mute); }
 
-  .pager { display: flex; justify-content: space-between; gap: 1rem; margin-top: 3.5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 0.8125rem; }
-  .pager a { text-decoration: none; color: var(--ink-mute); }
-  .pager a:hover { color: var(--copper-deep); }
 </style>

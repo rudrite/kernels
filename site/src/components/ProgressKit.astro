@@ -4,12 +4,9 @@
 // element carrying the data attributes below; pages opt in by rendering them.
 // No accounts, no network: localStorage only, and the site reads fine
 // without JS (the decorations simply stay absent).
-import { LAYERS, STAGES } from '../data/track'
+import { PATH as PATH_SOURCE } from '../lib/path'
 
-const PATH = [
-  ...LAYERS.map((l) => ({ key: `l:${l.id}`, href: `/l/${l.id}`, label: l.label })),
-  ...STAGES.map((s) => ({ key: `s:${s.id}`, href: `/s/${s.id}`, label: `stage ${s.num} · ${s.title}` })),
-]
+const PATH = PATH_SOURCE.map((c) => ({ key: c.key, href: c.href, label: c.title }))
 ---
 
 <script is:inline define:vars={{ PATH }}>

@@ -5,6 +5,7 @@ import Spine from '../../components/Spine.astro'
 import Rich from '../../components/Rich.astro'
 import SectionHead from '../../components/SectionHead.astro'
 import ReadingRails from '../../components/ReadingRails.astro'
+import PathPager from '../../components/PathPager.astro'
 import { LAYERS, STAGES } from '../../data/track'
 import { LAYER_DOCS, layerDoc } from '../../data/layers'
 import irData from '../../data/ir-attention.json'
@@ -16,9 +17,6 @@ export function getStaticPaths() {
 const { doc } = Astro.props
 const order = LAYERS.map((l) => l.id)
 const idx = order.indexOf(doc.id)
-const prev = idx > 0 ? layerDoc(order[idx - 1]!) : undefined
-const next = idx < order.length - 1 ? layerDoc(order[idx + 1]!) : undefined
-const layer = LAYERS[idx]!
 const drillStage = doc.drills ? STAGES.find((s) => s.id === doc.drills!.stage) : undefined
 
 const irText = (which: 'source' | 'jaxpr' | 'stablehlo', lines?: [number, number]) => {
@@ -75,18 +73,15 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
       {
         drillStage && doc.drills && (
           <section class="block">
-            <a class="drill" href={`/s/${drillStage.id}`}>
-              <span class="mono-label">hands-on</span>
-              <span class="dtext">{doc.drills.label} →</span>
-            </a>
+            <div class="drill">
+              <span class="mono-label">later on the path</span>
+              <span class="dtext">{doc.drills.label} (chapter {String(10 + drillStage.num).padStart(2, '0')}). Keep descending; the path arrives there in order.</span>
+            </div>
           </section>
         )
       }
 
-      <nav class="pager" aria-label="Layers">
-        {prev ? <a href={`/l/${prev.id}`}>← up · {prev.title}</a> : <a href="/">← the map</a>}
-        {next ? <a href={`/l/${next.id}`}>descend · {next.title} →</a> : <a href="/s/machine">continue the path · chapter 10, stage 0 →</a>}
-      </nav>
+      <PathPager chapterKey={`l:${doc.id}`} />
     </article>
 
     <aside class="right">
@@ -108,8 +103,6 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
           <span class="rail-head">part of</span>
           <ul>
             <li><a href="/">the path · fifteen chapters</a></li>
-            {prev && <li><a href={`/l/${prev.id}`}>before: {prev.title}</a></li>}
-            {next ? <li><a href={`/l/${next.id}`}>next: {next.title}</a></li> : <li><a href="/s/machine">next: stage 0, the machine</a></li>}
           </ul>
         </div>
       </div>
@@ -135,11 +128,6 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
   .codefig .top { border-top: none; border-bottom: 1px solid var(--panel-rule); }
   .codebody :global(pre) { margin: 0; padding: 0.875rem; overflow-x: auto; font-size: 0.75rem; line-height: 1.6; background: transparent !important; }
 
-  .drill { display: inline-flex; flex-direction: column; gap: 0.375rem; border: 1px solid var(--ink); background: var(--paper-high); padding: 0.875rem 1.125rem; text-decoration: none; }
-  .drill:hover .dtext { color: var(--copper-deep); }
-  .dtext { font-family: var(--mono); font-size: 0.875rem; }
-
-  .pager { display: flex; justify-content: space-between; gap: 1rem; margin-top: 3.5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 0.8125rem; }
-  .pager a { text-decoration: none; color: var(--ink-mute); }
-  .pager a:hover { color: var(--copper-deep); }
+  .drill { display: inline-flex; flex-direction: column; gap: 0.375rem; border: 1px solid var(--rule); background: var(--paper-high); padding: 0.875rem 1.125rem; }
+  .dtext { font-family: var(--mono); font-size: 0.8125rem; color: var(--ink-mute); }
 </style>

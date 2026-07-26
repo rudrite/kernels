@@ -1,0 +1,39 @@
+---
+// The one next control. Every chapter page renders exactly one of these and
+// no other forward-pointing navigation; order comes from lib/path.ts alone.
+import { chapterAt } from '../lib/path'
+
+interface Props {
+  chapterKey: string
+}
+const { chapterKey } = Astro.props
+const { prev, next } = chapterAt(chapterKey)
+const pad = (n: number) => String(n).padStart(2, '0')
+---
+
+<nav class="pathpager" aria-label="The path">
+  {prev ? <a class="pp-prev" href={prev.href}>← ch {pad(prev.num)} · {prev.title}</a> : <a class="pp-prev" href="/">← the path</a>}
+  {
+    next ? (
+      <a class="pp-next" href={next.href}>
+        <span class="pp-k">next on the path</span>
+        <span class="pp-t">ch {pad(next.num)} · {next.title} →</span>
+      </a>
+    ) : (
+      <a class="pp-next" href="/bench">
+        <span class="pp-k">the path ends here</span>
+        <span class="pp-t">the bench holds the receipts →</span>
+      </a>
+    )
+  }
+</nav>
+
+<style>
+  .pathpager { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; margin-top: 3.5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); }
+  .pp-prev { font-family: var(--mono); font-size: 0.75rem; color: var(--ink-mute); text-decoration: none; }
+  .pp-prev:hover { color: var(--copper-deep); }
+  .pp-next { display: inline-flex; flex-direction: column; gap: 0.25rem; align-items: flex-end; text-align: right; text-decoration: none; border: 1px solid var(--copper-deep); background: var(--paper-high); padding: 0.625rem 0.875rem; border-radius: 2px; }
+  .pp-next:hover { background: var(--paper); }
+  .pp-k { font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-mute); }
+  .pp-t { font-family: var(--mono); font-size: 0.8125rem; color: var(--copper-deep); }
+</style>
