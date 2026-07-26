@@ -73,6 +73,13 @@ Missing, by layer:
 - [ ] Layouts: {1,0} notation, when layout changes are inserted
 - [ ] The memory report: reading the vmem breakdown (museum exhibit 07 tie-in)
 - [ ] xla_dump flags: getting and navigating the artifacts
+- [ ] The same compiler, other machines: XLA:GPU at awareness level; fully
+      open in openxla/xla but partly a dispatcher (cuBLAS, cuDNN, Triton
+      codegen, NCCL) where XLA:TPU compiles everything itself; the fusion
+      ceiling and the algorithm-failure lesson are backend-independent
+      (flash exists on GPU for the same reason); every stack ends in a
+      vendor black box, LLO/libtpu on TPU and ptxas/SASS on GPU, only the
+      boundary moves (ties into chapter 07's last-readable-layer story)
 
 ## 5. Mosaic deepening (chapter 07), partially done 2026-07-26
 
