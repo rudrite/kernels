@@ -4,12 +4,13 @@ import type { Stage } from '../data/track'
 
 interface Props {
   stage: Stage
+  variant?: 'dark'
 }
-const { stage } = Astro.props
+const { stage, variant } = Astro.props
 const gateLabel = { queued: 'QUEUED', active: 'OPEN', passed: 'PASSED', failed: 'FAILED' }[stage.gate.state]
 ---
 
-<div class="tb" role="group" aria-label={`Stage ${stage.num}: ${stage.title}`}>
+<div class={`tb ${variant === 'dark' ? 'tb-dark' : ''}`} role="group" aria-label={`Stage ${stage.num}: ${stage.title}`}>
   <div class="cell num">
     <span class="k">stage</span>
     <span class="v big">{String(stage.num).padStart(2, '0')}</span>
@@ -48,5 +49,12 @@ const gateLabel = { queued: 'QUEUED', active: 'OPEN', passed: 'PASSED', failed: 
     .tb { grid-template-columns: auto 1fr; }
     .cell:nth-child(3) { border-left: none; border-top: 1px solid var(--ink); }
     .cell:nth-child(4) { border-top: 1px solid var(--ink); }
+  }
+  .tb-dark { border-color: #4a525a; background: #1a1d21; color: var(--panel-ink); }
+  .tb-dark .cell + .cell { border-left-color: #4a525a; }
+  .tb-dark .k { color: var(--panel-mute); }
+  .tb-dark .big { color: var(--copper); }
+  @media (max-width: 640px) {
+    .tb-dark .cell:nth-child(3), .tb-dark .cell:nth-child(4) { border-top-color: #4a525a; }
   }
 </style>

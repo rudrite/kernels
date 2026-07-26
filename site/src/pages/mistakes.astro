@@ -1,7 +1,6 @@
 ---
 import { Code } from 'astro:components'
 import Base from '../layouts/Base.astro'
-import SectionHead from '../components/SectionHead.astro'
 import mistakes from '../data/mistakes.json'
 
 interface Mistake {
@@ -13,56 +12,64 @@ interface Mistake {
   why: string
 }
 const entries = mistakes as Mistake[]
+const pad = (n: number) => String(n).padStart(2, '0')
 ---
 
 <Base
   title="The mistake museum — Rudrite Kernels"
   description="Six real Pallas failures, reproduced and captured: the failing code, the exact error text, the fix, and the rule that prevents each."
 >
-  <section class="wrap head">
-    <p class="mono-label kicker">the mistake museum · assigned reading in chapter 11</p>
-    <h1>Meet every failure in a toy first.</h1>
-    <p class="prose lede">
-      Each exhibit here was reproduced for real: the snippet ran, the error text is what the interpreter
-      actually said (captured verbatim, paths shortened), and the fix runs clean. Read them before your
-      first kernel and again after it; the error messages start making sense the second time.
-    </p>
-  </section>
+  <div class="ws-ground">
+    <section class="wband">
+      <div class="wrap wgrid">
+        <span class="wtag">the museum</span>
+        <div>
+          <p class="mono-label serves">assigned reading in chapter 11 · every error below was reproduced for real; the text is what the interpreter said</p>
+          <h1 class="wh1">Meet every failure in a toy first.</h1>
+          <p class="wlede">
+            Each exhibit ran, failed, and was captured: the snippet, the verbatim error (paths shortened),
+            the fix, and the rule that prevents it. Read them before your first kernel and again after;
+            the error messages start making sense the second time.
+          </p>
+        </div>
+      </div>
+    </section>
 
-  <section class="wrap block">
     {
       entries.map((m, i) => (
-        <article class="mistake">
-          <SectionHead id={m.id} eyebrow={`exhibit ${String(i + 1).padStart(2, '0')} of ${entries.length}`} title={m.title} />
-          <p class="prose why">{m.why}</p>
-          <div class="pair">
-            <figure class="panel half">
-              <figcaption class="provenance top fail">the failing code</figcaption>
-              <div class="codebody"><Code code={m.snippet} lang="python" theme="vesper" /></div>
-              <figcaption class="provenance err">{m.error}</figcaption>
-            </figure>
-            <figure class="panel half">
-              <figcaption class="provenance top pass">the fix</figcaption>
-              <div class="codebody"><Code code={m.fix} lang="python" theme="vesper" /></div>
-            </figure>
+        <section class={`wband ${i % 2 === 1 ? 'alt' : ''}`} id={m.id}>
+          <div class="wrap wgrid">
+            <span class="wtag">exhibit<br />{pad(i + 1)}/{pad(entries.length)}</span>
+            <article>
+              <h2 class="wh2">{m.title}</h2>
+              <p class="why">{m.why}</p>
+              <div class="pair">
+                <figure class="panel half">
+                  <figcaption class="provenance top fail">the failing code</figcaption>
+                  <div class="codebody"><Code code={m.snippet} lang="python" theme="vesper" /></div>
+                  <figcaption class="provenance err">{m.error}</figcaption>
+                </figure>
+                <figure class="panel half">
+                  <figcaption class="provenance top pass">the fix</figcaption>
+                  <div class="codebody"><Code code={m.fix} lang="python" theme="vesper" /></div>
+                </figure>
+              </div>
+            </article>
           </div>
-        </article>
+        </section>
       ))
     }
-  </section>
+  </div>
 </Base>
 
 <style>
-  .head { padding-block: clamp(2.5rem, 6vw, 4rem) 1rem; }
-  .kicker { display: block; margin-bottom: 1.25rem; color: var(--copper-deep); }
-  h1 { font-size: clamp(1.875rem, 4.5vw, 2.75rem); font-weight: 600; letter-spacing: -0.01em; }
-  .lede { margin-top: 1.25rem; font-size: 1.125rem; }
-  .block { padding-block: 1.5rem 0.5rem; }
-  .mistake { margin-block: 2.5rem; }
-  .why { margin-bottom: 1.25rem; }
+  .serves { margin-bottom: 1rem; letter-spacing: 0.04em; }
+  .wband.alt { background: #15171b; }
+  h2.wh2 { margin-bottom: 0.75rem; }
+  .why { font-family: var(--serif); font-size: 1rem; line-height: 1.7; color: var(--panel-ink); max-width: 66ch; margin-bottom: 1.25rem; }
   .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; align-items: start; }
   @media (max-width: 1100px) { .pair { grid-template-columns: 1fr; } }
-  .half { margin: 0; }
+  .half { margin: 0; border-color: #2f343a; }
   .half .top { border-top: none; border-bottom: 1px solid var(--panel-rule); }
   .half .top.fail { color: var(--fail); }
   .half .top.pass { color: var(--pass); }

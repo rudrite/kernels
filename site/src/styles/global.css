@@ -200,3 +200,33 @@ main {
 }
 .lab-toggle:hover { border-color: var(--copper); color: var(--copper); }
 .lab-toggle.done { border-color: var(--pass); color: var(--pass); }
+
+/* ---- the depth system, site-wide ---- */
+.depth-0 { background: #f4f5f2; }
+.depth-1 { background: #edeee9; }
+.depth-2 { background: #e5e6e0; }
+.depth-3 { background: #dcded7; }
+.depth-gap { background: repeating-linear-gradient(-45deg, #d2d4cc, #d2d4cc 6px, #c8cac2 6px, #c8cac2 7px); }
+.depth-5 { background: #23262b; }
+.depth-6 { background: #1b1e22; }
+.depth-7 { background: #15171b; }
+.depth-8 { background: #101215; }
+.depth-dark { color: var(--panel-ink); }
+.depth-dark .mono-label { color: var(--panel-mute); }
+.depth-dark .kicker { color: var(--copper); }
+
+/* dark workshop pages: gym, mistakes, bench */
+.ws-ground { background: #101215; color: var(--panel-ink); }
+.ws-ground .mono-label { color: var(--panel-mute); }
+.wband { border-top: 1px solid var(--panel-rule); }
+.wband-light { background: var(--paper); color: var(--ink); border-top: 1px solid var(--rule); }
+.wband-light .mono-label { color: var(--ink-mute); }
+.wgrid { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: 2rem; padding-block: 2.5rem; }
+@media (max-width: 860px) { .wgrid { grid-template-columns: 1fr; } }
+.wtag { font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.11em; text-transform: uppercase; color: var(--copper); }
+.wband-light .wtag { color: var(--copper-deep); }
+.wh1 { font-family: var(--serif); font-weight: 600; font-size: clamp(1.875rem, 4.5vw, 2.75rem); letter-spacing: -0.01em; line-height: 1.1; }
+.wh2 { font-family: var(--serif); font-weight: 600; font-size: clamp(1.375rem, 2.6vw, 1.75rem); letter-spacing: -0.01em; }
+.wlede { margin-top: 1rem; font-size: 1.0625rem; line-height: 1.65; color: var(--panel-mute); max-width: 62ch; font-family: var(--serif); }
+.wband-light .wlede { color: var(--ink-mute); }
+.ws-ground .provenance a, .ws-ground a { text-decoration-color: var(--copper); }

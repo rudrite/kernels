@@ -23,83 +23,96 @@ const records = results as BenchRecord[]
   title="Bench — Rudrite Kernels"
   description="Every number the site shows, with provenance: chip generation, dtype, shapes, date, commit."
 >
-  <section class="wrap head">
-    <p class="mono-label kicker">the bench</p>
-    <h1>Every number, with provenance.</h1>
-    <p class="prose lede">
-      Nothing quantitative appears on this site outside an instrument, and every value states what it is:
-      rows marked <span class="meas">predicted</span> or <span class="meas">computed</span> are
-      roofline-derived, rows marked <span class="meas">cpu interpret</span> or
-      <span class="meas">simulated devices</span> are verified kernel runs off-chip, and hardware rows
-      replace both as gates are attempted on real TPUs. Each record states chip, dtype, shapes, date,
-      and the lab that produced it.
-    </p>
-  </section>
-
-  <section class="wrap">
-    {
-      records.length === 0 ? (
-        <div class="panel empty">
-          <div class="body">no records yet · the first rows land when Gate 00 is attempted</div>
-          <div class="provenance">records live in bench/results.json in the repo, one JSON object per measurement</div>
+  <div class="ws-ground">
+    <section class="wband">
+      <div class="wrap wgrid">
+        <span class="wtag">the bench</span>
+        <div>
+          <p class="mono-label serves">where the gates land · rows marked predicted or computed are roofline-derived · cpu-interpret and simulated rows are verified off-chip · hardware rows replace both</p>
+          <h1 class="wh1">Every number, with provenance.</h1>
+          <p class="wlede">
+            Nothing quantitative appears on this site outside an instrument, and every value states what
+            it is. Each record carries chip, dtype, shapes, date, and the lab that produced it; gate
+            verdicts on the chapter pages resolve to rows here.
+          </p>
         </div>
-      ) : (
-        <div class="panel table-panel">
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">id</th>
-                <th scope="col">kernel</th>
-                <th scope="col">metric</th>
-                <th scope="col">value</th>
-                <th scope="col">baseline</th>
-                <th scope="col">chip</th>
-                <th scope="col">dtype</th>
-                <th scope="col">shapes</th>
-                <th scope="col">date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {records.map((r) => (
-                <tr>
-                  <td>{r.id}</td>
-                  <td>{r.kernel}</td>
-                  <td>{r.metric}</td>
-                  <td class="val">{r.value}</td>
-                  <td>{r.baseline}</td>
-                  <td>{r.chip}</td>
-                  <td>{r.dtype}</td>
-                  <td>{r.shapes}</td>
-                  <td>{r.date}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )
-    }
-  </section>
+      </div>
+    </section>
 
-  <section class="wrap compare-section">
-    <p class="mono-label sec">compare your chip</p>
-    <p class="prose sec-lede">
-      Ran a lab? Paste the results blob its final cell printed and see your numbers against the published
-      records. Nothing leaves your browser.
-    </p>
-    <div class="panel"><BenchCompare client:visible /></div>
-  </section>
+    <section class="wband" id="records">
+      <div class="wrap wgrid">
+        <span class="wtag">records<br />{String(records.length).padStart(2, '0')}</span>
+        <div>
+          <h2 class="wh2">The record</h2>
+          {
+            records.length === 0 ? (
+              <div class="panel empty">
+                <div class="body">no records yet · the first rows land when Gate 00 is attempted</div>
+                <div class="provenance">records live in bench/results.json in the repo, one JSON object per measurement</div>
+              </div>
+            ) : (
+              <div class="panel table-panel">
+                <table>
+                  <thead>
+                    <tr>
+                      <th scope="col">id</th>
+                      <th scope="col">kernel</th>
+                      <th scope="col">metric</th>
+                      <th scope="col">value</th>
+                      <th scope="col">baseline</th>
+                      <th scope="col">chip</th>
+                      <th scope="col">dtype</th>
+                      <th scope="col">shapes</th>
+                      <th scope="col">date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {records.map((r) => (
+                      <tr>
+                        <td>{r.id}</td>
+                        <td>{r.kernel}</td>
+                        <td>{r.metric}</td>
+                        <td class="val">{r.value}</td>
+                        <td>{r.baseline}</td>
+                        <td>{r.chip}</td>
+                        <td>{r.dtype}</td>
+                        <td>{r.shapes}</td>
+                        <td>{r.date}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="wband alt" id="compare">
+      <div class="wrap wgrid">
+        <span class="wtag">compare</span>
+        <div>
+          <h2 class="wh2">Your chip against the record</h2>
+          <p class="wlede narrow">
+            Ran a lab? Paste the results blob its final cell printed. Parsed in your browser; nothing you
+            paste is sent anywhere.
+          </p>
+          <div class="panel compare-panel"><BenchCompare client:visible /></div>
+        </div>
+      </div>
+    </section>
+  </div>
 </Base>
 
 <style>
-  .head { padding-block: clamp(3rem, 7vw, 4.5rem) 2rem; }
-  .kicker { display: block; margin-bottom: 1.25rem; color: var(--copper-deep); }
-  h1 { font-size: clamp(1.875rem, 4.5vw, 2.75rem); font-weight: 600; letter-spacing: -0.01em; }
-  .lede { margin-top: 1.25rem; }
+  .serves { margin-bottom: 1rem; letter-spacing: 0.04em; max-width: 70ch; }
+  h2.wh2 { margin-bottom: 1rem; }
+  .wlede.narrow { margin-bottom: 1.25rem; }
+  .wband.alt { background: #15171b; }
   .empty .body { padding: 2.25rem 1rem; text-align: center; font-size: 0.8125rem; color: var(--panel-mute); }
-  .compare-section { margin-top: 3rem; }
-  .compare-section .sec { display: block; margin-bottom: 0.5rem; }
-  .compare-section .sec-lede { color: var(--ink-mute); margin-bottom: 1rem; }
-  .table-panel { overflow-x: auto; }
+  .table-panel { overflow-x: auto; border-color: #2f343a; }
+  .compare-panel { border-color: #2f343a; }
   table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
   th { text-align: left; font-weight: 500; font-size: 0.6875rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--panel-mute); padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--panel-rule); }
   td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--panel-rule); white-space: nowrap; }

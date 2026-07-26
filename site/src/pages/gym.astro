@@ -1,7 +1,6 @@
 ---
 import { Code } from 'astro:components'
 import Base from '../layouts/Base.astro'
-import SectionHead from '../components/SectionHead.astro'
 import Exhibit from '../components/Exhibit.astro'
 import DotDecoder from '../exhibits/DotDecoder'
 import ShapeOracle from '../exhibits/ShapeOracle'
@@ -26,96 +25,124 @@ const cards = Object.entries(opCards as Record<string, string>)
   title="The reading gym — Rudrite Kernels"
   description="Drills over a corpus of seventeen real programs: decode dimension_numbers on sight, predict shapes before the reveal, and read jaxpr and StableHLO until fluency."
 >
-  <section class="wrap head">
-    <p class="mono-label kicker">the reading gym · serves chapters 02, 03, 04, and 12</p>
-    <h1>Fluency is drills, not prose.</h1>
-    <p class="course-note mono-label">this page is not a detour: the path assigns each drill here at a specific chapter, with a streak target. Follow the assignments; the streaks check themselves off.</p>
-    <p class="prose lede">
-      Seventeen real programs, traced and dumped: every jaxpr and StableHLO here was generated, never
-      retyped, and every drill answer is computed from the same structured facts. Streaks persist in your
-      browser and nowhere else. The bar, from the path's chapter 11: read any dump on sight.
-    </p>
-  </section>
+  <div class="ws-ground">
+    <section class="wband">
+      <div class="wrap wgrid">
+        <span class="wtag">the gym</span>
+        <div>
+          <p class="mono-label serves">serves chapters 02 · 03 · 04 · 12 — the path assigns each drill with a streak target; the streaks check themselves off</p>
+          <h1 class="wh1">Fluency is drills, not prose.</h1>
+          <p class="wlede">
+            Seventeen real programs, traced and dumped: every jaxpr and StableHLO here was generated,
+            never retyped, and every drill answer is computed from the same structured facts. Streaks
+            persist in your browser and nowhere else. The bar, from chapter 12: read any dump on sight.
+          </p>
+        </div>
+      </div>
+    </section>
 
-  <section class="wrap block">
-    <SectionHead id="drills" eyebrow="active recall, one tap" title="The drills" />
-    <div class="drill-grid">
-      <Exhibit designator="GYM·01" title="the dot_general decoder" provenance="instances extracted from the corpus jaxprs · 10 in a row is the pass bar">
-        <DotDecoder client:visible />
-      </Exhibit>
-      <Exhibit designator="GYM·02" title="the shape oracle" provenance="equations sampled from 278 real eqns · distractors computed, never invented">
-        <ShapeOracle client:visible />
-      </Exhibit>
-    </div>
-    <div class="drill-wide">
-      <Exhibit designator="GYM·03" title="spot the decision" provenance="find the line the framework wrote for you: upcasts, hidden broadcasts, remat marks · targets computed by scanning the real dumps">
-        <SpotDecision client:visible />
-      </Exhibit>
-    </div>
-  </section>
-
-  <section class="wrap block">
-    <SectionHead id="xray" eyebrow="hover-synced, corpus-wide" title="The x-ray, on any program" />
-    <p class="prose sec-lede">
-      Pick a program and hover either column: the same computation lights at both layers. The mappings
-      are computed mechanically from op order; unmapped lines are conservative skips, never absences.
-    </p>
-    <Exhibit designator="GYM·04" title="the corpus x-ray" provenance="17 programs, 236 sync groups, all derived by the mapping script · nothing hand-drawn">
-      <CorpusXray client:visible />
-    </Exhibit>
-  </section>
-
-  <section class="wrap block">
-    <SectionHead id="corpus" eyebrow="seventeen real programs" title="The corpus" />
-    <p class="prose sec-lede">
-      Pick a program, read it at both layers, and narrate what you see. When a dump stops feeling like a
-      wall of text and starts reading like prose, move to a program you have not seen.
-    </p>
-    <div class="corpus-list">
-      {
-        programs.map((p) => (
-          <details class="panel prog">
-            <summary>
-              <span class="chev" aria-hidden="true">▸</span>
-              <span class="designator">{p.id}</span>
-              <span class="pt">{p.title}</span>
-              <span class="pn">{p.note}</span>
-              <span class="hint">source · jaxpr · stablehlo</span>
-            </summary>
-            <div class="dumps">
-              <div class="dump">
-                <div class="provenance top">source</div>
-                <Code code={p.source.join('\n')} lang="python" theme="vesper" />
-              </div>
-              <div class="dump">
-                <div class="provenance top">jaxpr</div>
-                <Code code={p.jaxpr.join('\n')} lang="haskell" theme="vesper" />
-              </div>
-              <div class="dump">
-                <div class="provenance top">stablehlo</div>
-                <Code code={p.stablehlo.join('\n')} lang="mlir" theme="vesper" />
-              </div>
-            </div>
-          </details>
-        ))
-      }
-    </div>
-  </section>
-
-  <section class="wrap block">
-    <SectionHead id="ops" eyebrow="every op the corpus uses" title="The op reference" />
-    <input type="search" class="op-filter" placeholder="filter ops: dot, reduce, convert…" aria-label="Filter ops" />
-    <dl class="cards">
-      {
-        cards.map(([op, text]) => (
-          <div class="card" data-op={op}>
-            <dt><code class="ri">{op}</code></dt>
-            <dd>{text}</dd>
+    <section class="wband" id="drills">
+      <div class="wrap wgrid">
+        <span class="wtag">drills<br />01-03</span>
+        <div>
+          <h2 class="wh2">Active recall, one tap</h2>
+          <div class="drill-grid">
+            <Exhibit designator="GYM·01" title="the dot_general decoder" provenance="instances extracted from the corpus jaxprs · 10 in a row is the fluency bar">
+              <DotDecoder client:visible />
+            </Exhibit>
+            <Exhibit designator="GYM·02" title="the shape oracle" provenance="equations sampled from 278 real eqns · distractors computed, never invented">
+              <ShapeOracle client:visible />
+            </Exhibit>
           </div>
-        ))
-      }
-    </dl>
-    <p class="mono-label no-match" hidden>no ops match</p>
+          <div class="drill-wide">
+            <Exhibit designator="GYM·03" title="spot the decision" provenance="find the line the framework wrote for you: upcasts, hidden broadcasts, remat marks · targets computed by scanning the real dumps">
+              <SpotDecision client:visible />
+            </Exhibit>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="wband" id="xray">
+      <div class="wrap wgrid">
+        <span class="wtag">drill 04</span>
+        <div>
+          <h2 class="wh2">The x-ray, on any program</h2>
+          <p class="wlede narrow">
+            Pick a program and hover either column: the same computation lights at both layers. The
+            mappings are computed mechanically from op order; unmapped lines are conservative skips,
+            never absences.
+          </p>
+          <Exhibit designator="GYM·04" title="the corpus x-ray" provenance="17 programs, 236 sync groups, all derived by the mapping script · nothing hand-drawn">
+            <CorpusXray client:visible />
+          </Exhibit>
+        </div>
+      </div>
+    </section>
+
+    <section class="wband" id="corpus">
+      <div class="wrap wgrid">
+        <span class="wtag">the corpus</span>
+        <div>
+          <h2 class="wh2">Seventeen real programs</h2>
+          <p class="wlede narrow">
+            Read them at every layer and narrate what you see. When a dump stops feeling like a wall of
+            text and starts reading like prose, move to one you have not seen.
+          </p>
+          <div class="corpus-list">
+            {
+              programs.map((p) => (
+                <details class="panel prog">
+                  <summary>
+                    <span class="chev" aria-hidden="true">▸</span>
+                    <span class="designator">{p.id}</span>
+                    <span class="pt">{p.title}</span>
+                    <span class="pn">{p.note}</span>
+                    <span class="hint">source · jaxpr · stablehlo</span>
+                  </summary>
+                  <div class="dumps">
+                    <div class="dump">
+                      <div class="provenance top">source</div>
+                      <Code code={p.source.join('\n')} lang="python" theme="vesper" />
+                    </div>
+                    <div class="dump">
+                      <div class="provenance top">jaxpr</div>
+                      <Code code={p.jaxpr.join('\n')} lang="haskell" theme="vesper" />
+                    </div>
+                    <div class="dump">
+                      <div class="provenance top">stablehlo</div>
+                      <Code code={p.stablehlo.join('\n')} lang="mlir" theme="vesper" />
+                    </div>
+                  </div>
+                </details>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="wband-light" id="ops">
+    <div class="wrap wgrid">
+      <span class="wtag">reference</span>
+      <div>
+        <h2 class="wh2">The op reference</h2>
+        <p class="wlede narrow">Back on paper to read: every op the corpus uses, one card each.</p>
+        <input type="search" class="op-filter" placeholder="filter ops: dot, reduce, convert…" aria-label="Filter ops" />
+        <dl class="cards">
+          {
+            cards.map(([op, text]) => (
+              <div class="card" data-op={op}>
+                <dt><code class="ri">{op}</code></dt>
+                <dd>{text}</dd>
+              </div>
+            ))
+          }
+        </dl>
+        <p class="mono-label no-match" hidden>no ops match</p>
+      </div>
+    </div>
   </section>
 
   <script>
@@ -136,27 +163,25 @@ const cards = Object.entries(opCards as Record<string, string>)
 </Base>
 
 <style>
-  .head { padding-block: clamp(2.5rem, 6vw, 4rem) 1rem; }
-  .kicker { display: block; margin-bottom: 1.25rem; color: var(--copper-deep); }
-  h1 { font-size: clamp(1.875rem, 4.5vw, 2.75rem); font-weight: 600; letter-spacing: -0.01em; }
-  .lede { margin-top: 1.25rem; font-size: 1.125rem; }
-  .course-note { margin-top: 0.875rem; color: var(--copper-deep); text-transform: none; letter-spacing: 0.02em; max-width: 60ch; line-height: 1.6; }
-  .block { padding-block: 2rem 0.5rem; }
-  .sec-lede { color: var(--ink-mute); margin-bottom: 1.25rem; }
+  .serves { margin-bottom: 1rem; letter-spacing: 0.04em; }
+  .wh1 + .wlede { margin-top: 1rem; }
+  .wlede.narrow { margin-bottom: 1.25rem; }
+  h2.wh2 { margin-bottom: 1rem; }
 
   .drill-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; align-items: start; }
   @media (max-width: 1000px) { .drill-grid { grid-template-columns: 1fr; } }
   .drill-wide { margin-top: 1.25rem; }
 
   .corpus-list { display: flex; flex-direction: column; gap: 0.5rem; }
+  .prog { border-color: #2f343a; }
   .prog summary { display: flex; gap: 1rem; align-items: baseline; padding: 0.75rem 0.875rem; cursor: pointer; list-style: none; }
   .prog summary::-webkit-details-marker { display: none; }
   .prog summary:hover { background: #16191d; }
-  .prog .chev { color: var(--copper); transition: none; }
+  .prog .chev { color: var(--copper); }
   .prog[open] .chev { display: inline-block; transform: rotate(90deg); }
-  .prog .hint { color: var(--panel-mute); font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.05em; }
   .prog .pt { color: var(--panel-ink); font-family: var(--mono); font-size: 0.875rem; }
   .prog .pn { color: var(--panel-mute); font-family: var(--mono); font-size: 0.75rem; flex: 1; }
+  .prog .hint { color: var(--panel-mute); font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.05em; }
   .prog[open] summary { border-bottom: 1px solid var(--panel-rule); }
   .dumps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--panel-rule); }
   @media (max-width: 1100px) { .dumps { grid-template-columns: 1fr; } }
