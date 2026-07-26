@@ -57,9 +57,11 @@ const cards = Object.entries(opCards as Record<string, string>)
         programs.map((p) => (
           <details class="panel prog">
             <summary>
+              <span class="chev" aria-hidden="true">▸</span>
               <span class="designator">{p.id}</span>
               <span class="pt">{p.title}</span>
               <span class="pn">{p.note}</span>
+              <span class="hint">source · jaxpr · stablehlo</span>
             </summary>
             <div class="dumps">
               <div class="dump">
@@ -83,17 +85,35 @@ const cards = Object.entries(opCards as Record<string, string>)
 
   <section class="wrap block">
     <SectionHead id="ops" eyebrow="every op the corpus uses" title="The op reference" />
-    <div class="cards">
+    <input type="search" class="op-filter" placeholder="filter ops: dot, reduce, convert…" aria-label="Filter ops" />
+    <dl class="cards">
       {
         cards.map(([op, text]) => (
-          <details class="panel card">
-            <summary><span class="designator">{op}</span></summary>
-            <p>{text}</p>
-          </details>
+          <div class="card" data-op={op}>
+            <dt><code class="ri">{op}</code></dt>
+            <dd>{text}</dd>
+          </div>
         ))
       }
-    </div>
+    </dl>
+    <p class="mono-label no-match" hidden>no ops match</p>
   </section>
+
+  <script>
+    const input = document.querySelector<HTMLInputElement>('.op-filter')
+    const entries = Array.from(document.querySelectorAll<HTMLElement>('.card[data-op]'))
+    const empty = document.querySelector<HTMLElement>('.no-match')
+    input?.addEventListener('input', () => {
+      const q = input.value.trim().toLowerCase()
+      let shown = 0
+      for (const el of entries) {
+        const hit = !q || (el.getAttribute('data-op') ?? '').toLowerCase().includes(q) || (el.textContent ?? '').toLowerCase().includes(q)
+        el.hidden = !hit
+        if (hit) shown++
+      }
+      if (empty) empty.hidden = shown > 0
+    })
+  </script>
 </Base>
 
 <style>
@@ -110,6 +130,10 @@ const cards = Object.entries(opCards as Record<string, string>)
   .corpus-list { display: flex; flex-direction: column; gap: 0.5rem; }
   .prog summary { display: flex; gap: 1rem; align-items: baseline; padding: 0.75rem 0.875rem; cursor: pointer; list-style: none; }
   .prog summary::-webkit-details-marker { display: none; }
+  .prog summary:hover { background: #16191d; }
+  .prog .chev { color: var(--copper); transition: none; }
+  .prog[open] .chev { display: inline-block; transform: rotate(90deg); }
+  .prog .hint { color: var(--panel-mute); font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.05em; }
   .prog .pt { color: var(--panel-ink); font-family: var(--mono); font-size: 0.875rem; }
   .prog .pn { color: var(--panel-mute); font-family: var(--mono); font-size: 0.75rem; flex: 1; }
   .prog[open] summary { border-bottom: 1px solid var(--panel-rule); }
@@ -119,9 +143,16 @@ const cards = Object.entries(opCards as Record<string, string>)
   .dump .top { border-top: none; border-bottom: 1px solid var(--panel-rule); }
   .dump :global(pre) { margin: 0; padding: 0.75rem; overflow-x: auto; font-size: 0.6875rem; line-height: 1.55; background: transparent !important; max-height: 26rem; overflow-y: auto; }
 
-  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.625rem; }
-  @media (max-width: 1000px) { .cards { grid-template-columns: 1fr; } }
-  .card summary { padding: 0.625rem 0.875rem; cursor: pointer; list-style: none; }
-  .card summary::-webkit-details-marker { display: none; }
-  .card p { padding: 0 0.875rem 0.75rem; font-size: 0.875rem; line-height: 1.55; color: var(--panel-ink); font-family: var(--serif); }
+  .op-filter {
+    font-family: var(--mono); font-size: 0.8125rem; color: var(--ink);
+    background: var(--paper-high); border: 1px solid var(--rule); border-radius: 2px;
+    padding: 0.5rem 0.75rem; width: min(100%, 24rem); margin-bottom: 1.25rem;
+  }
+  .op-filter:focus-visible { outline: 2px solid var(--copper-deep); outline-offset: 1px; }
+  .cards { columns: 2; column-gap: 2.5rem; margin: 0; }
+  @media (max-width: 900px) { .cards { columns: 1; } }
+  .card { break-inside: avoid; padding-block: 0.625rem; border-bottom: 1px solid var(--rule-soft); }
+  .card dt { margin-bottom: 0.25rem; }
+  .card dd { margin: 0; font-size: 0.9375rem; line-height: 1.6; color: var(--ink); font-family: var(--serif); }
+  .no-match { margin-top: 1rem; }
 </style>
