@@ -1,0 +1,11 @@
+#!/bin/sh
+# Rejects commit messages carrying AI attribution or internal references.
+# This repo is public; its history must stay clean by construction.
+msg_file="$1"
+pattern='[Cc]o-[Aa]uthored-[Bb]y|[Cc]laude|[Aa]nthropic|[Gg]enerated with|cartograph'
+if grep -qE "$pattern" "$msg_file"; then
+  echo "commit-msg hook: message contains attribution or internal references." >&2
+  echo "Blocked pattern group: $pattern" >&2
+  exit 1
+fi
+exit 0

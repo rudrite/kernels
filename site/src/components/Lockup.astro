@@ -1,0 +1,41 @@
+---
+// Rudrite lockup, kernels sub-brand. The voxel mark + VT323 wordmark are the
+// only brand elements shared across rudrite wings; proportions follow the
+// canonical lockup ratios.
+import { TAGLINE } from '../data/track'
+
+interface Props {
+  size?: number
+  tagline?: boolean
+}
+const { size = 26, tagline = false } = Astro.props
+const wordmark = size * 1.4
+const markWidth = (36 * size) / 14
+---
+
+<div class="lockup" role="img" aria-label="Rudrite Kernels" style={`--s:${size}px; --wm:${wordmark}px;`}>
+  <img src="/mark.svg" alt="" width={markWidth} height={(markWidth * 32) / 36} />
+  <div class="col">
+    <div class="row">
+      <span class="wordmark" aria-hidden="true">rudr<span class="i">i</span>te</span>
+      <span class="divider" aria-hidden="true"></span>
+      <span class="sub">Kernels</span>
+    </div>
+    {tagline && <div class="tagline">// {TAGLINE}</div>}
+  </div>
+</div>
+
+<style>
+  .lockup { display: inline-flex; align-items: center; gap: calc(var(--s) * 0.55); color: var(--ink); }
+  .lockup img { flex: 0 0 auto; display: block; }
+  .col { display: flex; flex-direction: column; gap: calc(var(--s) * 0.18); }
+  .row { display: flex; align-items: center; gap: calc(var(--s) * 0.5); }
+  .wordmark { font-family: var(--pixel); font-size: var(--wm); line-height: 0.9; letter-spacing: 0.5px; }
+  .i { color: var(--copper); }
+  .divider { width: 1px; height: calc(var(--s) * 1.05); background: currentColor; opacity: 0.32; transform: translateY(calc(var(--wm) * 0.07)); }
+  .sub {
+    font-family: var(--mono); font-size: calc(var(--s) * 0.5); letter-spacing: 0.12em;
+    text-transform: uppercase; font-weight: 500; transform: translateY(calc(var(--wm) * 0.07));
+  }
+  .tagline { font-family: var(--mono); font-size: calc(var(--s) * 0.42); letter-spacing: 0.05em; opacity: 0.55; }
+</style>

@@ -1,0 +1,123 @@
+/* kernels.rudrite.com design tokens + base styles.
+   Vernacular: engineering datasheet. Mono carries structure; serif carries thought.
+   Hue is meaning: copper = algorithm, steel = schedule, green = pass, red = fail.
+   Everything else stays monochrome. */
+
+:root {
+  /* surfaces */
+  --paper: #f4f5f2;
+  --paper-high: #fbfbf9;
+  --ink: #1a1c1e;
+  --ink-mute: #5c6165;
+  --rule: #d4d7d0;
+  --rule-soft: #e3e5df;
+
+  /* instruments */
+  --panel: #101215;
+  --panel-edge: #2b2f34;
+  --panel-ink: #d6d9dc;
+  --panel-mute: #878e94;
+  --panel-rule: #23272c;
+
+  /* the four meaningful hues */
+  --copper: #c88a70;
+  --copper-deep: #a86e55;
+  --steel: #7f98ab;
+  --pass: #4da37a;
+  --fail: #c4574a;
+
+  /* type */
+  --serif: 'IBM Plex Serif', georgia, 'times new roman', serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'sf mono', menlo, monospace;
+  --pixel: 'VT323', var(--mono);
+
+  --measure: 66ch;
+  --pad: clamp(1.25rem, 4vw, 2.5rem);
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--copper); color: var(--paper-high); }
+
+a { color: inherit; text-decoration-color: var(--copper); text-underline-offset: 3px; }
+a:hover { color: var(--copper-deep); }
+
+:focus-visible { outline: 2px solid var(--copper-deep); outline-offset: 2px; }
+
+/* type roles */
+.mono-label {
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+.designator {
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--copper-deep);
+}
+
+/* numerals that carry measurement meaning are set in the mono, inline */
+.meas { font-family: var(--mono); font-size: 0.9em; }
+
+/* gate LEDs */
+.led {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink-mute);
+  background: transparent;
+  flex: 0 0 auto;
+}
+.led[data-state='passed'] { background: var(--pass); border-color: var(--pass); }
+.led[data-state='failed'] { background: var(--fail); border-color: var(--fail); }
+.led[data-state='active'] {
+  border-color: var(--copper-deep);
+  background: var(--copper);
+  animation: led-tick 1.6s steps(2, jump-none) infinite;
+}
+@keyframes led-tick { 0% { opacity: 1; } 100% { opacity: 0.25; } }
+
+/* instrument panel base */
+.panel {
+  background: var(--panel);
+  color: var(--panel-ink);
+  border: 1px solid var(--panel-edge);
+  border-radius: 2px;
+  font-family: var(--mono);
+}
+.panel a { text-decoration-color: var(--copper); }
+.panel a:hover { color: var(--copper); }
+
+.provenance {
+  border-top: 1px solid var(--panel-rule);
+  padding: 0.5rem 0.875rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  color: var(--panel-mute);
+}
+
+/* layout helpers */
+.wrap { max-width: 76rem; margin-inline: auto; padding-inline: var(--pad); }
+.prose { max-width: var(--measure); }
+.prose p + p { margin-top: 0.9em; }

@@ -1,0 +1,91 @@
+---
+import Base from '../layouts/Base.astro'
+import results from '../../../bench/results.json'
+
+interface BenchRecord {
+  id: string
+  stage: number
+  kernel: string
+  metric: string
+  value: string
+  baseline: string
+  chip: string
+  dtype: string
+  shapes: string
+  date: string
+  commit: string
+}
+const records = results as BenchRecord[]
+---
+
+<Base
+  title="Bench — Rudrite Kernels"
+  description="Every number the site shows, with provenance: chip generation, dtype, shapes, date, commit."
+>
+  <section class="wrap head">
+    <p class="mono-label kicker">the bench</p>
+    <h1>Every number, with provenance.</h1>
+    <p class="prose lede">
+      Nothing quantitative appears on this site outside an instrument, and no instrument shows a number
+      that wasn't measured. Each record here states the chip generation, dtype, shapes, date, and the
+      commit that produced it. Gate verdicts on the stage pages resolve to rows in this table.
+    </p>
+  </section>
+
+  <section class="wrap">
+    {
+      records.length === 0 ? (
+        <div class="panel empty">
+          <div class="body">no records yet · the first rows land when Gate 00 is attempted</div>
+          <div class="provenance">records live in bench/results.json in the repo, one JSON object per measurement</div>
+        </div>
+      ) : (
+        <div class="panel table-panel">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">id</th>
+                <th scope="col">kernel</th>
+                <th scope="col">metric</th>
+                <th scope="col">value</th>
+                <th scope="col">baseline</th>
+                <th scope="col">chip</th>
+                <th scope="col">dtype</th>
+                <th scope="col">shapes</th>
+                <th scope="col">date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {records.map((r) => (
+                <tr>
+                  <td>{r.id}</td>
+                  <td>{r.kernel}</td>
+                  <td>{r.metric}</td>
+                  <td class="val">{r.value}</td>
+                  <td>{r.baseline}</td>
+                  <td>{r.chip}</td>
+                  <td>{r.dtype}</td>
+                  <td>{r.shapes}</td>
+                  <td>{r.date}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )
+    }
+  </section>
+</Base>
+
+<style>
+  .head { padding-block: clamp(3rem, 7vw, 4.5rem) 2rem; }
+  .kicker { display: block; margin-bottom: 1.25rem; color: var(--copper-deep); }
+  h1 { font-size: clamp(1.875rem, 4.5vw, 2.75rem); font-weight: 600; letter-spacing: -0.01em; }
+  .lede { margin-top: 1.25rem; }
+  .empty .body { padding: 2.25rem 1rem; text-align: center; font-size: 0.8125rem; color: var(--panel-mute); }
+  .table-panel { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+  th { text-align: left; font-weight: 500; font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--panel-mute); padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--panel-rule); }
+  td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--panel-rule); white-space: nowrap; }
+  .val { color: var(--copper); }
+</style>

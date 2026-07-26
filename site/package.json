@@ -1,0 +1,17 @@
+{
+  "name": "kernels-site",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && node ../scripts/firewall.mjs",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.2.5",
+    "@fontsource/ibm-plex-serif": "^5.2.5",
+    "@fontsource/vt323": "^5.2.5",
+    "astro": "^5.12.0"
+  }
+}

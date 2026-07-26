@@ -1,0 +1,57 @@
+---
+import '@fontsource/ibm-plex-serif/400.css'
+import '@fontsource/ibm-plex-serif/400-italic.css'
+import '@fontsource/ibm-plex-serif/600.css'
+import '@fontsource/ibm-plex-mono/400.css'
+import '@fontsource/ibm-plex-mono/500.css'
+import '@fontsource/vt323/400.css'
+import '../styles/global.css'
+import Lockup from '../components/Lockup.astro'
+
+interface Props {
+  title: string
+  description: string
+}
+const { title, description } = Astro.props
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href="/mark.svg" type="image/svg+xml" />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap bar">
+        <a href="/" class="home-link" aria-label="Rudrite Kernels home"><Lockup size={22} /></a>
+        <nav aria-label="Site">
+          <a href="/" class="mono-label">Track</a>
+          <a href="/bench" class="mono-label">Bench</a>
+        </nav>
+      </div>
+    </header>
+    <main><slot /></main>
+    <footer class="site-footer">
+      <div class="wrap foot">
+        <span class="mono-label">rudrite kernels</span>
+        <span class="mono-label">taught in public · every number measured</span>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style>
+  .site-header { border-bottom: 1px solid var(--rule); background: var(--paper-high); }
+  .bar { display: flex; align-items: center; justify-content: space-between; padding-block: 0.875rem; }
+  .home-link { text-decoration: none; }
+  nav { display: flex; gap: 1.5rem; }
+  nav a { text-decoration: none; color: var(--ink-mute); }
+  nav a:hover { color: var(--copper-deep); }
+  .site-footer { border-top: 1px solid var(--rule); margin-top: 5rem; }
+  .foot { display: flex; justify-content: space-between; gap: 1rem; padding-block: 1.25rem; flex-wrap: wrap; }
+</style>

@@ -1,0 +1,52 @@
+---
+// Engineering-drawing title block: the header of every stage page.
+import type { Stage } from '../data/track'
+
+interface Props {
+  stage: Stage
+}
+const { stage } = Astro.props
+const gateLabel = { queued: 'QUEUED', active: 'OPEN', passed: 'PASSED', failed: 'FAILED' }[stage.gate.state]
+---
+
+<div class="tb" role="group" aria-label={`Stage ${stage.num}: ${stage.title}`}>
+  <div class="cell num">
+    <span class="k">stage</span>
+    <span class="v big">{String(stage.num).padStart(2, '0')}</span>
+  </div>
+  <div class="cell title">
+    <span class="k">title</span>
+    <span class="v name">{stage.title}</span>
+  </div>
+  <div class="cell">
+    <span class="k">schedule</span>
+    <span class="v">{stage.weeks}</span>
+  </div>
+  <div class="cell">
+    <span class="k">gate</span>
+    <span class="v gate"><span class="led" data-state={stage.gate.state === 'queued' ? undefined : stage.gate.state}></span>{gateLabel}</span>
+  </div>
+</div>
+
+<style>
+  .tb {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    border: 1px solid var(--ink);
+    background: var(--paper-high);
+    font-family: var(--mono);
+  }
+  .cell { padding: 0.625rem 1rem; display: flex; flex-direction: column; gap: 0.25rem; }
+  .cell + .cell { border-left: 1px solid var(--ink); }
+  .k { font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-mute); }
+  .v { font-size: 0.8125rem; letter-spacing: 0.02em; white-space: nowrap; }
+  .big { font-size: 1.75rem; line-height: 1; font-weight: 500; color: var(--copper-deep); }
+  .name { font-size: 1.125rem; font-weight: 500; white-space: normal; }
+  .num { align-items: flex-start; }
+  .gate { display: inline-flex; align-items: center; gap: 0.5rem; }
+  @media (max-width: 640px) {
+    .tb { grid-template-columns: auto 1fr; }
+    .cell:nth-child(3) { border-left: none; border-top: 1px solid var(--ink); }
+    .cell:nth-child(4) { border-top: 1px solid var(--ink); }
+  }
+</style>

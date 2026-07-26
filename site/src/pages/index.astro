@@ -1,0 +1,76 @@
+---
+import Base from '../layouts/Base.astro'
+import StackMap from '../components/StackMap.astro'
+import { STAGES } from '../data/track'
+
+const gatesTotal = STAGES.length
+const gatesPassed = STAGES.filter((s) => s.gate.state === 'passed').length
+---
+
+<Base
+  title="Rudrite Kernels — learn to make TPUs fast"
+  description="A fourteen-week, lab-driven track through the TPU kernel stack: the machine, Pallas, the IRs, the famous kernels, distributed kernels. Taught in public, every checkpoint measured on real hardware."
+>
+  <section class="wrap hero">
+    <p class="mono-label kicker">a public curriculum · fourteen weeks · six gates</p>
+    <h1>Learn to make TPUs fast.</h1>
+    <p class="lede prose">
+      A lab-driven track through the TPU kernel stack: the machine itself, Pallas, the IRs, the kernels
+      everyone depends on, and the distributed kernels that hide communication behind compute. Theory on
+      paper, labs in Colab, and every stage ends at a gate measured on real hardware, published pass or fail.
+    </p>
+    <p class="stat-line" aria-label="Track status">
+      <span class="meas">{gatesPassed}/{gatesTotal}</span> gates passed · currently at
+      <a href={`/s/${STAGES.find((s) => s.gate.state === 'active')?.id ?? STAGES[0]!.id}`}
+        >stage {STAGES.find((s) => s.gate.state === 'active')?.num ?? 0}</a>
+    </p>
+  </section>
+
+  <section class="wrap map-section" aria-labelledby="map-head">
+    <h2 id="map-head" class="mono-label sec">the map is the stack</h2>
+    <p class="prose sec-lede">
+      Every stage lives at the layer of the stack it teaches. The track descends from your source code to
+      the silicon, then crosses chips.
+    </p>
+    <StackMap />
+  </section>
+
+  <section class="wrap how" aria-label="How the track works">
+    <div class="panel how-card">
+      <div class="body">
+        <span class="designator">READ</span>
+        <p>Theory on paper. Derivations come before code, references after your own attempt. Always.</p>
+      </div>
+    </div>
+    <div class="panel how-card">
+      <div class="body">
+        <span class="designator">RUN</span>
+        <p>Every lab is a notebook in this repo. Open it in Colab, run it on a real TPU, keep your copy.</p>
+      </div>
+    </div>
+    <div class="panel how-card">
+      <div class="body">
+        <span class="designator">GATE</span>
+        <p>Stages end at gates: a criterion, a measured number, a verdict. Failures stay published.</p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero { padding-block: clamp(3rem, 8vw, 5.5rem) 3rem; }
+  .kicker { display: block; margin-bottom: 1.25rem; color: var(--copper-deep); }
+  h1 { font-size: clamp(2.25rem, 6vw, 3.75rem); line-height: 1.05; font-weight: 600; letter-spacing: -0.01em; max-width: 18ch; }
+  .lede { margin-top: 1.5rem; font-size: 1.1875rem; }
+  .stat-line { margin-top: 1.5rem; font-family: var(--mono); font-size: 0.8125rem; color: var(--ink-mute); }
+  .stat-line a { color: var(--copper-deep); }
+
+  .map-section { padding-block: 2rem 1rem; }
+  .sec { display: block; margin-bottom: 0.75rem; }
+  .sec-lede { color: var(--ink-mute); margin-bottom: 1.5rem; }
+
+  .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; padding-block: 3rem 1rem; }
+  .how-card .body { padding: 1rem; display: flex; flex-direction: column; gap: 0.625rem; }
+  .how-card p { font-family: var(--serif); font-size: 0.9375rem; line-height: 1.55; color: var(--panel-ink); }
+  @media (max-width: 780px) { .how { grid-template-columns: 1fr; } }
+</style>

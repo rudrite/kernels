@@ -1,0 +1,85 @@
+---
+import Base from '../../layouts/Base.astro'
+import TitleBlock from '../../components/TitleBlock.astro'
+import GateStamp from '../../components/GateStamp.astro'
+import LabCard from '../../components/LabCard.astro'
+import Spine from '../../components/Spine.astro'
+import { STAGES } from '../../data/track'
+
+export function getStaticPaths() {
+  return STAGES.map((stage) => ({ params: { id: stage.id }, props: { stage } }))
+}
+
+const { stage } = Astro.props
+const prev = STAGES.find((s) => s.num === stage.num - 1)
+const next = STAGES.find((s) => s.num === stage.num + 1)
+---
+
+<Base title={`Stage ${stage.num}: ${stage.title} — Rudrite Kernels`} description={stage.goal}>
+  <div class="wrap layout">
+    <aside class="side"><Spine currentLayer={stage.layer} /></aside>
+
+    <article class="main">
+      <TitleBlock stage={stage} />
+
+      <section class="block prose">
+        <h2 class="mono-label">goal</h2>
+        <p class="goal">{stage.goal}</p>
+      </section>
+
+      <section class="block prose">
+        <h2 class="mono-label">what gets built</h2>
+        <ul class="build">
+          {stage.build.map((b) => <li>{b}</li>)}
+        </ul>
+        <p class="cur-note">Full readings, exercises, and order of work: <span class="meas">CURRICULUM.md</span> in the repo, stage {stage.num}.</p>
+      </section>
+
+      {
+        stage.labs.length > 0 && (
+          <section class="block">
+            <h2 class="mono-label">labs</h2>
+            <div class="lab-grid">
+              {stage.labs.map((lab) => (
+                <LabCard lab={lab} />
+              ))}
+            </div>
+          </section>
+        )
+      }
+
+      <section class="block">
+        <h2 class="mono-label">the gate</h2>
+        <GateStamp stage={stage} />
+      </section>
+
+      <section class="block prose">
+        <h2 class="mono-label">public artifact</h2>
+        <p>{stage.artifact}</p>
+      </section>
+
+      <nav class="pager" aria-label="Stages">
+        {prev ? <a href={`/s/${prev.id}`}>← S{prev.num} {prev.title}</a> : <span />}
+        {next ? <a href={`/s/${next.id}`}>S{next.num} {next.title} →</a> : <span />}
+      </nav>
+    </article>
+  </div>
+</Base>
+
+<style>
+  .layout { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: 3rem; padding-block: 2.5rem; }
+  .side { position: sticky; top: 2rem; align-self: start; }
+  @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .side { position: static; display: none; } }
+
+  .block { margin-top: 2.5rem; }
+  .block > h2 { margin-bottom: 0.875rem; }
+  .goal { font-size: 1.1875rem; }
+  .build { padding-left: 1.1em; }
+  .build li { margin-bottom: 0.45em; }
+  .cur-note { margin-top: 1rem; font-size: 0.875rem; color: var(--ink-mute); }
+  .lab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 1rem; }
+
+  .pager { display: flex; justify-content: space-between; gap: 1rem; margin-top: 3.5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 0.8125rem; }
+  .pager a { text-decoration: none; color: var(--ink-mute); }
+  .pager a:hover { color: var(--copper-deep); }
+</style>

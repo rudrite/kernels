@@ -1,0 +1,49 @@
+---
+// The spine: the stack in miniature, pinned to the left of every stage page.
+// Always shows where the current stage sits in the lowering path.
+import { LAYERS, stagesForLayer } from '../data/track'
+
+interface Props {
+  currentLayer: string
+}
+const { currentLayer } = Astro.props
+---
+
+<nav class="spine" aria-label="Position in the stack">
+  <span class="mono-label head">the stack</span>
+  <ol>
+    {
+      LAYERS.map((layer) => {
+        const pinned = stagesForLayer(layer.id)
+        const here = layer.id === currentLayer
+        return (
+          <li class={here ? 'here' : ''} data-kind={layer.kind}>
+            <span class="tick" aria-hidden="true" />
+            <span class="name">{layer.label}</span>
+            {pinned.map((s) => (
+              <span class="led" data-state={s.gate.state === 'queued' ? undefined : s.gate.state} title={`Stage ${s.num}: ${s.gate.state}`} />
+            ))}
+            {here && <span class="you">← you are here</span>}
+          </li>
+        )
+      })
+    }
+  </ol>
+</nav>
+
+<style>
+  .spine { font-family: var(--mono); font-size: 0.6875rem; }
+  .head { display: block; margin-bottom: 0.75rem; }
+  ol { list-style: none; padding: 0; }
+  li { display: flex; align-items: center; gap: 0.5rem; padding-block: 0.3125rem; color: var(--ink-mute); position: relative; padding-left: 1rem; }
+  li::before { content: ''; position: absolute; left: 3px; top: 0; bottom: 0; width: 1px; background: var(--rule); }
+  li:first-child::before { top: 50%; }
+  li:last-child::before { bottom: 50%; }
+  .tick { position: absolute; left: 0; width: 7px; height: 1px; background: var(--ink-mute); }
+  li[data-kind='gap'] { color: var(--copper-deep); }
+  li[data-kind='gap']::before { background: var(--copper-deep); opacity: 0.5; }
+  .here { color: var(--ink); font-weight: 500; }
+  .here .tick { background: var(--copper-deep); height: 3px; }
+  .you { color: var(--copper-deep); white-space: nowrap; }
+  .led { width: 6px; height: 6px; }
+</style>

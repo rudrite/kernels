@@ -1,0 +1,55 @@
+---
+// The gate: a stage's exit criteria with measured receipts. Instruments never
+// show fabricated data; until a real record exists the cell says so.
+import type { Stage } from '../data/track'
+
+interface Props {
+  stage: Stage
+}
+const { stage } = Astro.props
+const label = { queued: 'QUEUED', active: 'OPEN', passed: 'PASSED', failed: 'FAILED' }[stage.gate.state]
+---
+
+<section class="panel stamp" aria-label={`Gate ${stage.num}`}>
+  <header class="head">
+    <span class="gate-id">GATE {String(stage.num).padStart(2, '0')}</span>
+    <span class={`verdict v-${stage.gate.state}`}>{label}</span>
+  </header>
+  <table>
+    <thead>
+      <tr><th scope="col">criterion</th><th scope="col">measured</th></tr>
+    </thead>
+    <tbody>
+      {
+        stage.gate.criteria.map((c, i) => (
+          <tr>
+            <td>{c}</td>
+            <td class={stage.gate.measured[i] ? 'val' : 'await'}>{stage.gate.measured[i] ?? 'awaiting bench data'}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+  <div class="provenance">gates are measured on real hardware and published pass or fail · chip, dtype, shapes recorded in bench/</div>
+</section>
+
+<style>
+  .stamp { overflow: hidden; }
+  .head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.75rem 0.875rem; border-bottom: 1px solid var(--panel-rule);
+  }
+  .gate-id { font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.1em; }
+  .verdict { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.12em; padding: 0.25rem 0.625rem; border: 1px solid currentColor; border-radius: 2px; }
+  .v-queued { color: var(--panel-mute); }
+  .v-active { color: var(--copper); }
+  .v-passed { color: var(--pass); }
+  .v-failed { color: var(--fail); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+  th { text-align: left; font-weight: 500; font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--panel-mute); padding: 0.625rem 0.875rem 0.25rem; }
+  td { padding: 0.5rem 0.875rem 0.625rem; border-top: 1px solid var(--panel-rule); vertical-align: top; }
+  td.await { color: var(--panel-mute); font-style: italic; white-space: nowrap; }
+  td.val { color: var(--copper); white-space: nowrap; }
+  th:last-child, td:last-child { width: 14rem; }
+  @media (max-width: 640px) { th:last-child, td:last-child { width: auto; } }
+</style>
