@@ -26,9 +26,12 @@ const records = results as BenchRecord[]
     <p class="mono-label kicker">the bench</p>
     <h1>Every number, with provenance.</h1>
     <p class="prose lede">
-      Nothing quantitative appears on this site outside an instrument, and no instrument shows a number
-      that wasn't measured. Each record here states the chip generation, dtype, shapes, date, and the
-      commit that produced it. Gate verdicts on the stage pages resolve to rows in this table.
+      Nothing quantitative appears on this site outside an instrument, and every value states what it is:
+      rows marked <span class="meas">predicted</span> or <span class="meas">computed</span> are
+      roofline-derived, rows marked <span class="meas">cpu interpret</span> or
+      <span class="meas">simulated devices</span> are verified kernel runs off-chip, and hardware rows
+      replace both as gates are attempted on real TPUs. Each record states chip, dtype, shapes, date,
+      and the lab that produced it.
     </p>
   </section>
 

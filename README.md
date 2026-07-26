@@ -9,4 +9,4 @@ Site: [kernels.rudrite.com](https://kernels.rudrite.com)
 - `bench/`: every number the site shows, with provenance (chip generation, dtype, shapes, date, commit).
 - `site/`: kernels.rudrite.com, the presentation layer. The repo stands alone without it.
 
-Status: Stage 0. Kernel code, benchmark records, and derivation notebooks land here stage by stage.
+Status: Stage 0 in progress. All 13 labs are authored, runnable, and Colab-linked (every notebook executes end to end off-chip: interpret mode for kernels, simulated devices for the distributed labs). Bench holds roofline predictions and off-chip verification records; hardware rows replace them as gates are attempted.
