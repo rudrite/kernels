@@ -5,8 +5,12 @@ import GateStamp from '../../components/GateStamp.astro'
 import LabCard from '../../components/LabCard.astro'
 import Spine from '../../components/Spine.astro'
 import Exhibit from '../../components/Exhibit.astro'
+import NotebookPeek from '../../components/NotebookPeek.astro'
 import Choreographer from '../../exhibits/Choreographer'
 import Roofline from '../../exhibits/Roofline'
+import IRXray from '../../exhibits/IRXray'
+import irData from '../../data/ir-attention.json'
+import labsData from '../../data/labs.generated.json'
 import { matmulTrace } from '../../exhibits/matmul'
 import { flashTrace, ringTrace } from '../../exhibits/flash'
 import type { TraceDoc } from '../../exhibits/types'
@@ -27,6 +31,8 @@ const traceByStage: Record<string, { designator: string; trace: TraceDoc } | und
 }
 const exhibit = traceByStage[stage.id]
 const showRoofline = stage.id === 'machine'
+const showXray = stage.id === 'ir'
+const extractedLabs = stage.labs.filter((l) => l.designator in labsData)
 ---
 
 <Base title={`Stage ${stage.num}: ${stage.title} — Rudrite Kernels`} description={stage.goal}>
@@ -76,12 +82,36 @@ const showRoofline = stage.id === 'machine'
       }
 
       {
+        showXray && (
+          <section class="block">
+            <h2 class="mono-label">instrument</h2>
+            <Exhibit designator="EX·05" title="the IR x-ray · one program, three layers" provenance={irData.provenance}>
+              <IRXray client:visible />
+            </Exhibit>
+          </section>
+        )
+      }
+
+      {
         stage.labs.length > 0 && (
           <section class="block">
             <h2 class="mono-label">labs</h2>
             <div class="lab-grid">
               {stage.labs.map((lab) => (
                 <LabCard lab={lab} />
+              ))}
+            </div>
+          </section>
+        )
+      }
+
+      {
+        extractedLabs.length > 0 && (
+          <section class="block">
+            <h2 class="mono-label">from the notebook</h2>
+            <div class="peek-stack">
+              {extractedLabs.map((l) => (
+                <NotebookPeek designator={l.designator} />
               ))}
             </div>
           </section>

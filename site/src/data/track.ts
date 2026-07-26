@@ -8,8 +8,10 @@ export interface Lab {
   title: string
   time: string
   hardware: 'any machine (interpret mode)' | 'Colab TPU'
-  /** Colab URL once the notebook exists; null renders the honest pending state. */
+  /** Colab URL once the repo is public; null renders the honest pending state. */
   colab: string | null
+  /** Repo path of the notebook once it exists. */
+  notebook?: string
 }
 
 export interface Gate {
@@ -48,7 +50,14 @@ export const STAGES: Stage[] = [
       'The working vocabulary: MXU, VPU, VMEM, HBM, the (8, 128) tiling lattice, ICI',
     ],
     labs: [
-      { designator: 'LAB·0.1', title: 'Rooflines by hand', time: '~2 h', hardware: 'Colab TPU', colab: null },
+      {
+        designator: 'LAB·0.1',
+        title: 'Rooflines by hand',
+        time: '~2 h',
+        hardware: 'Colab TPU',
+        colab: null,
+        notebook: 'labs/stage-0/lab-0.1-rooflines.ipynb',
+      },
     ],
     gate: {
       state: 'active',

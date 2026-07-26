@@ -21,6 +21,8 @@ const { lab } = Astro.props
     {
       lab.colab ? (
         <a href={lab.colab} rel="noopener">open in Colab → runs from this repo, save a copy to keep it</a>
+      ) : lab.notebook ? (
+        <span>in repo: {lab.notebook} · Colab link activates when the repo goes public</span>
       ) : (
         <span>notebook lands with this stage</span>
       )

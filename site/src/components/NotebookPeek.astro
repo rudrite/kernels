@@ -1,0 +1,50 @@
+---
+// Renders a lab's extracted notebook cells: the site view of the single
+// source of truth in labs/. Left border color follows the lane grammar:
+// copper = algorithm, steel = schedule.
+import labs from '../data/labs.generated.json'
+
+interface LabCells {
+  file: string
+  title: string
+  cells: { code: string; lane: 'algorithm' | 'schedule' | null }[]
+}
+interface Props {
+  designator: string
+}
+const { designator } = Astro.props
+const lab = (labs as Record<string, LabCells>)[designator]
+---
+
+{
+  lab && (
+    <figure class="panel peek">
+      <figcaption class="head">
+        <span class="designator">{designator}</span>
+        <span class="t">{lab.title} · extracted from the notebook</span>
+      </figcaption>
+      {lab.cells.map((c) => (
+        <pre class={`cell ${c.lane ?? ''}`}><code>{c.code}</code></pre>
+      ))}
+      <div class="provenance">source of truth: {lab.file} · cells tagged site:show render here; edit the notebook, rebuild, the page updates</div>
+    </figure>
+  )
+}
+
+<style>
+  .peek { margin: 0; }
+  .head { display: flex; gap: 0.875rem; align-items: baseline; padding: 0.75rem 0.875rem; border-bottom: 1px solid var(--panel-rule); }
+  .t { font-size: 0.8125rem; color: var(--panel-ink); }
+  .cell {
+    margin: 0.875rem;
+    padding: 0.75rem 0.875rem;
+    font-size: 0.75rem;
+    line-height: 1.55;
+    overflow-x: auto;
+    border: 1px solid var(--panel-rule);
+    border-left-width: 3px;
+    color: var(--panel-ink);
+  }
+  .cell.algorithm { border-left-color: var(--copper); }
+  .cell.schedule { border-left-color: var(--steel); }
+</style>
