@@ -100,7 +100,9 @@ export const STAGES: Stage[] = [
     gate: {
       state: 'active',
       criteria: ['Latency predictions for five ops within 2x of measured, every miss explained'],
-      measured: ['predictions computed (see bench); measured half pending a TPU run'],
+      measured: [
+        'measured on v6e-1 (jax 0.11): big matmul 362.5 µs vs 149.4 µs floor (2.4x); the four µs-scale ops sit 3.6x to 7.7x over floor, dominated by a per-launch overhead the roofline does not model. The remaining work of this gate is writing those explanations up.',
+      ],
     },
     artifact: 'Explainer: how a TPU actually spends its time',
   },
@@ -121,6 +123,10 @@ export const STAGES: Stage[] = [
       ] },
       { h: 'The carried accumulator', ps: [
         'The other load-bearing pattern is **the carried accumulator**. A reduction axis in the grid means the same output block is revisited once per step along that axis, initialized on the first visit and accumulated into after. Matmul carries C over the K axis here; flash attention will carry `(m, l, acc)` over KV blocks in stage 3. Same shape, bigger algebra.',
+      ] },
+      { h: 'Reading the layer below', ps: [
+        'When a kernel misbehaves, drop one layer and read what Pallas actually built. `pallas_call(..., debug=True)` prints two artifacts at lowering time: the kernel jaxpr (your body, traced against refs) and the Mosaic module, the MLIR the TPU backend receives. Everything you wrote is still visible in it: BlockSpec index maps become `@transform` functions, `pl.when` becomes an `scf.if`, `jnp.dot` becomes `tpu.matmul`, and every vector type wears the shape the `(8, 128)` lattice demands. Chapter 07 walks the layer in depth, the GYM·05 instrument holds three of this stage\'s kernels open at it with hover sync, and LAB·1.4 has you print your own.',
+        'The reason to build the habit now: the two hardest exhibits in the museum, the VMEM overflow and the lattice violation, are this layer speaking. An engineer who has read a Mosaic module recognizes "window allocation" as a BlockSpec made physical and "divisible by 8 and 128" as the register tile. One who has not sees noise.',
       ] },
       { h: 'Numbers carry provenance', ps: [
         'And the habit: every measured number states its chip, dtype, shapes, and method (warmup, `block_until_ready`, median of N). Numbers without provenance are noise, and the bench page refuses them.',
@@ -175,7 +181,10 @@ export const STAGES: Stage[] = [
         'Tiled matmul within 15% of XLA for 4096³ bf16',
         'Fused softmax beats the unfused XLA chain at rows of 32k+',
       ],
-      measured: ['est. ~1.1x XLA at 4096³ (pending run)', 'est. beats unfused chain (pending run)'],
+      measured: [
+        'measured on v6e-1: best block (512, 1024, 512) at 597.5 µs vs XLA 361.3 µs, 1.65x. The bar stands; closing it is the gate.',
+        'measured on v6e-1: pallas 443.4 µs vs unfused 349.9 µs (XLA fused: 242.5 µs). Not yet; the naive row-block schedule loses to the compiler here.',
+      ],
     },
     artifact: 'Explainer: Pallas from zero, with the algorithm/schedule split color-coded',
   },
@@ -229,7 +238,9 @@ export const STAGES: Stage[] = [
     gate: {
       state: 'queued',
       criteria: ['Spill-size estimate from the HLO dump matches the profiler within 20%'],
-      measured: ['computed: 268 MB round-trip at seq 8192 bf16; profiler confirm pending'],
+      measured: [
+        'measured on v6e-1: 3 fusion ops in the compiled HLO carry the full bf16[8192,8192]; naive attention runs 414.4 µs at seq 8192. The profiler byte-count confirm is still open.',
+      ],
     },
     artifact: 'Explainer: what your JAX becomes, one program shown at every layer',
   },
@@ -308,7 +319,10 @@ export const STAGES: Stage[] = [
         'Own flash forward within 1.3x of reference implementations at seq 8192',
         'Differential tests green: 1e-3 forward, 1e-2 grads, bf16',
       ],
-      measured: ['est. within 1.3x (pending run)', 'cpu interpret: green at 1e-4 fwd / 1e-5 grads f32; bf16 on-chip pending'],
+      measured: [
+        'measured on v6e-1: flash 491.7 µs vs jax.nn.dot_product_attention 730.0 µs (0.67x), well inside the 1.3x bar. Naive XLA runs 414.8 µs at this length: on a chip with this much bandwidth the 268 MB spill is cheap, and the crossover sits at longer sequences.',
+        'measured on v6e-1, all bf16: forward max |flash − naive| 0.254 (dominated by naive computing its softmax in bf16); grads max diff q 0.163 · k 0.203 · v 0.0 against autodiff. Tightening these against f32 references is open gate work.',
+      ],
     },
     artifact: 'Explainers: flash attention derived, and kernels where the data shapes the loop',
   },

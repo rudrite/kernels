@@ -17,19 +17,21 @@ const pad = (n: number) => String(n).padStart(2, '0')
 
 <Base
   title="The mistake museum — Rudrite Kernels"
-  description="Six real Pallas failures, reproduced and captured: the failing code, the exact error text, the fix, and the rule that prevents each."
+  description="Eight real Pallas failures, reproduced and captured: the failing code, the exact error text, the fix, and the rule that prevents each."
 >
   <div class="ws-ground">
     <section class="wband">
       <div class="wrap wgrid">
         <span class="wtag">the museum</span>
         <div>
-          <p class="mono-label serves">assigned reading in chapter 11 · every error below was reproduced for real; the text is what the interpreter said</p>
+          <p class="mono-label serves">assigned reading in chapter 11 · every error below was reproduced for real; six from the interpreter, two from a TPU compile on v6e-1</p>
           <h1 class="wh1">Meet every failure in a toy first.</h1>
           <p class="wlede">
             Each exhibit ran, failed, and was captured: the snippet, the verbatim error (paths shortened),
-            the fix, and the rule that prevents it. Read them before your first kernel and again after;
-            the error messages start making sense the second time.
+            the fix, and the rule that prevents it. The last two could only come from a real chip: they
+            speak the Mosaic layer's vocabulary of VMEM budgets and the (8, 128) lattice, which is exactly
+            why chapter 07 teaches you to read that layer. Read them before your first kernel and again
+            after; the error messages start making sense the second time.
           </p>
         </div>
       </div>
