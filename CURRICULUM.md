@@ -1,6 +1,6 @@
 # TPU Kernel Curriculum
 
-Purpose: take one engineer (expert in the JAX distributed runtime: sharding, collectives, GSPMD, XProf; new to single-chip kernel land) from zero Pallas to shipping a production-grade TPU kernel upstream, in 14 weeks part-time. The bar is mastery, not completion: by the end, any production Pallas kernel should read like prose. Every stage ends with a verifiable checkpoint and a public artifact for kernels.rudrite.com. Do not advance a stage until its checkpoint passes.
+Purpose: take one engineer (expert in the JAX distributed runtime: sharding, collectives, GSPMD, XProf; new to single-chip kernel land) from zero Pallas to shipping a production-grade TPU kernel upstream, in 14 weeks part-time. The bar is mastery, not completion: by the end, any production Pallas kernel should read like prose. Every stage ends with a verifiable checkpoint, and every stage's material is delivered on kernels.rudrite.com: the site is the course. Do not advance a stage until its checkpoint passes.
 
 Hardware ladder: `interpret=True` on any machine (Stages 1-3 logic), Colab/Kaggle v5e (Stages 1-3 timings), TRC or internal capacity for a v5e-8+ slice (Stages 4-5).
 
@@ -31,8 +31,8 @@ Goal: given an op and its shapes, predict from first principles whether it is co
 ### Checkpoint (verify)
 Latency predictions for the five ops land within 2x of measured, and you can explain every miss.
 
-### Site artifact
-Explainer: "How a TPU actually spends its time" (roofline + memory hierarchy, interactive).
+### Delivered on the site
+Chapter 08 and the stage 0 instruments: the roofline playground and the memory hierarchy at real widths.
 
 ---
 
@@ -60,8 +60,8 @@ Goal: write, benchmark, and profile correct single-chip Pallas kernels; read pro
 - Fused softmax beats the unfused XLA chain at rows of 32k+.
 - You can state, for every line of your matmul kernel, whether it is algorithm or schedule.
 
-### Site artifact
-Explainer: "Pallas from zero" (the five kernels, with the algorithm/schedule split color-coded).
+### Delivered on the site
+The stage 1 chapter, the chapter 06 full guide, and the guided walks, with the algorithm/schedule split color-coded throughout.
 
 ---
 
@@ -83,8 +83,8 @@ Goal: read every representation your code passes through, and find XLA's fusion 
 ### Checkpoint (verify)
 The annotated dump exists and your spill-size estimate matches the profiler within 20%.
 
-### Site artifact
-Explainer: "What your JAX becomes" (jaxpr, StableHLO, HLO, Mosaic, side by side, one program).
+### Delivered on the site
+The chapter 02 to 04 and 07 guides plus the x-ray instruments: one program held open at every layer with hover sync.
 
 ---
 
@@ -93,7 +93,7 @@ Explainer: "What your JAX becomes" (jaxpr, StableHLO, HLO, Mosaic, side by side,
 Goal: own the two axes that make the famous kernels hard: algorithmic restructuring and data-dependent iteration.
 
 ### Week 6: Flash attention, derived then built
-- On paper, from a blank page: derive online softmax. Start from the two-pass definition, introduce the running (m, l) pair, prove the rescaling identity, then extend to the (m, l, acc) triple with the second matmul folded in. Then prove the combine operation is associative and commutative (this is the softmax monoid: the algebraic fact that makes blocked, streaming, and parallel attention correct; keep the derivation notebook, it becomes a site artifact).
+- On paper, from a blank page: derive online softmax. Start from the two-pass definition, introduce the running (m, l) pair, prove the rescaling identity, then extend to the (m, l, acc) triple with the second matmul folded in. Then prove the combine operation is associative and commutative (this is the softmax monoid: the algebraic fact that makes blocked, streaming, and parallel attention correct; the derivation lives on the site as the stage 3 chapter and walks).
 - Implement single-chip flash attention forward in Pallas from your own derivation, without looking at any reference implementation.
 - Only then, diff yours against Tokamax's and [Splash attention in the JAX repo](https://github.com/jax-ml/jax/tree/main/jax/experimental/pallas/ops/tpu/splash_attention). Every difference is a lesson: catalog each one as algorithm, schedule, or feature.
 - Also run Tokamax's own selection layer (`implementation=None`) across a shape sweep and record which implementation it picks per shape; understanding what the selector knows, and where it is thin, is part of mastering the ecosystem you build on.
@@ -113,8 +113,8 @@ Goal: own the two axes that make the famous kernels hard: algorithmic restructur
 - Differential tests pass: 1e-3 forward, 1e-2 grads, bf16.
 - You can explain every line of Splash attention and state which of the two axes each part serves.
 
-### Site artifacts
-Explainers: "Flash attention, derived" (the monoid derivation, animated) and "Kernels where the data shapes the loop" (splash/ragged/MoE unified).
+### Delivered on the site
+The stage 3 chapter, the streaming-attention instruments, and the flash, causal, and splash walks; the power bench carries the measured wins.
 
 ---
 
@@ -133,8 +133,8 @@ Goal: ground your existing collectives knowledge in the mechanism: remote DMA + 
 ### Checkpoint (verify)
 Ring all-gather matches the collective bitwise and the profile shows compute/comm overlap.
 
-### Site artifact
-Explainer: "A collective is just a kernel" (GSPMD's all_gather lowered to the ring you built).
+### Delivered on the site
+The chapter 09 guide and the ring instruments: the same schedule with longer arrows, cost formulas worked to link numbers.
 
 ---
 
@@ -155,8 +155,8 @@ Requirements, non-negotiable:
 ### Checkpoint (verify)
 The kernel is correct under the differential suite, beats XLA decisively at its target shapes, lands within striking distance of the hand-tuned ceiling, and the upstream submission exists in public.
 
-### Site artifact
-The capstone write-up: the derivation, the schedule decisions and their measured consequences, the full benchmark record, and what code review changed. This is the track's finale post.
+### Delivered in public
+The upstream PR itself: derivation, schedule decisions with measured consequences, the benchmark record, and the review thread. The submission is the finale; the site links it.
 
 ---
 

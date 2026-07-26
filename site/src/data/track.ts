@@ -44,7 +44,6 @@ export interface Stage {
   work: WorkBlock[]
   labs: Lab[]
   gate: Gate
-  artifact: string
 }
 
 const COLAB = 'https://colab.research.google.com/github/rudrite/kernels/blob/main/'
@@ -104,7 +103,6 @@ export const STAGES: Stage[] = [
         'measured on v6e-1 (jax 0.11): big matmul 362.5 µs vs 149.4 µs floor (2.4x); the four µs-scale ops sit 3.6x to 7.7x over floor, dominated by a per-launch overhead the roofline does not model. The remaining work of this gate is writing those explanations up.',
       ],
     },
-    artifact: 'Explainer: how a TPU actually spends its time',
   },
   {
     id: 'pallas',
@@ -186,7 +184,6 @@ export const STAGES: Stage[] = [
         'measured on v6e-1: rows=1024 blocks give 222.7 µs vs 379.5 µs unfused, and beat XLA\'s own fusion (267.6 µs). The rows=64 schedule that lost by 27% was the same kernel; only the schedule changed.',
       ],
     },
-    artifact: 'Explainer: Pallas from zero, with the algorithm/schedule split color-coded',
   },
   {
     id: 'ir',
@@ -242,7 +239,6 @@ export const STAGES: Stage[] = [
         'measured on v6e-1: 3 fusion ops in the compiled HLO carry the full bf16[8192,8192]; naive attention runs 414.4 µs at seq 8192. The profiler byte-count confirm is still open.',
       ],
     },
-    artifact: 'Explainer: what your JAX becomes, one program shown at every layer',
   },
   {
     id: 'kernels',
@@ -324,7 +320,6 @@ export const STAGES: Stage[] = [
         'measured on v6e-1, all bf16: forward max |flash − naive| 0.254 (dominated by naive computing its softmax in bf16); grads max diff q 0.163 · k 0.203 · v 0.0 against autodiff. Tightening these against f32 references is open gate work.',
       ],
     },
-    artifact: 'Explainers: flash attention derived, and kernels where the data shapes the loop',
   },
   {
     id: 'distributed',
@@ -384,7 +379,6 @@ export const STAGES: Stage[] = [
       criteria: ['Ring all-gather matches lax.all_gather bitwise, overlap visible in the profile'],
       measured: ['exact on 8 simulated devices; slice profile pending'],
     },
-    artifact: 'Explainer: a collective is just a kernel',
   },
   {
     id: 'capstone',
@@ -436,7 +430,6 @@ export const STAGES: Stage[] = [
       ],
       measured: [null, null, null],
     },
-    artifact: 'The capstone write-up: derivation, schedule decisions, full benchmark record, what review changed',
   },
 ]
 

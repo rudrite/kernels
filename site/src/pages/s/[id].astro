@@ -269,7 +269,6 @@ const toc = [...chapterToc, ...fixedToc]
       <section class="block">
         <SectionHead id="gate" eyebrow="pass or fail, in public" title="The gate" />
         <GateStamp stage={stage} />
-        <p class="artifact prose">Public artifact for this stage: {stage.artifact.replace(/^Explainers?: /, '')}.</p>
       </section>
 
       <PathPager chapterKey={`s:${stage.id}`} />
@@ -346,6 +345,5 @@ const toc = [...chapterToc, ...fixedToc]
   .lab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 1rem; }
   .ex-stack { display: flex; flex-direction: column; gap: 1.25rem; }
   .canyou-panel { padding-top: 0.5rem; }
-  .artifact { margin-top: 1rem; color: var(--ink-mute); }
 
 </style>
