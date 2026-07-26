@@ -7,6 +7,7 @@ import ShapeOracle from '../exhibits/ShapeOracle'
 import SpotDecision from '../exhibits/SpotDecision'
 import CorpusXray from '../exhibits/CorpusXray'
 import MosaicXray from '../exhibits/MosaicXray'
+import TransformDrill from '../exhibits/TransformDrill'
 import opCards from '../data/op-cards.json'
 
 const cards = Object.entries(opCards as Record<string, string>)
@@ -60,6 +61,11 @@ const CATEGORIES = ['all', 'compute', 'reduction', 'shape', 'control', 'distribu
           <div class="drill-wide">
             <Exhibit designator="GYM·03" title="spot the decision" provenance="find the line the framework wrote for you: upcasts, hidden broadcasts, remat marks · targets computed by scanning the real dumps">
               <SpotDecision client:visible />
+            </Exhibit>
+          </div>
+          <div class="drill-wide">
+            <Exhibit designator="GYM·06" title="name the transform" provenance="one function traced under six transforms · dumps from gen_transform_gallery.py, loud primitive names redacted for the game">
+              <TransformDrill client:visible />
             </Exhibit>
           </div>
         </div>

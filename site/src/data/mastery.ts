@@ -23,19 +23,24 @@ export const MASTERY: Record<string, WorkItem[]> = {
   'l:source': [
     { id: 'read', label: 'read the chapter: what tracing takes away' },
     { id: 'trace', label: 'trace one of your own functions with jax.make_jaxpr and read what survived' },
+    { id: 'guide', label: 'the full guide: every section read, exercises worked', href: '#exercises' },
   ],
   'l:jaxpr': [
     { id: 'read', label: 'read the chapter: equations, shapes, the f32 upcast' },
     { id: 'oracle', label: 'shape oracle: streak of 5', href: '/gym#drills', auto: { type: 'streak', key: 'gym.shape.streak', goal: 5 } },
+    { id: 'guide', label: 'the full guide: every section read, exercises worked', href: '#exercises' },
+    { id: 'transform', label: 'name the transform: streak of 5', href: '/gym#drills', auto: { type: 'streak', key: 'gym.transform.streak', goal: 5 } },
   ],
   'l:stablehlo': [
     { id: 'read', label: 'read the chapter: MLIR, dialects, dimension_numbers' },
     { id: 'decoder', label: 'dot_general decoder: streak of 5', href: '/gym#drills', auto: { type: 'streak', key: 'gym.dot.streak', goal: 5 } },
     { id: 'xray', label: 'corpus x-ray: narrate two programs you have not seen', href: '/gym#xray' },
+    { id: 'guide', label: 'the full guide: every section read, exercises worked', href: '#exercises' },
   ],
   'l:xla': [
     { id: 'read', label: 'read the chapter: fusion and its exact limit' },
     { id: 'spot', label: 'spot the decision: streak of 3', href: '/gym#drills', auto: { type: 'streak', key: 'gym.spot.streak', goal: 3 } },
+    { id: 'guide', label: 'the full guide: every section read, exercises worked', href: '#exercises' },
   ],
   'l:gap': [
     { id: 'read', label: 'read the chapter: the two modes, and why the crossing is on foot' },
@@ -43,18 +48,22 @@ export const MASTERY: Record<string, WorkItem[]> = {
   'l:pallas': [
     { id: 'read', label: 'read the chapter: refs, BlockSpecs, the grid' },
     { id: 'sandbox', label: 'BlockSpec sandbox: produce one legal and one illegal schedule, explain both', href: '/s/pallas#instruments' },
+    { id: 'guide', label: 'the full guide: every section read, exercises worked', href: '#exercises' },
   ],
   'l:mosaic': [
     { id: 'read', label: 'read the chapter: what lowers below pallas_call' },
     { id: 'mxray', label: 'mosaic x-ray: find your index maps compiled into functions', href: '/gym#mosaic' },
+    { id: 'guide', label: 'the full guide: every section read, exercises worked', href: '#exercises' },
   ],
   'l:tpu': [
     { id: 'read', label: 'read the chapter: the four numbers' },
     { id: 'roofline', label: 'roofline playground: find the shape where matmul goes memory-bound', href: '/s/machine#instruments' },
+    { id: 'guide', label: 'the full guide: every section read, exercises worked', href: '#exercises' },
   ],
   'l:ici': [
     { id: 'read', label: 'read the chapter: rings, remote DMA, semaphores' },
     { id: 'ring', label: 'EX·04: watch the same schedule grow longer arrows', href: '/s/distributed#instruments' },
+    { id: 'guide', label: 'the full guide: every section read, exercises worked', href: '#exercises' },
   ],
   's:machine': [
     { id: 'read', label: 'read the chapter and the two scaling-book chapters' },
@@ -64,7 +73,7 @@ export const MASTERY: Record<string, WorkItem[]> = {
   's:pallas': [
     { id: 'read', label: 'read the chapter; step EX·02 against EX·07 until the difference is boring' },
     { id: 'walks', label: 'step both guided walks, then the synced walk (EX·12)', href: '/s/pallas#walks' },
-    { id: 'museum', label: 'read all six mistake exhibits; predict each error before revealing it', href: '/mistakes' },
+    { id: 'museum', label: 'read all eight mistake exhibits; predict each error before revealing it', href: '/mistakes' },
     { id: 'labs', label: 'run LAB·1.1 through LAB·1.4', href: '#labs', auto: { type: 'labs', ids: ['LAB·1.1', 'LAB·1.2', 'LAB·1.3', 'LAB·1.4'] } },
     { id: 'canyou', label: 'tick every can-you item honestly', auto: { type: 'checklist', stage: 'pallas', total: 8 } },
   ],
