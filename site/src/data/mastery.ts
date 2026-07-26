@@ -46,6 +46,7 @@ export const MASTERY: Record<string, WorkItem[]> = {
   ],
   'l:mosaic': [
     { id: 'read', label: 'read the chapter: what lowers below pallas_call' },
+    { id: 'mxray', label: 'mosaic x-ray: find your index maps compiled into functions', href: '/gym#mosaic' },
   ],
   'l:tpu': [
     { id: 'read', label: 'read the chapter: the four numbers' },

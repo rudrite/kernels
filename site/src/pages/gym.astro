@@ -6,6 +6,7 @@ import DotDecoder from '../exhibits/DotDecoder'
 import ShapeOracle from '../exhibits/ShapeOracle'
 import SpotDecision from '../exhibits/SpotDecision'
 import CorpusXray from '../exhibits/CorpusXray'
+import MosaicXray from '../exhibits/MosaicXray'
 import opCards from '../data/op-cards.json'
 
 const cards = Object.entries(opCards as Record<string, string>)
@@ -32,7 +33,7 @@ const CATEGORIES = ['all', 'compute', 'reduction', 'shape', 'control', 'distribu
       <div class="wrap wgrid">
         <span class="wtag">the gym</span>
         <div>
-          <p class="mono-label serves">serves chapters 02 · 03 · 04 · 12 — the path assigns each drill with a streak target; the streaks check themselves off</p>
+          <p class="mono-label serves">serves chapters 02 · 03 · 04 · 07 · 12 — the path assigns each drill with a streak target; the streaks check themselves off</p>
           <h1 class="wh1">Fluency is drills, not prose.</h1>
           <p class="wlede">
             Seventeen real programs, traced and dumped: every jaxpr and StableHLO here was generated,
@@ -78,6 +79,27 @@ const CATEGORIES = ['all', 'compute', 'reduction', 'shape', 'control', 'distribu
           </p>
           <Exhibit designator="GYM·04" title="the corpus x-ray" provenance="17 programs, 236 sync groups, all derived by the mapping script · nothing hand-drawn">
             <CorpusXray client:visible />
+          </Exhibit>
+        </div>
+      </div>
+    </section>
+
+    <section class="wband" id="mosaic">
+      <div class="wrap wgrid">
+        <span class="wtag">one layer<br />down</span>
+        <div>
+          <h2 class="wh2">The layer below pallas_call</h2>
+          <p class="wlede narrow">
+            Pallas lowers your kernel to Mosaic, an MLIR dialect for TPU kernels, and that layer is
+            still readable: the tpu dialect and much of its lowering live in the jax repo under
+            jaxlib/mosaic, and any kernel prints its module with pallas_call(..., debug=True).
+            Below Mosaic sits LLO, which is closed, so this is the last layer you can read.
+            Reading it pays: the museum's lattice and VMEM errors speak this dialect's vocabulary.
+            Find your BlockSpec index maps compiled into functions, and your pl.when compiled into
+            a real branch.
+          </p>
+          <Exhibit designator="GYM·05" title="the mosaic x-ray" provenance="three track kernels captured from Pallas debug output · pairing computed by gen_mosaic_corpus.py, skips over guesses">
+            <MosaicXray client:visible />
           </Exhibit>
         </div>
       </div>

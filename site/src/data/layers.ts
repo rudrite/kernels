@@ -8,6 +8,8 @@ export interface LayerCode {
   text?: string
   fromIR?: 'source' | 'jaxpr' | 'stablehlo'
   lines?: [number, number]
+  /** Highlighter language for literal text; defaults to python. */
+  lang?: 'python' | 'mlir'
 }
 
 export interface LayerSection {
@@ -190,14 +192,33 @@ pl.pallas_call(                               # schedule
   {
     id: 'mosaic',
     title: 'Mosaic → LLO',
-    lede: 'The TPU backend: where your kernel becomes tiled vector operations, and why you read it but never write it.',
+    lede: 'The TPU backend: Mosaic you can read, LLO you cannot, and the boundary between them drawn exactly.',
     sections: [
       {
         h: 'what happens below pallas_call',
         ps: [
-          'Pallas does not execute your kernel; it lowers it to Mosaic, an MLIR dialect for TPU kernels. Mosaic maps your block operations onto the chip\'s real units: matmuls onto the MXU\'s systolic array, elementwise work onto the VPU\'s lanes, and everything onto the `(8, 128)` register tiling. Below Mosaic sits LLO, the TPU\'s near-assembly, where operations become VLIW bundles the sequencer issues. You will never write either.',
-          'You will, however, read Mosaic\'s complaints. When a block shape violates the lattice, when a dynamic slice defeats vectorization, when VMEM overflows: the error surfaces from this layer, in this layer\'s vocabulary. The reason this track teaches the machine (stage 0) before the kernel language (stage 1) is exactly so those errors read as information rather than noise.',
-          'One design fact worth knowing: this layer is why TPU kernel scheduling is tractable at all. TPU grid steps are a sequential pipeline, not thousands of independent thread blocks, so questions like "will this transfer hide under this compute" have answers you can reason about from constants. The whole roofline discipline of stage 0 works because the hardware below is this predictable.',
+          'Pallas does not execute your kernel; it lowers it to Mosaic, an MLIR dialect for TPU kernels. Mosaic maps your block operations onto the chip\'s real units: matmuls onto the MXU\'s systolic array, elementwise work onto the VPU\'s lanes, and everything onto the `(8, 128)` register tiling. Below Mosaic sits LLO, the TPU\'s near-assembly, where operations become VLIW bundles the sequencer issues.',
+          'The two halves have different visibility, and knowing where the line falls matters. Mosaic\'s front half is open: the `tpu` dialect and much of its lowering live in the jax repo under `jaxlib/mosaic`, and any kernel prints its own module with `pallas_call(..., debug=True)`. LLO is not: it ships closed inside `libtpu`, and the public pipeline ends where Mosaic hands the module over. So the honest division of labor is: you write Pallas, you read Mosaic, and you never see LLO.',
+          'Reading Mosaic is worth the hour it takes, because everything you wrote is still recognizable, just compiled. Your BlockSpec index maps become literal functions in the module. Your `pl.when` becomes a real `scf.if` with both branches present. Your `jnp.dot` becomes `tpu.matmul` with the dimension numbers carried down intact. The GYM·05 instrument holds three track kernels open at this layer with hover sync, the same way GYM·04 does for the layers above.',
+          'You will also read Mosaic\'s complaints. When a block shape violates the lattice, when a dynamic slice defeats vectorization, when VMEM overflows: the error surfaces from this layer, in this layer\'s vocabulary of layouts and vector shapes. The reason this track teaches the machine (stage 0) before the kernel language (stage 1) is exactly so those errors read as information rather than noise.',
+        ],
+        code: {
+          caption: 'the running matmul kernel at this layer (captured from Pallas debug output, jax 0.4.38): the dot is now the MXU op, and a BlockSpec index map is now a function',
+          lang: 'mlir',
+          text: `%6 = tpu.matmul %4, %5, %cst {dimension_numbers = #tpu.dot_dimension_numbers<[1], [0], [0], [1], [0, 0, 1, 1], [], []>} : vector<256x256xbf16>, vector<256x256xbf16>, vector<256x256xf32> -> vector<256x256xf32>
+%7 = arith.truncf %6 : vector<256x256xf32> to vector<256x256xbf16>
+
+// later in the same module: lambda i, j, kk: (kk, j), compiled
+func.func @transform_1(%arg0: i32, %arg1: i32, %arg2: i32) -> (i32, i32) {
+  %c0_i32 = arith.constant 0 : i32
+  return %arg2, %arg1 : i32, i32
+}`,
+        },
+      },
+      {
+        h: 'the design fact to carry down',
+        ps: [
+          'One thing this layer explains: why TPU kernel scheduling is tractable at all. TPU grid steps are a sequential pipeline, not thousands of independent thread blocks, so questions like "will this transfer hide under this compute" have answers you can reason about from constants. The whole roofline discipline of stage 0 works because the hardware below is this predictable.',
         ],
       },
     ],

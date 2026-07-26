@@ -67,7 +67,7 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
                 <div class="codebody">
                   <Code
                     code={sec.code.fromIR ? irText(sec.code.fromIR, sec.code.lines) : sec.code.text!}
-                    lang={sec.code.fromIR === 'stablehlo' ? 'mlir' : sec.code.fromIR === 'jaxpr' ? 'haskell' : 'python'}
+                    lang={sec.code.fromIR === 'stablehlo' ? 'mlir' : sec.code.fromIR === 'jaxpr' ? 'haskell' : sec.code.lang ?? 'python'}
                     theme="vesper"
                   />
                 </div>
