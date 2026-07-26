@@ -3,6 +3,8 @@ import { Code } from 'astro:components'
 import Base from '../../layouts/Base.astro'
 import Spine from '../../components/Spine.astro'
 import Rich from '../../components/Rich.astro'
+import SectionHead from '../../components/SectionHead.astro'
+import ReadingRails from '../../components/ReadingRails.astro'
 import { LAYERS, STAGES } from '../../data/track'
 import { LAYER_DOCS, layerDoc } from '../../data/layers'
 import irData from '../../data/ir-attention.json'
@@ -24,11 +26,21 @@ const irText = (which: 'source' | 'jaxpr' | 'stablehlo', lines?: [number, number
   const slice = lines ? all.slice(lines[0], lines[1] + 1) : all
   return slice.join('\n')
 }
+
+const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 ---
 
 <Base title={`${doc.title} — the stack, layer by layer — Rudrite Kernels`} description={doc.lede}>
   <div class="wrap layout">
-    <aside class="side"><Spine currentLayer={doc.id} /></aside>
+    <aside class="side">
+      <Spine currentLayer={doc.id} />
+      <nav class="toc" aria-label="On this page">
+        <span class="mono-label toc-head">on this page</span>
+        <ol>
+          {doc.sections.map((sec) => <li><a href={`#${slug(sec.h)}`}>{sec.h}</a></li>)}
+        </ol>
+      </nav>
+    </aside>
 
     <article class="main">
       <p class="mono-label kicker">the path · chapter {String(idx + 1).padStart(2, '0')} of 15 · part i, the descent</p>
@@ -38,7 +50,7 @@ const irText = (which: 'source' | 'jaxpr' | 'stablehlo', lines?: [number, number
       {
         doc.sections.map((sec) => (
           <section class="block prose">
-            <h2 class="mono-label">{sec.h}</h2>
+            <SectionHead id={slug(sec.h)} eyebrow="the layer" title={sec.h.charAt(0).toUpperCase() + sec.h.slice(1)} />
             {sec.ps.map((p) => (
               <p class="theory">
                 <Rich text={p} />
@@ -76,12 +88,40 @@ const irText = (which: 'source' | 'jaxpr' | 'stablehlo', lines?: [number, number
         {next ? <a href={`/l/${next.id}`}>descend · {next.title} →</a> : <a href="/s/machine">continue the path · chapter 10, stage 0 →</a>}
       </nav>
     </article>
+
+    <aside class="right">
+      <div class="rail">
+        <div>
+          <span class="rail-head">reading progress</span>
+          <span class="progress-num meas">0%</span>
+          <div class="progress-bar"><i></i></div>
+        </div>
+        <div>
+          <span class="rail-head">this layer</span>
+          <div class="card">
+            <div class="row"><span class="k">chapter</span><span>{String(idx + 1).padStart(2, '0')} of 15</span></div>
+            <div class="row"><span class="k">part</span><span>i · the descent</span></div>
+            {drillStage && <div class="row"><span class="k">drilled in</span><span>stage {drillStage.num}</span></div>}
+          </div>
+        </div>
+        <div>
+          <span class="rail-head">part of</span>
+          <ul>
+            <li><a href="/">the path · fifteen chapters</a></li>
+            {prev && <li><a href={`/l/${prev.id}`}>before: {prev.title}</a></li>}
+            {next ? <li><a href={`/l/${next.id}`}>next: {next.title}</a></li> : <li><a href="/s/machine">next: stage 0, the machine</a></li>}
+          </ul>
+        </div>
+      </div>
+    </aside>
   </div>
+  <ReadingRails />
 </Base>
 
 <style>
-  .layout { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: 3rem; padding-block: 2.5rem; }
-  .side { position: sticky; top: 2rem; align-self: start; }
+  .layout { display: grid; grid-template-columns: 12.5rem minmax(0, 1fr) 13rem; gap: 3rem; padding-block: 2.5rem; }
+  .side, .right { position: sticky; top: 2rem; align-self: start; }
+  @media (max-width: 1240px) { .layout { grid-template-columns: 12.5rem minmax(0, 1fr); } .right { display: none; } }
   @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .side { display: none; } }
 
   .kicker { color: var(--copper-deep); margin-bottom: 0.875rem; }

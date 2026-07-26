@@ -2,6 +2,8 @@
 import Base from '../../layouts/Base.astro'
 import Rich from '../../components/Rich.astro'
 import TitleBlock from '../../components/TitleBlock.astro'
+import SectionHead from '../../components/SectionHead.astro'
+import ReadingRails from '../../components/ReadingRails.astro'
 import GateStamp from '../../components/GateStamp.astro'
 import LabCard from '../../components/LabCard.astro'
 import Spine from '../../components/Spine.astro'
@@ -41,25 +43,45 @@ const traceExhibits = tracesByStage[stage.id] ?? []
 const showRoofline = stage.id === 'machine'
 const showXray = stage.id === 'ir'
 const extractedLabs = stage.labs.filter((l) => l.designator in labsData)
+
+const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+const chapterToc = stage.chapter.map((c) => ({ id: `c-${slug(c.h)}`, label: c.h.toLowerCase() }))
+const fixedToc = [
+  ...(showRoofline || showXray || traceExhibits.length ? [{ id: 'instruments', label: 'instruments' }] : []),
+  { id: 'built', label: 'what gets built' },
+  ...(stage.readings.length ? [{ id: 'readings', label: 'readings' }] : []),
+  { id: 'work', label: 'the work, in order' },
+  ...(stage.labs.length ? [{ id: 'labs', label: 'labs' }] : []),
+  ...(extractedLabs.length ? [{ id: 'notebook', label: 'from the notebook' }] : []),
+  { id: 'gate', label: 'the gate' },
+]
+const toc = [...chapterToc, ...fixedToc]
 ---
 
 <Base title={`Stage ${stage.num}: ${stage.title} — Rudrite Kernels`} description={stage.goal}>
   <div class="wrap layout">
-    <aside class="side"><Spine currentLayer={stage.layer} /></aside>
+    <aside class="side">
+      <Spine currentLayer={stage.layer} />
+      <nav class="toc" aria-label="On this page">
+        <span class="mono-label toc-head">on this page</span>
+        <ol>
+          {toc.map((t) => <li><a href={`#${t.id}`}>{t.label}</a></li>)}
+        </ol>
+      </nav>
+    </aside>
 
     <article class="main">
       <p class="mono-label kicker">the path · chapter {String(10 + stage.num).padStart(2, '0')} of 15 · part ii, the track</p>
       <TitleBlock stage={stage} />
 
       <section class="block prose">
-        <h2 class="mono-label">goal</h2>
         <p class="goal">{stage.goal}</p>
       </section>
 
       <section class="block howto" aria-label="How to work this stage">
         <span class="mono-label">how to work this stage</span>
         <ol>
-          <li>read the chapter below</li>
+          <li>read the chapter</li>
           <li>do the readings</li>
           <li>work the weeks in order</li>
           <li>run the labs in Colab</li>
@@ -67,63 +89,55 @@ const extractedLabs = stage.labs.filter((l) => l.designator in labsData)
         </ol>
       </section>
 
-      <section class="block prose">
-        <h2 class="mono-label">the chapter</h2>
-        {stage.theory.map((para) => <p class="theory"><Rich text={para} /></p>)}
-      </section>
-
       {
-        showRoofline && (
-          <section class="block">
-            <h2 class="mono-label">instruments</h2>
-            <div class="ex-stack">
-              <Exhibit
-                designator="EX·06"
-                title="the memory hierarchy, to its real widths"
-                provenance="constants from jax-ml.github.io/scaling-book (retrieved 2026-07-26) · nothing invented"
-              >
-                <MemoryHierarchy />
-              </Exhibit>
-              <Exhibit
-                designator="EX·01"
-                title="the roofline playground"
-                provenance="chip constants from jax-ml.github.io/scaling-book (retrieved 2026-07-26) · all values computed, nothing invented"
-              >
-                <Roofline client:visible />
-              </Exhibit>
-            </div>
+        stage.chapter.map((sec) => (
+          <section class="block prose">
+            <SectionHead id={`c-${slug(sec.h)}`} eyebrow="the chapter" title={sec.h} />
+            {sec.ps.map((p) =>
+              p.startsWith('>> ') ? (
+                <blockquote class="pull">{p.slice(3)}</blockquote>
+              ) : (
+                <p class="theory">
+                  <Rich text={p} />
+                </p>
+              ),
+            )}
           </section>
-        )
+        ))
       }
 
       {
-        traceExhibits.length > 0 && (
+        (showRoofline || showXray || traceExhibits.length > 0) && (
           <section class="block">
-            <h2 class="mono-label">instruments</h2>
+            <SectionHead id="instruments" eyebrow="hands on the machine" title="Instruments" />
             <div class="ex-stack">
+              {showRoofline && (
+                <>
+                  <Exhibit designator="EX·06" title="the memory hierarchy, to its real widths" provenance="constants from jax-ml.github.io/scaling-book (retrieved 2026-07-26) · nothing invented">
+                    <MemoryHierarchy />
+                  </Exhibit>
+                  <Exhibit designator="EX·01" title="the roofline playground" provenance="chip constants from jax-ml.github.io/scaling-book (retrieved 2026-07-26) · all values computed, nothing invented">
+                    <Roofline client:visible />
+                  </Exhibit>
+                </>
+              )}
               {traceExhibits.map((ex) => (
                 <Exhibit designator={ex.designator} title={ex.trace.title} provenance={ex.trace.provenance}>
                   <Choreographer trace={ex.trace} client:visible />
                 </Exhibit>
               ))}
+              {showXray && (
+                <Exhibit designator="EX·05" title="the IR x-ray · one program, three layers" provenance={irData.provenance}>
+                  <IRXray client:visible />
+                </Exhibit>
+              )}
             </div>
           </section>
         )
       }
 
-      {
-        showXray && (
-          <section class="block">
-            <h2 class="mono-label">instruments</h2>
-            <Exhibit designator="EX·05" title="the IR x-ray · one program, three layers" provenance={irData.provenance}>
-              <IRXray client:visible />
-            </Exhibit>
-          </section>
-        )
-      }
-
       <section class="block prose">
-        <h2 class="mono-label">what gets built</h2>
+        <SectionHead id="built" eyebrow="deliverables" title="What gets built" />
         <ul class="build">
           {stage.build.map((b) => <li>{b}</li>)}
         </ul>
@@ -132,7 +146,7 @@ const extractedLabs = stage.labs.filter((l) => l.designator in labsData)
       {
         stage.readings.length > 0 && (
           <section class="block prose">
-            <h2 class="mono-label">readings</h2>
+            <SectionHead id="readings" eyebrow="sources" title="Readings" />
             <ul class="readings">
               {stage.readings.map((r) => (
                 <li>
@@ -146,7 +160,7 @@ const extractedLabs = stage.labs.filter((l) => l.designator in labsData)
       }
 
       <section class="block prose">
-        <h2 class="mono-label">the work, in order</h2>
+        <SectionHead id="work" eyebrow="the plan" title="The work, in order" />
         {
           stage.work.map((w) => (
             <div class="workblock">
@@ -162,7 +176,7 @@ const extractedLabs = stage.labs.filter((l) => l.designator in labsData)
       {
         stage.labs.length > 0 && (
           <section class="block">
-            <h2 class="mono-label">labs</h2>
+            <SectionHead id="labs" eyebrow="run it yourself" title="Labs" />
             <div class="lab-grid">
               {stage.labs.map((lab) => (
                 <LabCard lab={lab} />
@@ -175,7 +189,7 @@ const extractedLabs = stage.labs.filter((l) => l.designator in labsData)
       {
         extractedLabs.length > 0 && (
           <section class="block">
-            <h2 class="mono-label">from the notebook</h2>
+            <SectionHead id="notebook" eyebrow="single source of truth" title="From the notebook" />
             <div class="ex-stack">
               {extractedLabs.map((l) => (
                 <NotebookPeek designator={l.designator} />
@@ -186,36 +200,68 @@ const extractedLabs = stage.labs.filter((l) => l.designator in labsData)
       }
 
       <section class="block">
-        <h2 class="mono-label">the gate</h2>
+        <SectionHead id="gate" eyebrow="pass or fail, in public" title="The gate" />
         <GateStamp stage={stage} />
+        <p class="artifact prose">Public artifact for this stage: {stage.artifact.replace(/^Explainers?: /, '')}.</p>
       </section>
 
-      <section class="block prose">
-        <h2 class="mono-label">public artifact</h2>
-        <p>{stage.artifact}</p>
-      </section>
-
-      <nav class="pager" aria-label="Stages">
-        {prev ? <a href={`/s/${prev.id}`}>← S{prev.num} {prev.title}</a> : <span />}
-        {next ? <a href={`/s/${next.id}`}>S{next.num} {next.title} →</a> : <span />}
+      <nav class="pager" aria-label="The path">
+        {prev ? <a href={`/s/${prev.id}`}>← ch {String(10 + prev.num).padStart(2, '0')} · {prev.title}</a> : <a href="/l/ici">← ch 09 · ICI ⇄ chips</a>}
+        {next ? <a href={`/s/${next.id}`}>ch {String(10 + next.num).padStart(2, '0')} · {next.title} →</a> : <a href="/bench">the bench →</a>}
       </nav>
     </article>
+
+    <aside class="right">
+      <div class="rail">
+        <div>
+          <span class="rail-head">reading progress</span>
+          <span class="progress-num meas">0%</span>
+          <div class="progress-bar"><i></i></div>
+        </div>
+        <div>
+          <span class="rail-head">stage</span>
+          <div class="card">
+            <div class="row"><span class="k">schedule</span><span>{stage.weeks}</span></div>
+            <div class="row"><span class="k">labs</span><span>{stage.labs.length}</span></div>
+            <div class="row"><span class="k">gate</span><span>{stage.gate.state}</span></div>
+            <div class="row"><span class="k">hardware</span><span>Colab TPU</span></div>
+          </div>
+        </div>
+        <div>
+          <span class="rail-head">part of</span>
+          <ul>
+            <li><a href="/">the path · fifteen chapters</a></li>
+            {prev && <li><a href={`/s/${prev.id}`}>before: {prev.title}</a></li>}
+            {next && <li><a href={`/s/${next.id}`}>next: {next.title}</a></li>}
+          </ul>
+        </div>
+        <div>
+          <span class="rail-head">related</span>
+          <ul>
+            <li><a href="/bench">the bench · every number</a></li>
+            <li><a href="https://github.com/rudrite/kernels" rel="noopener">the repo · labs and curriculum</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
   </div>
+  <ReadingRails />
 </Base>
 
 <style>
-  .layout { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: 3rem; padding-block: 2.5rem; }
-  .side { position: sticky; top: 2rem; align-self: start; }
+  .layout { display: grid; grid-template-columns: 12.5rem minmax(0, 1fr) 13rem; gap: 3rem; padding-block: 2.5rem; }
+  .side, .right { position: sticky; top: 2rem; align-self: start; }
+  @media (max-width: 1240px) { .layout { grid-template-columns: 12.5rem minmax(0, 1fr); } .right { display: none; } }
   @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .side { position: static; display: none; } }
 
   .kicker { color: var(--copper-deep); margin-bottom: 0.875rem; }
-  .block { margin-top: 2.75rem; }
-  .block > h2 { margin-bottom: 0.875rem; }
-  .howto { display: flex; align-items: baseline; gap: 1.25rem; flex-wrap: wrap; border-block: 1px solid var(--rule-soft); padding-block: 0.75rem; }
+  .block { margin-top: 3rem; }
+  .goal { font-size: 1.25rem; line-height: 1.55; }
+  .howto { display: flex; align-items: baseline; gap: 1.25rem; flex-wrap: wrap; border-block: 1px solid var(--rule-soft); padding-block: 0.75rem; margin-top: 1.75rem; }
   .howto ol { display: flex; gap: 1.5rem; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; counter-reset: step; font-family: var(--mono); font-size: 0.75rem; color: var(--ink-mute); }
   .howto li { counter-increment: step; }
   .howto li::before { content: counter(step) ' · '; color: var(--copper-deep); }
-  .goal { font-size: 1.1875rem; }
+
   .theory { margin-bottom: 1em; }
   .build { padding-left: 1.1em; }
   .build li { margin-bottom: 0.45em; }
@@ -229,6 +275,7 @@ const extractedLabs = stage.labs.filter((l) => l.designator in labsData)
   .workblock li { margin-bottom: 0.4em; }
   .lab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 1rem; }
   .ex-stack { display: flex; flex-direction: column; gap: 1.25rem; }
+  .artifact { margin-top: 1rem; color: var(--ink-mute); }
 
   .pager { display: flex; justify-content: space-between; gap: 1rem; margin-top: 3.5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 0.8125rem; }
   .pager a { text-decoration: none; color: var(--ink-mute); }

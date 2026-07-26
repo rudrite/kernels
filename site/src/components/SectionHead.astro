@@ -1,0 +1,14 @@
+---
+// The section head motif: mono eyebrow with a rule, then a display heading.
+interface Props {
+  id: string
+  eyebrow: string
+  title: string
+}
+const { id, eyebrow, title } = Astro.props
+---
+
+<div class="shead" id={id}>
+  <span class="eyebrow">{eyebrow}</span>
+  <h2>{title}</h2>
+</div>

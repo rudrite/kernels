@@ -37,8 +37,8 @@ export interface Stage {
   weeks: string
   layer: string
   goal: string
-  /** The chapter: teaching prose, rendered before the instruments. */
-  theory: string[]
+  /** The chapter: named sections of teaching prose; '>>' entries render as pull quotes. */
+  chapter: { h: string; ps: string[] }[]
   build: string[]
   readings: Reading[]
   work: WorkBlock[]
@@ -58,11 +58,20 @@ export const STAGES: Stage[] = [
     layer: 'tpu',
     goal:
       'Given an op and its shapes, predict from first principles whether it is compute-bound or memory-bound on a given TPU generation, and estimate its ceiling latency.',
-    theory: [
-      'A chip has two speeds: how fast it computes and how fast it feeds. A TPU v5e can do `1.97e14 bf16 FLOPs per second`, but its HBM can only deliver 8.2e11 bytes per second. Divide the two and you get the ridge: about 240 FLOPs per byte. Any op that does fewer FLOPs per byte it moves is memory-bound, and no amount of compute cleverness will speed it up; any op above the ridge is compute-bound, and no amount of bandwidth will. This one division explains most TPU performance mysteries you will ever meet.',
-      'The compute lives in two units. The MXU is a systolic array (`128x128` on most generations, 256x256 on v6e) built for matmuls; the VPU is a vector unit that handles everything elementwise. Between them and HBM sits VMEM, roughly 128 MiB of software-managed scratchpad on v5e. Data must be staged in VMEM before compute can touch it, and almost all kernel engineering is choreography of that staging. EX·06 below shows the hierarchy with its real widths.',
-      'One lattice rule to memorize now, because every kernel in this track obeys it: TPU tiles want their last two dimensions in multiples of `(8, 128)`, and packing doubles the sublane count for narrower dtypes (bf16 packs `(16, 128)`). Blocks that violate the lattice compile badly or not at all.',
-      'The habit this stage installs: predict before you measure, every time. Work the arithmetic in EX·01, commit to a number, then run the lab on a real chip and explain every miss. An engineer who predicts within 2x and can name the reason for each miss understands the machine; one who only measures is collecting trivia.',
+    chapter: [
+      { h: 'Two speeds, one ridge', ps: [
+        'A chip has two speeds: how fast it computes and how fast it feeds. A TPU v5e can do `1.97e14 bf16 FLOPs per second`, but its HBM can only deliver `8.2e11 bytes per second`. Divide the two and you get the ridge: about `240 FLOPs per byte`. Any op that does fewer FLOPs per byte it moves is **memory-bound**, and no amount of compute cleverness will speed it up; any op above the ridge is **compute-bound**, and no amount of bandwidth will. This one division explains most TPU performance mysteries you will ever meet.',
+      ] },
+      { h: 'The units and the scratchpad', ps: [
+        'The compute lives in two units. The MXU is a systolic array (`128x128` on most generations, `256x256` on v6e) built for matmuls; the VPU is a vector unit that handles everything elementwise. Between them and HBM sits VMEM, roughly `128 MiB` of software-managed scratchpad on v5e. Data must be staged in VMEM before compute can touch it, and almost all kernel engineering is choreography of that staging. EX·06 below shows the hierarchy with its real widths.',
+      ] },
+      { h: 'The lattice rule', ps: [
+        'One lattice rule to memorize now, because every kernel in this track obeys it: TPU tiles want their last two dimensions in multiples of `(8, 128)`, and packing doubles the sublane count for narrower dtypes (bf16 packs `(16, 128)`). Blocks that violate the lattice compile badly or not at all.',
+      ] },
+      { h: 'Predict, then measure', ps: [
+        'The habit this stage installs: predict before you measure, every time. Work the arithmetic in EX·01, commit to a number, then run the lab on a real chip and explain every miss. An engineer who predicts within 2x and can name the reason for each miss understands the machine; one who only measures is collecting trivia.',
+        '>> Predict before you measure, every time.',
+      ] },
     ],
     build: [
       'Roofline estimates for five ops, by hand, reconciled against XProf measurements',
@@ -103,11 +112,19 @@ export const STAGES: Stage[] = [
     layer: 'pallas',
     goal:
       'Write, benchmark, and profile correct single-chip Pallas kernels; read production kernels fluently.',
-    theory: [
-      'A Pallas kernel is a function over refs: windows into arrays that the runtime has already staged into VMEM. You never write loads or stores against HBM; you write what one grid step does to its window, and two other objects decide everything else. The `BlockSpec` says how an array is carved into blocks and which block a given grid position sees (its index map). The grid says how many steps run and in what order. Keeping "what the step computes" separate from "which data the step sees" in your head from day one is the discipline everything later builds on; the site colors the first copper and the second steel everywhere.',
-      'The part nobody tells you early enough: on TPU, the grid is a software pipeline, not a batch of parallel threads. Step k computes on its blocks while the runtime streams step k+1\'s blocks in behind it. You get double buffering without writing a DMA, but only if your blocks are sized so transfer time hides under compute time. EX·02 plays the pipelined schedule; EX·07 plays the same matmul with the pipeline off, so you can watch the MXU idle between loads. The difference between those two animations is most of single-chip performance engineering.',
-      'The other load-bearing pattern is the carried accumulator. A reduction axis in the grid means the same output block is revisited once per step along that axis, initialized on the first visit and accumulated into after. Matmul carries C over the K axis here; flash attention will carry `(m, l, acc)` over KV blocks in stage 3. Same shape, bigger algebra.',
-      'And the habit: every measured number states its chip, dtype, shapes, and method (warmup, `block_until_ready`, median of N). Numbers without provenance are noise, and the bench page refuses them.',
+    chapter: [
+      { h: 'Refs, blocks, and the grid', ps: [
+        'A Pallas kernel is a function over refs: windows into arrays that the runtime has already staged into VMEM. You never write loads or stores against HBM; you write what one grid step does to its window, and two other objects decide everything else. The `BlockSpec` says how an array is carved into blocks and which block a given grid position sees (its index map). The grid says how many steps run and in what order. Keeping "what the step computes" separate from "which data the step sees" in your head from day one is the discipline everything later builds on; the site colors the first copper and the second steel everywhere.',
+      ] },
+      { h: 'The grid is a pipeline', ps: [
+        'The part nobody tells you early enough: on TPU, the grid is **a software pipeline, not a batch of parallel threads**. Step k computes on its blocks while the runtime streams step k+1\'s blocks in behind it. You get double buffering without writing a DMA, but only if your blocks are sized so transfer time hides under compute time. EX·02 plays the pipelined schedule; EX·07 plays the same matmul with the pipeline off, so you can watch the MXU idle between loads. The difference between those two animations is most of single-chip performance engineering.',
+      ] },
+      { h: 'The carried accumulator', ps: [
+        'The other load-bearing pattern is **the carried accumulator**. A reduction axis in the grid means the same output block is revisited once per step along that axis, initialized on the first visit and accumulated into after. Matmul carries C over the K axis here; flash attention will carry `(m, l, acc)` over KV blocks in stage 3. Same shape, bigger algebra.',
+      ] },
+      { h: 'Numbers carry provenance', ps: [
+        'And the habit: every measured number states its chip, dtype, shapes, and method (warmup, `block_until_ready`, median of N). Numbers without provenance are noise, and the bench page refuses them.',
+      ] },
     ],
     build: [
       'Six kernels in order: add, transpose, tiled matmul, fused softmax, LayerNorm, matmul+GELU',
@@ -170,11 +187,20 @@ export const STAGES: Stage[] = [
     layer: 'stablehlo',
     goal:
       'Read every representation your code passes through, and find the fusion decisions and their limits with your own eyes.',
-    theory: [
-      'Your Python is not what runs. JAX traces it into a jaxpr (a flat list of primitive ops), lowers that to StableHLO (the portable tensor IR every framework converges on), and hands it to XLA, which makes the performance decisions and emits code for the backend. Each layer is readable, and reading them is a skill worth drilling until it is boring, because the IR states everything Python hides: broadcasts made explicit, dtypes chosen for accumulators, the exact contraction dimensions of every matmul. EX·05 below holds one attention program open at three layers at once; hover any line and its counterparts light up.',
-      'XLA\'s big move is fusion: merging adjacent ops so intermediates stay in fast memory instead of round-tripping through HBM. Fusion is powerful and it has a precise limit: XLA fuses along dataflow edges, but it cannot change the algorithm. Naive softmax needs the row max before any exponential, so the S = QK^T score matrix is computed, spilled, and re-read no matter how well XLA fuses around it. At `seq 8192` in bf16 that spill is `134 MB` written and read back: `268 MB` of HBM traffic that exists purely because the algorithm is multi-pass.',
-      'That sentence deserves its own paragraph, because this whole track pivots on it: the spill is not a fusion failure, it is an algorithm failure. No pass in the compiler can fix it; a theorem can, and stage 3 proves that theorem. This stage\'s job is to see the spill in the compiler\'s own output so you never again confuse "the compiler fused it" with "the memory traffic is gone."',
-      'The fluency drill: `dot_general` `dimension_numbers`, decoded on sight. Which axes contract, which batch. It feels pedantic for a week and then every IR you ever read becomes legible.',
+    chapter: [
+      { h: 'What your code becomes', ps: [
+        'Your Python is not what runs. JAX traces it into a jaxpr (a flat list of primitive ops), lowers that to StableHLO (the portable tensor IR every framework converges on), and hands it to XLA, which makes the performance decisions and emits code for the backend. Each layer is readable, and reading them is a skill worth drilling until it is boring, because the IR states everything Python hides: broadcasts made explicit, dtypes chosen for accumulators, the exact contraction dimensions of every matmul. EX·05 below holds one attention program open at three layers at once; hover any line and its counterparts light up.',
+      ] },
+      { h: 'Fusion, and its exact limit', ps: [
+        'XLA\'s big move is fusion: merging adjacent ops so intermediates stay in fast memory instead of round-tripping through HBM. Fusion is powerful and it has a precise limit: XLA fuses along dataflow edges, but it cannot change the algorithm. Naive softmax needs the row max before any exponential, so the S = QK^T score matrix is computed, spilled, and re-read no matter how well XLA fuses around it. At `seq 8192` in bf16 that spill is `134 MB` written and read back: `268 MB` of HBM traffic that exists purely because the algorithm is multi-pass.',
+      ] },
+      { h: 'An algorithm failure', ps: [
+        'That sentence deserves its own paragraph, because this whole track pivots on it: the spill is not a fusion failure, it is an algorithm failure. No pass in the compiler can fix it; a theorem can, and stage 3 proves that theorem. This stage\'s job is to see the spill in the compiler\'s own output so you never again confuse "the compiler fused it" with "the memory traffic is gone."',
+        '>> The spill is not a fusion failure. It is an algorithm failure.',
+      ] },
+      { h: 'The fluency drill', ps: [
+        'The fluency drill: `dot_general` `dimension_numbers`, decoded on sight. Which axes contract, which batch. It feels pedantic for a week and then every IR you ever read becomes legible.',
+      ] },
     ],
     build: [
       'A table mapping one program across jaxpr, StableHLO, and optimized HLO',
@@ -215,12 +241,23 @@ export const STAGES: Stage[] = [
     layer: 'gap',
     goal:
       'Own the two axes that make the famous kernels hard: algorithmic restructuring and data-dependent iteration.',
-    theory: [
-      'Every kernel people speak of with reverence (flash, Splash, ragged paged attention, fused MoE) is hard for one or both of exactly two reasons. Axis one: algorithmic restructuring, turning a multi-pass computation into a streaming one, which is a theorem, not a schedule. Axis two: data-dependent iteration, where the loop structure itself depends on runtime data: a sparsity mask, a page table, routing decisions. Master both axes on their simplest instances and the priesthood kernels stop being magic; that is this stage.',
-      'The central result of axis one is online softmax. The naive form needs the row max before the exponentials, hence the multi-pass shape and stage 2\'s spill. The streaming form carries a triple `(m, l, acc)`: running max, running rescaled denominator, running rescaled output, and folds each new block in with an exact rescale, since `$e^{s-m_{\\text{new}}} = e^{s-m_{\\text{old}}} \\cdot e^{m_{\\text{old}}-m_{\\text{new}}}$`. The deep fact you prove in LAB·3.1 is that the combine operation on these triples is associative and commutative. That single proof is why blocked, streaming, parallel, and (in stage 4) distributed attention are all simultaneously correct. EX·03 plays the schedule with the state updates written as exact formulas.',
-      'A fast forward with a slow backward is useless for training, so the backward gets its own week. Two ideas carry it: the identity `$D = \\mathrm{rowsum}(dO \\odot O)$` collapses the softmax Jacobian into something streamable, and recomputing P blockwise from the saved `(m, l)` beats storing it, trading cheap FLOPs for expensive bytes. You wire your forward to a streaming backward with `custom_vjp` and let `jax.grad` referee every step.',
-      'Axis two starts with the observation that a causal mask is not something you add to scores; it is blocks you never visit. In EX·08 the kv loop bound depends on the query block index, so blocks past the diagonal are never loaded at all: the mask became loop structure, and the speedup scales with sparsity. Splash attention is this idea industrialized (arbitrary block masks via scalar prefetch), and ragged paged attention is the same axis with a page table as the data. Read both after you have built the toy; the diffs are the syllabus.',
-      'One rule for the whole stage: derivation before code, your own build before any reference. The blind-build discipline is not ceremony; reading Splash first would rob you of the exact struggle that makes its choices legible.',
+    chapter: [
+      { h: 'The two axes of hard', ps: [
+        'Every kernel people speak of with reverence (flash, Splash, ragged paged attention, fused MoE) is hard for one or both of exactly two reasons. Axis one: **algorithmic restructuring**, turning a multi-pass computation into a streaming one, which is a theorem, not a schedule. Axis two: **data-dependent iteration**, where the loop structure itself depends on runtime data: a sparsity mask, a page table, routing decisions. Master both axes on their simplest instances and the priesthood kernels stop being magic; that is this stage.',
+      ] },
+      { h: 'The softmax monoid', ps: [
+        'The central result of axis one is online softmax. The naive form needs the row max before the exponentials, hence the multi-pass shape and stage 2\'s spill. The streaming form carries a triple `(m, l, acc)`: running max, running rescaled denominator, running rescaled output, and folds each new block in with an exact rescale, since `$e^{s-m_{\\text{new}}} = e^{s-m_{\\text{old}}} \\cdot e^{m_{\\text{old}}-m_{\\text{new}}}$`. The deep fact you prove in LAB·3.1 is that the combine operation on these triples is associative and commutative. That single proof is why blocked, streaming, parallel, and (in stage 4) distributed attention are all simultaneously correct. EX·03 plays the schedule with the state updates written as exact formulas.',
+        '>> One associativity proof makes blocked, streaming, and distributed attention correct at once.',
+      ] },
+      { h: 'The backward, streamed', ps: [
+        'A fast forward with a slow backward is useless for training, so the backward gets its own week. Two ideas carry it: the identity `$D = \\mathrm{rowsum}(dO \\odot O)$` collapses the softmax Jacobian into something streamable, and recomputing P blockwise from the saved `(m, l)` beats storing it, trading cheap FLOPs for expensive bytes. You wire your forward to a streaming backward with `custom_vjp` and let `jax.grad` referee every step.',
+      ] },
+      { h: 'Masks become loop structure', ps: [
+        'Axis two starts with the observation that a causal mask is not something you add to scores; it is blocks you never visit. In EX·08 the kv loop bound depends on the query block index, so blocks past the diagonal are never loaded at all: the mask became loop structure, and the speedup scales with sparsity. Splash attention is this idea industrialized (arbitrary block masks via scalar prefetch), and ragged paged attention is the same axis with a page table as the data. Read both after you have built the toy; the diffs are the syllabus.',
+      ] },
+      { h: 'Derive before you read', ps: [
+        'One rule for the whole stage: derivation before code, your own build before any reference. The blind-build discipline is not ceremony; reading Splash first would rob you of the exact struggle that makes its choices legible.',
+      ] },
     ],
     build: [
       'Online softmax derived on paper from a blank page, associativity proven',
@@ -283,11 +320,20 @@ export const STAGES: Stage[] = [
     layer: 'ici',
     goal:
       'Ground collectives knowledge in the mechanism: remote DMA and semaphores, compute hiding communication.',
-    theory: [
-      'A collective is not a primitive; it is a kernel somebody wrote. On a TPU pod, chips along a mesh axis form physical rings, and an all-gather is what it looks like: N−1 hops where every chip pushes one shard to its neighbor. The push is the TPU\'s native distributed move: an async remote DMA that writes directly into the neighbor\'s VMEM and signals a semaphore, leaving the MXU free the whole time. Once you have built one collective from these parts, the opaque names (all-gather, reduce-scatter, all-to-all) resolve into loop shapes you can reason about like any other schedule.',
-      'The economics that make this stage matter at scale: at frontier size, the dominant tax is not slow kernels but exposed communication, the fraction of each step where compute units idle waiting on the interconnect. The cure is overlap: transfer shard t+1 while computing on shard t, which is exactly the double-buffering pattern from stage 1 with the arrows crossing chips. EX·04 shows it: the same streaming attention schedule as EX·03 with the KV transport swapped from HBM DMA to remote DMA. Same algebra, longer arrows.',
-      'With semaphores comes the one genuinely new failure mode of this stage: deadlock. A send waiting on a recv that waits on the send. LAB·4.1 has you build a deadlock on purpose in interpret mode, because meeting this failure for the first time in a real training run is a bad week, and meeting it in a toy is an afternoon.',
-      'The composition payoff closes the loop on the whole track: ring attention is LAB·3.1\'s monoid folded over shards arriving via LAB·4.1\'s ring, and nothing new needs deriving because associativity was proven once. When compositions keep coming out correct because one theorem was proven early, you have learned the track\'s deepest lesson: the famous kernels are few theorems wearing many schedules.',
+    chapter: [
+      { h: 'Collectives are kernels', ps: [
+        'A collective is not a primitive; it is a kernel somebody wrote. On a TPU pod, chips along a mesh axis form physical rings, and an all-gather is what it looks like: N−1 hops where every chip pushes one shard to its neighbor. The push is the TPU\'s native distributed move: an async remote DMA that writes directly into the neighbor\'s VMEM and signals a semaphore, leaving the MXU free the whole time. Once you have built one collective from these parts, the opaque names (all-gather, reduce-scatter, all-to-all) resolve into loop shapes you can reason about like any other schedule.',
+      ] },
+      { h: 'Overlap is the economics', ps: [
+        'The economics that make this stage matter at scale: at frontier size, the dominant tax is not slow kernels but **exposed communication**, the fraction of each step where compute units idle waiting on the interconnect. The cure is overlap: transfer shard t+1 while computing on shard t, which is exactly the double-buffering pattern from stage 1 with the arrows crossing chips. EX·04 shows it: the same streaming attention schedule as EX·03 with the KV transport swapped from HBM DMA to remote DMA. Same algebra, longer arrows.',
+      ] },
+      { h: 'Deadlock, met safely', ps: [
+        'With semaphores comes the one genuinely new failure mode of this stage: deadlock. A send waiting on a recv that waits on the send. LAB·4.1 has you build a deadlock on purpose in interpret mode, because meeting this failure for the first time in a real training run is a bad week, and meeting it in a toy is an afternoon.',
+      ] },
+      { h: 'Composition closes the loop', ps: [
+        'The composition payoff closes the loop on the whole track: ring attention is LAB·3.1\'s monoid folded over shards arriving via LAB·4.1\'s ring, and nothing new needs deriving because associativity was proven once. When compositions keep coming out correct because one theorem was proven early, you have learned the track\'s deepest lesson: the famous kernels are few theorems wearing many schedules.',
+        '>> The famous kernels are few theorems wearing many schedules.',
+      ] },
     ],
     build: [
       'Ring all-gather from raw remote copies, validated against the collective',
@@ -334,10 +380,16 @@ export const STAGES: Stage[] = [
     layer: 'pallas',
     goal:
       'Prove the track against production standards: one kernel, end to end, in front of the community.',
-    theory: [
-      'Everything before this was practice under your own referee. The capstone changes the referee: a kernel is done when it is correct under a differential suite, competitive against both the XLA floor and the hand-tuned ceiling, and reviewed by people who maintain kernels for a living. Upstream review is the only test that cannot be gamed, and what it changes about your code is part of the artifact.',
-      'Pick a gap that is real: an attention variant no fast public TPU kernel covers, a block-size autotuning pass for an existing Tokamax kernel with measured wins across a shape sweep, or a JAXBench entry on an operator where published baselines trail the expert bound. Sized right, this is four weeks: one derivation, one forward, one backward, one review cycle.',
-      'The write-up matters as much as the merge. Derivation, schedule decisions with their measured consequences, the full benchmark record with provenance, and what review changed: that document is the proof that the fourteen weeks produced an engineer, and it closes the track in public, where it started.',
+    chapter: [
+      { h: 'A different referee', ps: [
+        'Everything before this was practice under your own referee. The capstone changes the referee: a kernel is done when it is correct under a differential suite, competitive against both the XLA floor and the hand-tuned ceiling, and reviewed by people who maintain kernels for a living. **Upstream review is the only test that cannot be gamed**, and what it changes about your code is part of the artifact.',
+      ] },
+      { h: 'Pick a real gap', ps: [
+        'Pick a gap that is real: an attention variant no fast public TPU kernel covers, a block-size autotuning pass for an existing Tokamax kernel with measured wins across a shape sweep, or a JAXBench entry on an operator where published baselines trail the expert bound. Sized right, this is four weeks: one derivation, one forward, one backward, one review cycle.',
+      ] },
+      { h: 'The write-up is the artifact', ps: [
+        'The write-up matters as much as the merge. Derivation, schedule decisions with their measured consequences, the full benchmark record with provenance, and what review changed: that document is the proof that the fourteen weeks produced an engineer, and it closes the track in public, where it started.',
+      ] },
     ],
     build: [
       'One kernel closing a real gap: an uncovered attention variant, an autotuning pass, or a benchmark entry',

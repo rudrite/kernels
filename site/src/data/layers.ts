@@ -34,7 +34,7 @@ export const LAYER_DOCS: LayerDoc[] = [
       {
         h: 'what this layer is',
         ps: [
-          'Everything starts as framework code: `jnp` operations on whole arrays, module trees, Python control flow. The essential fact about this layer is that it is not what runs. When you call `jax.jit`, JAX executes your Python once with tracer objects instead of numbers, records every primitive operation the tracers pass through, and keeps the recording. Your function becomes data.',
+          'Everything starts as framework code: `jnp` operations on whole arrays, module trees, Python control flow. The essential fact about this layer is that it is not what runs. When you call `jax.jit`, JAX executes your Python once with tracer objects instead of numbers, records every primitive operation the tracers pass through, and keeps the recording. **Your function becomes data.**',
           'Tracing explains most early JAX surprises. Python control flow that branches on values disappears into whichever branch the trace took. Shapes are fixed at trace time, which is why a new shape triggers a recompile. Print statements run once, at trace time, not per step. None of these are quirks; they are what "your function becomes data" means in practice.',
           'PyTorch reaches this same stack through a different door: TorchTPU and torchax map ATen operations into StableHLO, two layers below. By the time either framework reaches the compiler, the framework identity is gone. That shared convergence point is why everything you learn descending this stack applies to both.',
         ],
@@ -125,8 +125,8 @@ export const LAYER_DOCS: LayerDoc[] = [
       {
         h: 'the ceiling, precisely',
         ps: [
-          'Fusion has an exact limit: XLA merges along dataflow edges, but it cannot apply algebraic identities. It cannot notice that a two-pass softmax could become a one-pass streaming computation, because that is a theorem about exponentials, not a graph transformation. So in naive attention, the seq x seq score matrix is computed, written to HBM, and read back, no matter how well everything around it fuses. At `seq 8192` in bf16 that is `134 MB` written and read: `268 MB` of traffic that exists because the algorithm is multi-pass.',
-          'Say the conclusion precisely, because the whole stack turns on it: the spill is not a fusion failure, it is an algorithm failure. No compiler pass fixes it. A theorem fixes it, and a human currently has to apply that theorem by hand, one layer down, on the other side of the gap.',
+          'Fusion has an exact limit: XLA merges along dataflow edges, but it **cannot apply algebraic identities**. It cannot notice that a two-pass softmax could become a one-pass streaming computation, because that is a theorem about exponentials, not a graph transformation. So in naive attention, the seq x seq score matrix is computed, written to HBM, and read back, no matter how well everything around it fuses. At `seq 8192` in bf16 that is `134 MB` written and read: `268 MB` of traffic that exists because the algorithm is multi-pass.',
+          'Say the conclusion precisely, because the whole stack turns on it: the spill is not a fusion failure, **it is an algorithm failure**. No compiler pass fixes it. A theorem fixes it, and a human currently has to apply that theorem by hand, one layer down, on the other side of the gap.',
         ],
       },
     ],
@@ -229,7 +229,7 @@ pl.pallas_call(                               # schedule
         ps: [
           'Chips in a TPU pod connect to their neighbors over ICI links (`4.5e10 bytes per second` each way per link on v5e), and slices along a mesh axis form physical rings. Every collective you have ever called resolves to movements over these links: an all-gather is N−1 hops around the ring, each chip pushing one shard to its neighbor; a reduce-scatter is the same ring with an add at each hop.',
           'The TPU\'s native distributed operation is the async remote DMA: a chip pushes a buffer directly into a neighbor\'s VMEM and signals a semaphore, while its compute units keep working. That last clause is the entire economics of distributed kernels: transfers that hide behind compute are free, and transfers that do not are the dominant tax at scale. The craft is arranging the overlap.',
-          'The deep continuity with everything above: sharding decides where data lives, and a kernel is always a per-device program on its local shard. The streaming-attention algebra from stage 3 does not care whether a KV block arrived from local HBM or from the neighbor chip, which is why ring attention (stage 4) is a composition, not a new derivation. EX·04 shows it: the same schedule as EX·03, longer arrows.',
+          'The deep continuity with everything above: **sharding decides where data lives, and a kernel is always a per-device program** on its local shard. The streaming-attention algebra from stage 3 does not care whether a KV block arrived from local HBM or from the neighbor chip, which is why ring attention (stage 4) is a composition, not a new derivation. EX·04 shows it: the same schedule as EX·03, longer arrows.',
         ],
       },
     ],

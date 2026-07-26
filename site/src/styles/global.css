@@ -121,3 +121,65 @@ a:hover { color: var(--copper-deep); }
 .wrap { max-width: 76rem; margin-inline: auto; padding-inline: var(--pad); }
 .prose { max-width: var(--measure); }
 .prose p + p { margin-top: 0.9em; }
+
+/* ---- reading experience: revamp layer ---- */
+
+/* dotted gutters: dots on the body, solid paper behind the content column */
+body {
+  background-image: radial-gradient(color-mix(in srgb, var(--ink) 9%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.site-header, .site-footer { background-color: var(--paper-high); }
+main {
+  background: linear-gradient(var(--paper), var(--paper)) no-repeat center / min(100%, 88rem) 100%;
+}
+
+/* display section heads: eyebrow + rule, then a real heading */
+.shead { margin: 0 0 1rem; }
+.shead .eyebrow {
+  display: flex; align-items: center; gap: 0.875rem;
+  font-family: var(--mono); font-size: 0.6875rem; font-weight: 500;
+  letter-spacing: 0.11em; text-transform: uppercase; color: var(--ink-mute);
+}
+.shead .eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+.shead h2 {
+  margin-top: 0.5rem;
+  font-family: var(--serif); font-weight: 600;
+  font-size: clamp(1.375rem, 2.6vw, 1.75rem);
+  letter-spacing: -0.01em; line-height: 1.2;
+}
+
+/* pull quotes: the thesis lines */
+.pull {
+  margin: 1.25rem 0;
+  padding: 0.25rem 0 0.25rem 1.125rem;
+  border-left: 3px solid var(--copper);
+  font-family: var(--serif); font-style: italic;
+  font-size: 1.1875rem; line-height: 1.5; color: var(--ink);
+}
+
+/* on-this-page rail */
+.toc { margin-top: 2rem; font-family: var(--mono); font-size: 0.6875rem; }
+.toc .toc-head { display: block; margin-bottom: 0.625rem; }
+.toc ol { list-style: none; padding: 0; margin: 0; }
+.toc a {
+  display: block; padding: 0.28rem 0 0.28rem 0.75rem;
+  border-left: 2px solid var(--rule-soft);
+  color: var(--ink-mute); text-decoration: none; letter-spacing: 0.02em;
+}
+.toc a:hover { color: var(--copper-deep); }
+.toc a.active { border-left-color: var(--copper-deep); color: var(--ink); }
+
+/* right rail */
+.rail { display: flex; flex-direction: column; gap: 1.75rem; font-family: var(--mono); }
+.rail .rail-head { font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.11em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 0.625rem; display: block; }
+.rail .progress-num { font-size: 1.375rem; }
+.rail .progress-bar { height: 2px; background: var(--rule-soft); margin-top: 0.5rem; }
+.rail .progress-bar i { display: block; height: 100%; width: 0; background: var(--copper-deep); }
+.rail .card { border: 1px solid var(--rule); background: var(--paper-high); padding: 0.75rem 0.875rem; font-size: 0.75rem; }
+.rail .card .row { display: flex; justify-content: space-between; gap: 0.75rem; padding-block: 0.2rem; }
+.rail .card .k { color: var(--ink-mute); }
+.rail ul { list-style: none; padding: 0; margin: 0; font-size: 0.75rem; }
+.rail ul a { display: block; padding-block: 0.25rem; color: var(--ink); text-decoration: none; }
+.rail ul a:hover { color: var(--copper-deep); }
+.rail ul a::before { content: '\203A  '; color: var(--copper-deep); }
