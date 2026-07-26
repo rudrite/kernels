@@ -69,6 +69,7 @@ export default function CorpusXray() {
               onMouseEnter={() => mapped && setActive(g)}
               onFocus={() => mapped && setActive(g)}
               tabIndex={mapped ? 0 : -1}
+              title={mapped ? undefined : 'not mapped: scaffolding, a constant or broadcast the compiler materialized on its own, or a lowering the mapper would not guess at'}
             >
               {line || ' '}
             </button>
@@ -94,6 +95,7 @@ export default function CorpusXray() {
           {mappedHloLines} of {program.stablehlo.length} StableHLO lines
         </span>
       </div>
+      <p className="prognote">{program.note}</p>
 
       <div className={`cols ${hasSource ? 'three' : ''}`}>
         {hasSource && renderCol('src', 'source', program.source)}
@@ -101,6 +103,10 @@ export default function CorpusXray() {
         {renderCol('hlo', 'StableHLO', program.stablehlo)}
       </div>
 
+      <p className="legend">
+        <span className="lg-bright">bright</span> lines are mapped equations · <span className="lg-dim">dim</span> lines
+        are scaffolding, compiler-made constants and broadcasts, or alignments the mapper skips rather than guesses
+      </p>
       <p className="note" aria-live="polite">
         {activeGroup
           ? `${activeGroup.op}${activeGroup.src ? ` · from source line ${activeGroup.src[0]! + 1}` : ''} · ${activeGroup.jaxpr.length} jaxpr line(s) ↔ ${activeGroup.hlo.length} StableHLO line(s)`
@@ -114,6 +120,7 @@ export default function CorpusXray() {
         .cxray .picker label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.6875rem; color: ${PANEL_MUTE}; letter-spacing: 0.06em; }
         .cxray .picker select { background: transparent; color: ${PANEL_INK}; border: 1px solid ${PANEL_RULE}; border-radius: 2px; font-family: inherit; font-size: 0.75rem; padding: 0.3rem 0.4rem; max-width: 20rem; }
         .cxray .picker .stat { font-size: 0.6875rem; color: ${PANEL_MUTE}; }
+        .cxray .prognote { margin: 0 0 0.75rem; font-size: 0.75rem; color: ${PANEL_MUTE}; }
 
         .cxray .cols { display: grid; grid-template-columns: 1fr 1.3fr; gap: 1px; background: ${PANEL_RULE}; }
         .cxray .cols.three { grid-template-columns: minmax(10rem, 0.55fr) 1fr 1.3fr; }
@@ -124,7 +131,10 @@ export default function CorpusXray() {
         .cxray .ln.mapped { color: ${PANEL_INK}; cursor: pointer; }
         .cxray .ln.hot { background: #20150f; border-left-color: ${COPPER}; color: ${COPPER}; }
 
-        .cxray .note { font-size: 0.75rem; color: ${PANEL_INK}; padding: 0.625rem 0.125rem 0; margin: 0; min-height: 2.5em; }
+        .cxray .legend { font-size: 0.6875rem; color: ${PANEL_MUTE}; padding: 0.625rem 0.125rem 0; margin: 0; }
+        .cxray .legend .lg-bright { color: ${PANEL_INK}; }
+        .cxray .legend .lg-dim { opacity: 0.7; }
+        .cxray .note { font-size: 0.75rem; color: ${PANEL_INK}; padding: 0.375rem 0.125rem 0; margin: 0; min-height: 2.5em; }
 
         @media (max-width: 900px) { .cxray .cols, .cxray .cols.three { grid-template-columns: 1fr; } .cxray pre { max-height: 18rem; } }
       `}</style>
