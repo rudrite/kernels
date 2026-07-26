@@ -388,5 +388,18 @@
     "shapes": "512x128 q, 1024x128 kv",
     "date": "2026-07-27",
     "commit": "gate-close"
+  },
+  {
+    "id": "M-021",
+    "stage": 2,
+    "kernel": "naive attention, profiled on device",
+    "metric": "the spill, hardware-timed",
+    "value": "S-producing fusion 89.6 \u00b5s + %online-softmax custom kernel 128.0 \u00b5s per iter; XLA:TPU pattern-matched the softmax into its own online-softmax tpu_custom_call (tiling 1024x1024)",
+    "baseline": "XProf device timeline",
+    "chip": "v6e-1 (TPU v6 lite)",
+    "dtype": "bf16",
+    "shapes": "seq 8192, d 128",
+    "date": "2026-07-27",
+    "commit": "profile-bytes"
   }
 ]

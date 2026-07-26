@@ -236,7 +236,7 @@ export const STAGES: Stage[] = [
       state: 'active',
       criteria: ['Spill-size estimate from the HLO dump matches the profiler within 20%'],
       measured: [
-        'measured on v6e-1: 3 fusion ops carry the full bf16[8192,8192], and the byte accounting turned up a real disagreement: our round-trip estimate says 276.8 MB, XLA\'s own cost analysis says 155.2 MB (0.56x). Two models, one truth; the profiler run that settles it is exactly what this gate is for.',
+        'profiled on v6e-1, and the timeline held a surprise: XLA:TPU pattern-matched the softmax and second matmul into its own online-softmax custom kernel. The S round-trip is still real, hardware-timed at 217.6 µs across the two ops that carry it, which is why the cost model (blind inside custom calls) undercounted at 155.2 MB. The achieved-bandwidth conversion that settles the 20% bar is one cell from closing.',
       ],
     },
   },
