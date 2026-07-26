@@ -43,9 +43,9 @@ Annotated reads, as CodeWalks, of the kernels that define the craft: Tokamax fla
 - Semaphore timeline: the ring all-gather's sends/waits as a timeline; a toggle reorders one wait and steps into the deadlock, visually.
 - Ring attention CodeWalk synced to EX·04.
 
-## Status (2026-07-26)
+## Status (2026-07-26, end of day): COMPLETE
 
-Built and live: P1 gym (corpus of 17 programs, dot decoder, shape oracle, corpus reader, 33 op cards), P2 sandbox + four CodeWalks + the mistake museum (six real captured errors), P4 checklists + bench compare, P5 semaphore timeline. Remaining: x-ray generalized over the corpus with mechanical mappings, trace-to-code sync, the production-kernel walks (P3), the mesh visualizer, spot-the-decision drill, soft stage-entry checks.
+Every phase is built and live. P1: the gym (17-program corpus, dot decoder, shape oracle, spot-the-decision, the corpus x-ray with 236 mechanically derived sync groups, op reference, corpus reader). P2: the BlockSpec sandbox, five CodeWalks, the trace-to-code synced walk, the mistake museum with six real captured errors. P3: the first production walk (Splash's _shrink_mask_info, verbatim, attributed). P4: per-stage can-you checklists, the bench compare, and the site-wide progress model (chapters visited, continue-where-you-left-off, labs marked run, personal ticks on the path and spine). P5: the semaphore timeline with the steppable deadlock and the mesh visualizer. Soft stage-entry gating was replaced by the gentler progress rail, deliberately: honesty over enforcement on an accountless site. Future work is content accretion (more production walks, more corpus programs), not structure.
 
 ## Sequencing and estimates
 
