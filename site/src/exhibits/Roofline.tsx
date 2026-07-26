@@ -133,22 +133,22 @@ export default function Roofline() {
         {[0.1, 1, 10, 100, 1000].map((v) => (
           <g key={v}>
             <line x1={xPos(v)} y1={PAD.t} x2={xPos(v)} y2={H - PAD.b} stroke={PANEL_RULE} strokeWidth={1} />
-            <text x={xPos(v)} y={H - PAD.b + 16} textAnchor="middle" fill={PANEL_MUTE} fontSize={9} fontFamily="inherit">{v}</text>
+            <text x={xPos(v)} y={H - PAD.b + 16} textAnchor="middle" fill={PANEL_MUTE} fontSize={10.5} fontFamily="inherit">{v}</text>
           </g>
         ))}
         {[1e11, 1e12, 1e13, 1e14, 1e15].map((v) => (
           <g key={v}>
             <line x1={PAD.l} y1={yPos(v)} x2={W - PAD.r} y2={yPos(v)} stroke={PANEL_RULE} strokeWidth={1} />
-            <text x={PAD.l - 6} y={yPos(v) + 3} textAnchor="end" fill={PANEL_MUTE} fontSize={9} fontFamily="inherit">{fmt(v, 'F/s')}</text>
+            <text x={PAD.l - 6} y={yPos(v) + 3} textAnchor="end" fill={PANEL_MUTE} fontSize={10.5} fontFamily="inherit">{fmt(v, 'F/s')}</text>
           </g>
         ))}
-        <text x={(W + PAD.l - PAD.r) / 2} y={H - 8} textAnchor="middle" fill={PANEL_MUTE} fontSize={9.5} letterSpacing={0.8} fontFamily="inherit">
+        <text x={(W + PAD.l - PAD.r) / 2} y={H - 8} textAnchor="middle" fill={PANEL_MUTE} fontSize={10.5} letterSpacing={0.8} fontFamily="inherit">
           ARITHMETIC INTENSITY · FLOPs PER HBM BYTE
         </text>
 
         <path d={roofPath} fill="none" stroke={PANEL_INK} strokeWidth={1.5} />
         <line x1={xPos(ridge)} y1={PAD.t} x2={xPos(ridge)} y2={H - PAD.b} stroke={STEEL} strokeWidth={1} strokeDasharray="4 3" />
-        <text x={xPos(ridge) + 5} y={PAD.t + 12} fill={STEEL} fontSize={9} fontFamily="inherit">
+        <text x={xPos(ridge) + 5} y={PAD.t + 12} fill={STEEL} fontSize={10.5} fontFamily="inherit">
           ridge {ridge.toFixed(0)} F/B
         </text>
 
