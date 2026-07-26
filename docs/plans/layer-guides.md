@@ -43,6 +43,12 @@ Missing, by layer:
 - [ ] input_output_aliases and multiple outputs
 - [ ] The debugging toolkit: interpret=True and its limits, debug=True,
       the museum as an error index
+- [ ] One language, three backends: the GPU paths (Triton backend and
+      Mosaic GPU) at awareness level; what transfers (algorithm/schedule
+      split, refs/blocks, the algebra, interpret mode) and what does not
+      (sequential pipeline vs thousands of blocks, VMEM vs shared memory,
+      auto-pipelining vs warp choreography); where the lowerings live in
+      the jax repo; why this track goes deep on TPU
 - [ ] Every snippet verified (interpret or cross-lowered) by scripts/
       verify_guide_snippets.py, run in CI-adjacent local loop
 
