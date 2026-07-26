@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro'
 import Exhibit from '../components/Exhibit.astro'
+import Rich from '../components/Rich.astro'
 import DotDecoder from '../exhibits/DotDecoder'
 import ShapeOracle from '../exhibits/ShapeOracle'
 import SpotDecision from '../exhibits/SpotDecision'
@@ -8,6 +9,18 @@ import CorpusXray from '../exhibits/CorpusXray'
 import opCards from '../data/op-cards.json'
 
 const cards = Object.entries(opCards as Record<string, string>)
+
+const OP_CATEGORY: Record<string, string> = {
+  dot_general: 'compute', add: 'compute', sub: 'compute', mul: 'compute', div: 'compute',
+  max: 'compute', exp: 'compute', log: 'compute', rsqrt: 'compute', erf: 'compute', tanh: 'compute',
+  reduce_max: 'reduction', reduce_sum: 'reduction', reduce: 'reduction', argmax: 'reduction',
+  transpose: 'shape', broadcast_in_dim: 'shape', reshape: 'shape', concatenate: 'shape',
+  slice: 'shape', dynamic_slice: 'shape', iota: 'shape', convert_element_type: 'shape', one_hot: 'shape',
+  select_n: 'control', scan: 'control', while: 'control', cond: 'control',
+  custom_jvp_call: 'control', remat: 'control',
+  psum: 'distributed', all_gather: 'distributed', ppermute: 'distributed',
+}
+const CATEGORIES = ['all', 'compute', 'reduction', 'shape', 'control', 'distributed']
 ---
 
 <Base
@@ -77,14 +90,25 @@ const cards = Object.entries(opCards as Record<string, string>)
       <span class="wtag">reference</span>
       <div>
         <h2 class="wh2">The op reference</h2>
-        <p class="wlede narrow">Back on paper to read: every op the corpus uses, one card each.</p>
-        <input type="search" class="op-filter" placeholder="filter ops: dot, reduce, convert…" aria-label="Filter ops" />
+        <p class="wlede narrow">Back on paper to read: every op the corpus uses, one card each. Filter by name or family; each card ends with the misread to avoid.</p>
+        <div class="op-controls">
+          <input type="search" class="op-filter" placeholder="filter ops: dot, reduce, convert…" aria-label="Filter ops" />
+          <div class="op-cats" role="group" aria-label="Filter by family">
+            {CATEGORIES.map((c) => (
+              <button type="button" class={`op-cat ${c === 'all' ? 'on' : ''}`} data-cat={c}>{c}</button>
+            ))}
+          </div>
+          <span class="mono-label op-count"><span data-op-count>{cards.length}</span> of {cards.length} ops</span>
+        </div>
         <dl class="cards">
           {
             cards.map(([op, text]) => (
-              <div class="card" data-op={op}>
-                <dt><code class="ri">{op}</code></dt>
-                <dd>{text}</dd>
+              <div class="card" data-op={op} data-category={OP_CATEGORY[op] ?? 'compute'}>
+                <dt>
+                  <code class="ri">{op}</code>
+                  <span class="cat-tag">{OP_CATEGORY[op] ?? 'compute'}</span>
+                </dt>
+                <dd><Rich text={text} /></dd>
               </div>
             ))
           }
@@ -98,16 +122,30 @@ const cards = Object.entries(opCards as Record<string, string>)
     const input = document.querySelector<HTMLInputElement>('.op-filter')
     const entries = Array.from(document.querySelectorAll<HTMLElement>('.card[data-op]'))
     const empty = document.querySelector<HTMLElement>('.no-match')
-    input?.addEventListener('input', () => {
-      const q = input.value.trim().toLowerCase()
+    const count = document.querySelector<HTMLElement>('[data-op-count]')
+    const cats = Array.from(document.querySelectorAll<HTMLButtonElement>('.op-cat'))
+    let activeCat = 'all'
+    const apply = () => {
+      const q = (input?.value ?? '').trim().toLowerCase()
       let shown = 0
       for (const el of entries) {
-        const hit = !q || (el.getAttribute('data-op') ?? '').toLowerCase().includes(q) || (el.textContent ?? '').toLowerCase().includes(q)
+        const catOk = activeCat === 'all' || el.getAttribute('data-category') === activeCat
+        const textOk = !q || (el.getAttribute('data-op') ?? '').toLowerCase().includes(q) || (el.textContent ?? '').toLowerCase().includes(q)
+        const hit = catOk && textOk
         el.hidden = !hit
         if (hit) shown++
       }
       if (empty) empty.hidden = shown > 0
-    })
+      if (count) count.textContent = String(shown)
+    }
+    input?.addEventListener('input', apply)
+    for (const b of cats) {
+      b.addEventListener('click', () => {
+        activeCat = b.getAttribute('data-cat') ?? 'all'
+        for (const o of cats) o.classList.toggle('on', o === b)
+        apply()
+      })
+    }
   </script>
 </Base>
 
@@ -123,10 +161,17 @@ const cards = Object.entries(opCards as Record<string, string>)
 
   
 
+  .op-controls { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .op-cats { display: flex; gap: 0.375rem; flex-wrap: wrap; }
+  .op-cat { font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.05em; background: var(--paper-high); border: 1px solid var(--rule); border-radius: 999px; padding: 0.25rem 0.7rem; color: var(--ink-mute); cursor: pointer; }
+  .op-cat:hover { border-color: var(--copper-deep); color: var(--copper-deep); }
+  .op-cat.on { border-color: var(--copper-deep); color: var(--copper-deep); background: var(--paper); }
+  .op-count { white-space: nowrap; }
+  .cat-tag { font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.08em; color: var(--ink-mute); margin-left: 0.6rem; text-transform: uppercase; }
   .op-filter {
     font-family: var(--mono); font-size: 0.8125rem; color: var(--ink);
     background: var(--paper-high); border: 1px solid var(--rule); border-radius: 2px;
-    padding: 0.5rem 0.75rem; width: min(100%, 24rem); margin-bottom: 1.25rem;
+    padding: 0.5rem 0.75rem; width: min(100%, 20rem);
   }
   .op-filter:focus-visible { outline: 2px solid var(--copper-deep); outline-offset: 1px; }
   .cards { columns: 2; column-gap: 2.5rem; margin: 0; }
