@@ -1,0 +1,39 @@
+---
+// Server-rendered MLIR highlighting. Shiki has no MLIR grammar, so these
+// blocks fell back to plaintext; this component tints them with the same
+// deterministic token pass the x-ray instruments use, so StableHLO and
+// Mosaic read identically in prose figures and in the gym.
+interface Props {
+  code: string
+}
+const { code } = Astro.props
+
+const esc = (s: string) => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+
+const TOKEN_RE =
+  /(\/\/[^\n]*|"[^"\n]*"|\btensor&lt;[^&]*?&gt;|\bmemref&lt;[^&]*?&gt;|\bvector&lt;[^&]*?&gt;|#\w+\.\w+(?:&lt;[^&]*?&gt;)?|\b(?:stablehlo|tpu|arith|vector|math|scf|func|mhlo)\.\w+|\bfunc\.func\b|\bmodule\b|\breturn\b|\blambda\b|%[\w.]+|@[\w.]+|\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)/g
+
+const tint = (line: string): string => {
+  const escaped = esc(line)
+  return escaped.replace(TOKEN_RE, (tok) => {
+    let color = '#c9cdd1'
+    if (tok.startsWith('//')) color = '#6f7680'
+    else if (tok.startsWith('"')) color = '#99b3a2'
+    else if (tok.startsWith('tensor&lt;') || tok.startsWith('memref&lt;') || tok.startsWith('vector&lt;')) color = '#8fa8bb'
+    else if (tok.startsWith('#')) color = '#b48ead'
+    else if (tok.startsWith('%')) color = '#b7bfc7'
+    else if (tok.startsWith('@')) color = '#d6b48a'
+    else if (/^\d/.test(tok)) color = '#a8c4b0'
+    else color = '#e8b088'
+    return `<span style="color:${color}">${tok}</span>`
+  })
+}
+
+const html = code.split('\n').map(tint).join('\n')
+---
+
+<pre class="astro-code mlir"><code set:html={html} /></pre>
+
+<style>
+  pre.mlir { color: #c9cdd1; }
+</style>
