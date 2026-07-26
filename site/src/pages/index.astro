@@ -100,56 +100,13 @@ const OUTCOMES = [
     </div>
   </section>
 
-  <section class="wrap block" aria-labelledby="path">
-    <SectionHead id="path" eyebrow="one route, in order" title="The path" />
-    <p class="prose sec-lede">
-      Part one descends the stack, one short chapter per layer, so nothing later is mysterious. Part two
-      is the track: six stages of labs and gates. Every chapter assumes only the ones before it.
-    </p>
-    <div class="path-cols">
-      <div>
-        <h3 class="mono-label part">part i · the descent</h3>
-        <ol class="order">
-          {
-            LAYERS.map((l, i) => (
-              <li>
-                <a href={`/l/${l.id}`} data-chapter-key={`l:${l.id}`}>
-                  <span class="onum">{String(i + 1).padStart(2, '0')}</span>
-                  <span class="otitle">{l.label}</span>
-                  <span class="ofrac meas" data-work-frac={`l:${l.id}`}></span>
-                  <span class="oweeks">~20 min</span>
-                </a>
-              </li>
-            ))
-          }
-        </ol>
-      </div>
-      <div>
-        <h3 class="mono-label part">part ii · the track</h3>
-        <ol class="order">
-          {
-            STAGES.map((s, i) => (
-              <li>
-                <a href={`/s/${s.id}`} data-chapter-key={`s:${s.id}`}>
-                  <span class="led" data-state={s.gate.state === 'queued' ? undefined : s.gate.state} />
-                  <span class="onum">{String(LAYERS.length + i + 1).padStart(2, '0')}</span>
-                  <span class="otitle">{s.title}</span>
-                  <span class="ofrac meas" data-work-frac={`s:${s.id}`}></span>
-                  <span class="oweeks">{s.weeks}</span>
-                </a>
-              </li>
-            ))
-          }
-        </ol>
-      </div>
-    </div>
-  </section>
-
   <section class="wrap block" aria-labelledby="map-head">
-    <SectionHead id="map-head" eyebrow="where each chapter lives" title="The map is the stack" />
+    <SectionHead id="map-head" eyebrow="the path is the stack · your mastery rides on it" title="Fifteen chapters, one map" />
     <p class="prose sec-lede">
-      Every stage sits at the layer of the stack it teaches. The gap between XLA and Pallas is drawn as
-      what it is: empty, until you learn to cross it.
+      Chapters 01-09 descend the stack, one layer at a time, top to bottom exactly as drawn. Chapters
+      10-15 are the stages, pinned to the layer each one teaches. Your work fraction sits on every entry;
+      the gap between XLA and Pallas stays empty until chapter 13 teaches you to cross it. Press
+      <span class="meas">⌘K</span> anywhere to jump.
     </p>
     <StackMap />
   </section>

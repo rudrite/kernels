@@ -89,7 +89,7 @@ const toc = [...chapterToc, ...fixedToc]
 <Base title={`Stage ${stage.num}: ${stage.title} — Rudrite Kernels`} description={stage.goal}>
   <div class="wrap layout">
     <aside class="side">
-      <Spine currentLayer={stage.layer} />
+      <Spine currentKey={`s:${stage.id}`} />
       <nav class="toc" aria-label="On this page">
         <span class="mono-label toc-head">on this page</span>
         <ol>

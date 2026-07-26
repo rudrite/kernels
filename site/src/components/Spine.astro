@@ -1,49 +1,63 @@
 ---
-// The spine: the stack in miniature, pinned to the left of every stage page.
-// Always shows where the current stage sits in the lowering path.
-import { LAYERS, stagesForLayer } from '../data/track'
+// The spine: the whole path in miniature, on every chapter page. All fifteen
+// chapters are selectable; the current one is marked, and your mastery ticks
+// ride along. Part i follows the stack's order; part ii is the track.
+import { PATH } from '../lib/path'
 
 interface Props {
-  currentLayer: string
+  /** Either a layer id (matches l:<id>) or handled via currentKey. */
+  currentLayer?: string
+  currentKey?: string
 }
-const { currentLayer } = Astro.props
+const { currentLayer, currentKey } = Astro.props
+const activeKey = currentKey ?? (currentLayer ? `l:${currentLayer}` : undefined)
+const pad = (n: number) => String(n).padStart(2, '0')
+const partI = PATH.filter((c) => c.part === 'i')
+const partII = PATH.filter((c) => c.part === 'ii')
 ---
 
-<nav class="spine" aria-label="Position in the stack">
-  <span class="mono-label head">the stack</span>
-  <ol>
-    {
-      LAYERS.map((layer) => {
-        const pinned = stagesForLayer(layer.id)
-        const here = layer.id === currentLayer
-        return (
-          <li class={`spine-tick ${here ? 'here' : ''}`} data-kind={layer.kind} data-chapter-key={`l:${layer.id}`}>
-            <span class="tick" aria-hidden="true" />
-            <span class="name">{layer.label}</span>
-            {pinned.map((s) => (
-              <span class="led" data-state={s.gate.state === 'queued' ? undefined : s.gate.state} title={`Stage ${s.num}: ${s.gate.state}`} />
-            ))}
-            {here && <span class="you">← you are here</span>}
-          </li>
-        )
-      })
-    }
-  </ol>
+<nav class="spine" aria-label="The path">
+  <span class="mono-label head">the path</span>
+  {
+    [
+      { label: 'i · the descent', chapters: partI },
+      { label: 'ii · the track', chapters: partII },
+    ].map((part) => (
+      <div class="part">
+        <span class="part-label">{part.label}</span>
+        <ol>
+          {part.chapters.map((c) => {
+            const here = c.key === activeKey
+            return (
+              <li class={`spine-tick ${here ? 'here' : ''}`} data-chapter-key={c.key}>
+                <a href={c.href} aria-current={here ? 'page' : undefined}>
+                  <span class="num">{pad(c.num)}</span>
+                  <span class="name">{c.title.replace(/^stage \d+ · /, '')}</span>
+                </a>
+                {here && <span class="you">←</span>}
+              </li>
+            )
+          })}
+        </ol>
+      </div>
+    ))
+  }
 </nav>
 
 <style>
   .spine { font-family: var(--mono); font-size: 0.6875rem; }
   .head { display: block; margin-bottom: 0.75rem; }
-  ol { list-style: none; padding: 0; }
-  li { display: flex; align-items: center; gap: 0.5rem; padding-block: 0.3125rem; color: var(--ink-mute); position: relative; padding-left: 1rem; }
-  li::before { content: ''; position: absolute; left: 3px; top: 0; bottom: 0; width: 1px; background: var(--rule); }
-  li:first-child::before { top: 50%; }
-  li:last-child::before { bottom: 50%; }
-  .tick { position: absolute; left: 0; width: 7px; height: 1px; background: var(--ink-mute); }
-  li[data-kind='gap'] { color: var(--copper-deep); }
-  li[data-kind='gap']::before { background: var(--copper-deep); opacity: 0.5; }
-  .here { color: var(--ink); font-weight: 500; }
-  .here .tick { background: var(--copper-deep); height: 3px; }
-  .you { color: var(--copper-deep); white-space: nowrap; }
-  .led { width: 6px; height: 6px; }
+  .part { margin-bottom: 0.875rem; }
+  .part-label { display: block; font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--copper-deep); margin-bottom: 0.375rem; }
+  ol { list-style: none; padding: 0; margin: 0; }
+  li { display: flex; align-items: center; gap: 0.4rem; position: relative; padding-left: 0.75rem; }
+  li::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--rule-soft); }
+  li.here::before { background: var(--copper-deep); }
+  li a { display: flex; gap: 0.5rem; align-items: baseline; padding-block: 0.26rem; text-decoration: none; color: var(--ink-mute); flex: 1; min-width: 0; }
+  li a:hover { color: var(--copper-deep); }
+  li.here a { color: var(--ink); font-weight: 500; }
+  .num { color: var(--copper-deep); font-size: 0.625rem; }
+  .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .spine-tick.p-done .name::after { content: ' \2713'; color: var(--pass); font-size: 0.625rem; }
+  .you { color: var(--copper-deep); }
 </style>
