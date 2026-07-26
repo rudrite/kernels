@@ -1,0 +1,25 @@
+---
+// Instrument frame for an interactive exhibit: designator, title, provenance.
+interface Props {
+  designator: string
+  title: string
+  provenance: string
+}
+const { designator, title, provenance } = Astro.props
+---
+
+<figure class="panel exhibit">
+  <figcaption class="head">
+    <span class="designator">{designator}</span>
+    <span class="ex-title">{title}</span>
+  </figcaption>
+  <div class="stage-area"><slot /></div>
+  <div class="provenance">{provenance}</div>
+</figure>
+
+<style>
+  .exhibit { margin: 0; }
+  .head { display: flex; gap: 0.875rem; align-items: baseline; padding: 0.75rem 0.875rem; border-bottom: 1px solid var(--panel-rule); }
+  .ex-title { font-size: 0.8125rem; color: var(--panel-ink); letter-spacing: 0.02em; }
+  .stage-area { padding: 0.875rem; }
+</style>

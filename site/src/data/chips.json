@@ -1,0 +1,24 @@
+{
+  "source": "jax-ml.github.io/scaling-book/tpus/",
+  "retrieved": "2026-07-26",
+  "chips": [
+    {
+      "id": "v5e",
+      "label": "TPU v5e",
+      "bf16FlopsPerSec": 1.97e14,
+      "hbmBytes": 1.6e10,
+      "hbmBytesPerSec": 8.2e11,
+      "vmemBytes": 134217728,
+      "iciBytesPerSecOneWay": 4.5e10
+    },
+    {
+      "id": "v6e",
+      "label": "TPU v6e (Trillium)",
+      "bf16FlopsPerSec": 9.2e14,
+      "hbmBytes": 3.2e10,
+      "hbmBytesPerSec": 1.6e12,
+      "vmemBytes": null,
+      "iciBytesPerSecOneWay": 9.0e10
+    }
+  ]
+}

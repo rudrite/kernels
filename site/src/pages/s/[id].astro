@@ -4,6 +4,12 @@ import TitleBlock from '../../components/TitleBlock.astro'
 import GateStamp from '../../components/GateStamp.astro'
 import LabCard from '../../components/LabCard.astro'
 import Spine from '../../components/Spine.astro'
+import Exhibit from '../../components/Exhibit.astro'
+import Choreographer from '../../exhibits/Choreographer'
+import Roofline from '../../exhibits/Roofline'
+import { matmulTrace } from '../../exhibits/matmul'
+import { flashTrace, ringTrace } from '../../exhibits/flash'
+import type { TraceDoc } from '../../exhibits/types'
 import { STAGES } from '../../data/track'
 
 export function getStaticPaths() {
@@ -13,6 +19,14 @@ export function getStaticPaths() {
 const { stage } = Astro.props
 const prev = STAGES.find((s) => s.num === stage.num - 1)
 const next = STAGES.find((s) => s.num === stage.num + 1)
+
+const traceByStage: Record<string, { designator: string; trace: TraceDoc } | undefined> = {
+  pallas: { designator: 'EX·02', trace: matmulTrace(4) },
+  kernels: { designator: 'EX·03', trace: flashTrace(4) },
+  distributed: { designator: 'EX·04', trace: ringTrace(4) },
+}
+const exhibit = traceByStage[stage.id]
+const showRoofline = stage.id === 'machine'
 ---
 
 <Base title={`Stage ${stage.num}: ${stage.title} — Rudrite Kernels`} description={stage.goal}>
@@ -34,6 +48,32 @@ const next = STAGES.find((s) => s.num === stage.num + 1)
         </ul>
         <p class="cur-note">Full readings, exercises, and order of work: <span class="meas">CURRICULUM.md</span> in the repo, stage {stage.num}.</p>
       </section>
+
+      {
+        showRoofline && (
+          <section class="block">
+            <h2 class="mono-label">instrument</h2>
+            <Exhibit
+              designator="EX·01"
+              title="the roofline playground"
+              provenance="chip constants from jax-ml.github.io/scaling-book (retrieved 2026-07-26) · all values computed, nothing invented"
+            >
+              <Roofline client:visible />
+            </Exhibit>
+          </section>
+        )
+      }
+
+      {
+        exhibit && (
+          <section class="block">
+            <h2 class="mono-label">instrument</h2>
+            <Exhibit designator={exhibit.designator} title={exhibit.trace.title} provenance={exhibit.trace.provenance}>
+              <Choreographer trace={exhibit.trace} client:visible />
+            </Exhibit>
+          </section>
+        )
+      }
 
       {
         stage.labs.length > 0 && (
