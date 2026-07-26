@@ -90,6 +90,10 @@
      "text": "Layout is the part of a compiled program that has nothing to do with what you computed and everything to do with how it sits in memory, and the compiled dump is the only place it's visible. Get comfortable reading layout annotations early, because a good share of the copies you'll end up chasing down for performance turn out to be layout disagreements rather than anything about the math itself."
     },
     {
+     "kind": "diagram",
+     "id": "layout-minor"
+    },
+    {
      "kind": "p",
      "text": "Every tensor in the compiled dump carries a layout annotation like `{1,0}`, and it's worth learning to read on sight. The numbers list dimensions from fastest varying to slowest varying, minor to major. `{1,0}` on a rank-2 tensor means dimension 1, the columns, is minor and laid out contiguously in memory, while dimension 0, the rows, is major, stepping between rows. `{0,1}` flips that, making rows the contiguous dimension instead. The same logical shape can carry either layout, and the compiler picks based on what's cheapest for the ops sitting around it."
     },

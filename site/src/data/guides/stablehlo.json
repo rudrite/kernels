@@ -43,6 +43,10 @@
      "text": "StableHLO has no goto and no basic-block jump the way LLVM IR does. Control flow shows up as regions, nested bodies attached to a single op, and the op decides which region runs and how results flow back out. That single design choice is why a `lax.scan` and a `lax.cond` in your JAX code become such literal, readable structures once they hit StableHLO. The loop or branch is not scattered across labels, it is a self-contained block sitting right where the op is called."
     },
     {
+     "kind": "diagram",
+     "id": "while-region"
+    },
+    {
      "kind": "p",
      "text": "`lax.scan` lowers to `stablehlo.while`, and the carry you thread through your scan body becomes explicit loop state on the op itself, not a hidden closure. The `while` carries a tuple of operands into its body region on every iteration and receives an updated tuple back out, and a separate condition region decides whether to keep going. Nothing about the carry is implicit. If your scan carries a running sum and an index, both show up as named operands on `stablehlo.while`, updated by name each pass, so you can trace exactly which value changed on which iteration."
     },

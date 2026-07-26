@@ -47,6 +47,10 @@
      "text": "The nice thing about ring collectives is that their cost is arithmetic you can do at your desk, not a number you have to go measure first. Every formula below reduces to the same shape: bytes moved, divided by how fast the link under you can move them, scaled by a factor that comes from the ring's geometry rather than from anything the compiler decides on its own. Once you have that shape, you can sanity-check a profiler trace before you even open it, and notice quickly when a run is spending time on something other than the ring itself."
     },
     {
+     "kind": "diagram",
+     "id": "all-gather-steps"
+    },
+    {
      "kind": "p",
      "text": "For a ring all-gather across N chips, the time is about $(N-1)/N$ times the total bytes being gathered, divided by the per-direction link bandwidth. The $(N-1)/N$ factor is just \"how much of the data wasn't already local to you,\" which is why it shrinks toward 1 as N grows: with more chips, almost none of the final payload started where it ends up. On a unidirectional ring that's the whole story. Most TPU interconnects are bidirectional, meaning data can move both ways around the ring at once, which roughly halves the time versus sending everything in a single direction."
     },

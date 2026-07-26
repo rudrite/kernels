@@ -39,6 +39,10 @@
      "text": "Reading a module for its layout decisions is not about tracing every op in order. Three signatures carry most of the information you need, and once you know to look for them, a wall of MLIR turns into a short account of how the compiler actually intends to run your kernel. One signature sits around reductions, one sits on the grid attributes themselves, and one sits inside every operand's `BlockSpec`. Learn all three and the module stops reading like raw output and starts reading like a decision record."
     },
     {
+     "kind": "diagram",
+     "id": "sublane-lane"
+    },
+    {
      "kind": "p",
      "text": "A reduction drops a dimension logically, but the tiled representation underneath cannot drop it the same way: the hardware still holds a full register grid. Look for a `shape_cast` right before a `sum` or `max` reduction and a `broadcast` right after. Together they are `keepdims` made physical. The cast reshapes the input into the tile the reduction expects, and the broadcast puts a size-one dimension back so downstream ops see a shape that still lines up with sublanes and lanes. Skim past these two ops and you will miss that a reduction happened at all."
     },

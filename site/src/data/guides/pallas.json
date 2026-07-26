@@ -114,6 +114,10 @@
      "text": "By default every axis of the grid runs sequentially: the pipeline you already know, one step overlapped with the next, in a fixed order chosen so that each step's output is ready before the step that needs it starts. dimension_semantics lets you tell the compiler when that ordering constraint does not actually hold for a given axis, and when it does, one axis at a time."
     },
     {
+     "kind": "diagram",
+     "id": "grid-revisit"
+    },
+    {
      "kind": "p",
      "text": "Mark an axis \"parallel\" when no grid step on that axis depends on the result of another: output tiles of a matmul indexed by row and column, say, where tile (1, 2) does not need tile (0, 0) to have finished first. Telling the compiler an axis is parallel gives it room to reorder steps, overlap them more aggressively, or split the axis across cores, none of which is safe to do on an axis where order actually matters."
     },
@@ -196,6 +200,10 @@
      "text": "Every BlockSpec so far has an index map that depends only on the grid coordinate: something the compiler can evaluate before it ever sees real data. PrefetchScalarGridSpec breaks that constraint. It copies scalar arrays into SMEM before the pipeline starts running, and makes those SMEM values available to the index map itself, so which block gets loaded on step 5 can depend on what a specific input value actually is, not just on which step number 5 happens to be."
     },
     {
+     "kind": "diagram",
+     "id": "scalar-prefetch"
+    },
+    {
      "kind": "p",
      "text": "That ordering is the whole reason this works rather than deadlocking on itself. An index map that reads a value out of a ref the pipeline has not staged yet would have nothing to read; PrefetchScalarGridSpec solves that by moving the scalar arrays into SMEM before the pipeline's normal staging even begins, as a separate step that happens first. By the time step 0 of the main pipeline runs, every scalar the schedule depends on is already sitting in SMEM, not still in flight, so the index map's read of it is never racing the copy that produced it."
     },
@@ -241,6 +249,10 @@
     {
      "kind": "p",
      "text": "Everything the automatic pipeline gives you for free, staging a block into VMEM before your kernel body needs it, waiting for the copy, rotating buffers so the next block arrives while the current one is still in use, is itself built from three primitives you can call directly: an ANY-space ref that has not been staged anywhere, pltpu.make_async_copy to issue the transfer, and a semaphore, requested from scratch_shapes, that the copy signals when it completes."
+    },
+    {
+     "kind": "diagram",
+     "id": "dma-semaphore"
     },
     {
      "kind": "p",
