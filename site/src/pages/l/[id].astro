@@ -31,7 +31,7 @@ const irText = (which: 'source' | 'jaxpr' | 'stablehlo', lines?: [number, number
     <aside class="side"><Spine currentLayer={doc.id} /></aside>
 
     <article class="main">
-      <p class="mono-label kicker">the descent · layer {idx + 1} of {order.length}</p>
+      <p class="mono-label kicker">the path · chapter {String(idx + 1).padStart(2, '0')} of 15 · part i, the descent</p>
       <h1>{doc.title}</h1>
       <p class="lede prose"><Rich text={doc.lede} /></p>
 
@@ -73,7 +73,7 @@ const irText = (which: 'source' | 'jaxpr' | 'stablehlo', lines?: [number, number
 
       <nav class="pager" aria-label="Layers">
         {prev ? <a href={`/l/${prev.id}`}>← up · {prev.title}</a> : <a href="/">← the map</a>}
-        {next ? <a href={`/l/${next.id}`}>descend · {next.title} →</a> : <a href="/s/machine">begin stage 0 →</a>}
+        {next ? <a href={`/l/${next.id}`}>descend · {next.title} →</a> : <a href="/s/machine">continue the path · chapter 10, stage 0 →</a>}
       </nav>
     </article>
   </div>

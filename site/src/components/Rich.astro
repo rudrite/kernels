@@ -1,7 +1,10 @@
 ---
 // Inline rich text for chapter prose: `code` gets the mono measurement
-// treatment, **bold** gets weight. Input is our own authored strings, escaped
-// before markup so no raw HTML ever passes through.
+// treatment, **bold** gets weight, $math$ renders through KaTeX at build
+// time. Input is our own authored strings, escaped before markup so no raw
+// HTML ever passes through except KaTeX's own output.
+import katex from 'katex'
+
 interface Props {
   text: string
 }
@@ -13,6 +16,11 @@ const escaped = text
   .replaceAll('>', '&gt;')
 
 const html = escaped
+  .replace(/\$([^$]+)\$/g, (_m, tex: string) =>
+    katex.renderToString(tex.replaceAll('&amp;', '&').replaceAll('&lt;', '<').replaceAll('&gt;', '>'), {
+      throwOnError: false,
+    }),
+  )
   .replace(/`([^`]+)`/g, '<code class="ri">$1</code>')
   .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
 ---

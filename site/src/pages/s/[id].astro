@@ -48,6 +48,7 @@ const extractedLabs = stage.labs.filter((l) => l.designator in labsData)
     <aside class="side"><Spine currentLayer={stage.layer} /></aside>
 
     <article class="main">
+      <p class="mono-label kicker">the path · chapter {String(10 + stage.num).padStart(2, '0')} of 15 · part ii, the track</p>
       <TitleBlock stage={stage} />
 
       <section class="block prose">
@@ -207,6 +208,7 @@ const extractedLabs = stage.labs.filter((l) => l.designator in labsData)
   .side { position: sticky; top: 2rem; align-self: start; }
   @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .side { position: static; display: none; } }
 
+  .kicker { color: var(--copper-deep); margin-bottom: 0.875rem; }
   .block { margin-top: 2.75rem; }
   .block > h2 { margin-bottom: 0.875rem; }
   .howto { display: flex; align-items: baseline; gap: 1.25rem; flex-wrap: wrap; border-block: 1px solid var(--rule-soft); padding-block: 0.75rem; }

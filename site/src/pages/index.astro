@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro'
 import StackMap from '../components/StackMap.astro'
-import { STAGES } from '../data/track'
+import { LAYERS, STAGES } from '../data/track'
 
 const gatesTotal = STAGES.length
 const gatesPassed = STAGES.filter((s) => s.gate.state === 'passed').length
@@ -25,8 +25,7 @@ const gatesPassed = STAGES.filter((s) => s.gate.state === 'passed').length
         >stage {STAGES.find((s) => s.gate.state === 'active')?.num ?? 0}</a>
     </p>
     <div class="cta-row">
-      <a class="cta primary" href="/l/source">new here? descend the stack first → nine short layer tutorials</a>
-      <a class="cta" href="/s/machine">know the stack? begin stage 0 →</a>
+      <a class="cta primary" href="/l/source">start the path → chapter 1 · JAX / PyTorch</a>
     </div>
   </section>
 
@@ -40,14 +39,34 @@ const gatesPassed = STAGES.filter((s) => s.gate.state === 'passed').length
   </section>
 
   <section class="wrap order-section" aria-labelledby="order-head">
-    <h2 id="order-head" class="mono-label sec">the track, in order</h2>
+    <h2 id="order-head" class="mono-label sec">the path · one route, fifteen chapters</h2>
+    <p class="prose sec-lede">
+      Part one descends the stack, one short chapter per layer, so nothing later is mysterious. Part two
+      is the track itself: six stages of labs and gates. Follow it in order; every chapter assumes only
+      the ones before it.
+    </p>
+    <h3 class="mono-label part">part i · the descent</h3>
     <ol class="order">
       {
-        STAGES.map((s) => (
+        LAYERS.map((l, i) => (
+          <li>
+            <a href={`/l/${l.id}`}>
+              <span class="onum">{String(i + 1).padStart(2, '0')}</span>
+              <span class="otitle">{l.label}</span>
+              <span class="oweeks">~20 min</span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+    <h3 class="mono-label part">part ii · the track</h3>
+    <ol class="order">
+      {
+        STAGES.map((s, i) => (
           <li>
             <a href={`/s/${s.id}`}>
               <span class="led" data-state={s.gate.state === 'queued' ? undefined : s.gate.state} />
-              <span class="onum">S{s.num}</span>
+              <span class="onum">{String(LAYERS.length + i + 1).padStart(2, '0')}</span>
               <span class="otitle">{s.title}</span>
               <span class="oweeks">{s.weeks}</span>
             </a>
@@ -93,6 +112,7 @@ const gatesPassed = STAGES.filter((s) => s.gate.state === 'passed').length
   .cta.primary { border-color: var(--copper-deep); color: var(--copper-deep); }
 
   .order-section { padding-block: 2.5rem 0; }
+  .part { margin: 1.5rem 0 0.5rem; color: var(--copper-deep); }
   .order { list-style: none; padding: 0; border-top: 1px solid var(--rule); }
   .order a { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 0.25rem; border-bottom: 1px solid var(--rule-soft); text-decoration: none; font-family: var(--mono); font-size: 0.875rem; }
   .order a:hover { background: var(--paper-high); color: var(--copper-deep); }

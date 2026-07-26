@@ -1,0 +1,9061 @@
+{
+ "meta": {
+  "jax": "0.4.38",
+  "generated": "gen_ir_corpus.py",
+  "programs": 17,
+  "dot_instances": 20
+ },
+ "programs": [
+  {
+   "id": "mlp",
+   "title": "MLP block",
+   "note": "the transformer FFN: two matmuls around a GELU; watch bias broadcasts appear",
+   "source": [
+    "def mlp_block(x, w1, b1, w2, b2):",
+    "    h = jax.nn.gelu(x @ w1 + b1)",
+    "    return h @ w2 + b2"
+   ],
+   "jaxpr": [
+    "{ lambda ; a:bf16[64,128] b:bf16[128,512] c:bf16[512] d:bf16[512,128] e:bf16[128]. let",
+    "    f:bf16[64,512] = dot_general[",
+    "      dimension_numbers=(([1], [0]), ([], []))",
+    "      preferred_element_type=bfloat16",
+    "    ] a b",
+    "    g:bf16[1,512] = broadcast_in_dim[",
+    "      broadcast_dimensions=(1,)",
+    "      shape=(1, 512)",
+    "      sharding=None",
+    "    ] c",
+    "    h:bf16[64,512] = add f g",
+    "    i:bf16[64,512] = integer_pow[y=3] h",
+    "    j:bf16[64,512] = mul 0.0446777 i",
+    "    k:bf16[64,512] = add h j",
+    "    l:bf16[64,512] = mul 0.796875 k",
+    "    m:bf16[64,512] = tanh l",
+    "    n:bf16[64,512] = add 1 m",
+    "    o:bf16[64,512] = mul 0.5 n",
+    "    p:bf16[64,512] = mul h o",
+    "    q:bf16[64,128] = dot_general[",
+    "      dimension_numbers=(([1], [0]), ([], []))",
+    "      preferred_element_type=bfloat16",
+    "    ] p d",
+    "    r:bf16[1,128] = broadcast_in_dim[",
+    "      broadcast_dimensions=(1,)",
+    "      shape=(1, 128)",
+    "      sharding=None",
+    "    ] e",
+    "    s:bf16[64,128] = add q r",
+    "  in (s,) }"
+   ],
+   "stablehlo": [
+    "module @jit_mlp_block attributes {mhlo.num_partitions = 1 : i32, mhlo.num_replicas = 1 : i32} {",
+    "  func.func public @main(%arg0: tensor<64x128xbf16>, %arg1: tensor<128x512xbf16>, %arg2: tensor<512xbf16>, %arg3: tensor<512x128xbf16>, %arg4: tensor<128xbf16>) -> (tensor<64x128xbf16> {jax.result_info = \"\"}) {",
+    "    %0 = stablehlo.dot_general %arg0, %arg1, contracting_dims = [1] x [0], precision = [DEFAULT, DEFAULT] : (tensor<64x128xbf16>, tensor<128x512xbf16>) -> tensor<64x512xbf16>",
+    "    %1 = stablehlo.broadcast_in_dim %arg2, dims = [1] : (tensor<512xbf16>) -> tensor<1x512xbf16>",
+    "    %2 = stablehlo.broadcast_in_dim %1, dims = [0, 1] : (tensor<1x512xbf16>) -> tensor<64x512xbf16>",
+    "    %3 = stablehlo.add %0, %2 : tensor<64x512xbf16>",
+    "    %4 = stablehlo.multiply %3, %3 : tensor<64x512xbf16>",
+    "    %5 = stablehlo.multiply %4, %3 : tensor<64x512xbf16>",
+    "    %cst = stablehlo.constant dense<4.467770e-02> : tensor<bf16>",
+    "    %6 = stablehlo.broadcast_in_dim %cst, dims = [] : (tensor<bf16>) -> tensor<64x512xbf16>",
+    "    %7 = stablehlo.multiply %6, %5 : tensor<64x512xbf16>",
+    "    %8 = stablehlo.add %3, %7 : tensor<64x512xbf16>",
+    "    %cst_0 = stablehlo.constant dense<7.968750e-01> : tensor<bf16>",
+    "    %9 = stablehlo.broadcast_in_dim %cst_0, dims = [] : (tensor<bf16>) -> tensor<64x512xbf16>",
+    "    %10 = stablehlo.multiply %9, %8 : tensor<64x512xbf16>",
+    "    %11 = stablehlo.tanh %10 : tensor<64x512xbf16>",
+    "    %cst_1 = stablehlo.constant dense<1.000000e+00> : tensor<bf16>",
+    "    %12 = stablehlo.broadcast_in_dim %cst_1, dims = [] : (tensor<bf16>) -> tensor<64x512xbf16>",
+    "    %13 = stablehlo.add %12, %11 : tensor<64x512xbf16>",
+    "    %cst_2 = stablehlo.constant dense<5.000000e-01> : tensor<bf16>",
+    "    %14 = stablehlo.broadcast_in_dim %cst_2, dims = [] : (tensor<bf16>) -> tensor<64x512xbf16>",
+    "    %15 = stablehlo.multiply %14, %13 : tensor<64x512xbf16>",
+    "    %16 = stablehlo.multiply %3, %15 : tensor<64x512xbf16>",
+    "    %17 = stablehlo.dot_general %16, %arg3, contracting_dims = [1] x [0], precision = [DEFAULT, DEFAULT] : (tensor<64x512xbf16>, tensor<512x128xbf16>) -> tensor<64x128xbf16>",
+    "    %18 = stablehlo.broadcast_in_dim %arg4, dims = [1] : (tensor<128xbf16>) -> tensor<1x128xbf16>",
+    "    %19 = stablehlo.broadcast_in_dim %18, dims = [0, 1] : (tensor<1x128xbf16>) -> tensor<64x128xbf16>",
+    "    %20 = stablehlo.add %17, %19 : tensor<64x128xbf16>",
+    "    return %20 : tensor<64x128xbf16>",
+    "  }",
+    "}"
+   ],
+   "eqns": [
+    {
+     "op": "dot_general",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        512
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      }
+     ],
+     "dimension_numbers": [
+      [
+       [
+        1
+       ],
+       [
+        0
+       ]
+      ],
+      [
+       [],
+       []
+      ]
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        512
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        1,
+        512
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        1,
+        512
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      }
+     ]
+    },
+    {
+     "op": "integer_pow",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      }
+     ]
+    },
+    {
+     "op": "mul",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": []
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      }
+     ]
+    },
+    {
+     "op": "mul",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": []
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      }
+     ]
+    },
+    {
+     "op": "tanh",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": []
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      }
+     ]
+    },
+    {
+     "op": "mul",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": []
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      }
+     ]
+    },
+    {
+     "op": "mul",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      }
+     ]
+    },
+    {
+     "op": "dot_general",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        512,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "dimension_numbers": [
+      [
+       [
+        1
+       ],
+       [
+        0
+       ]
+      ],
+      [
+       [],
+       []
+      ]
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        1,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        1,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "layernorm",
+   "title": "LayerNorm",
+   "note": "mean, variance, rsqrt, two broadcasts: the elementwise workhorse",
+   "source": [
+    "def layernorm(x, g, b):",
+    "    mu = jnp.mean(x, axis=-1, keepdims=True)",
+    "    var = jnp.var(x, axis=-1, keepdims=True)",
+    "    return (x - mu) * jax.lax.rsqrt(var + 1e-6) * g + b"
+   ],
+   "jaxpr": [
+    "{ lambda ; a:bf16[64,128] b:bf16[128] c:bf16[128]. let",
+    "    d:f32[64,128] = convert_element_type[new_dtype=float32 weak_type=False] a",
+    "    e:f32[64] = reduce_sum[axes=(1,)] d",
+    "    f:f32[64,1] = broadcast_in_dim[",
+    "      broadcast_dimensions=(0,)",
+    "      shape=(64, 1)",
+    "      sharding=None",
+    "    ] e",
+    "    g:f32[64,1] = div f 128.0",
+    "    h:bf16[64,1] = convert_element_type[new_dtype=bfloat16 weak_type=False] g",
+    "    i:bf16[64,1] = pjit[",
+    "      name=_var",
+    "      jaxpr={ lambda ; j:bf16[64,128] k:i32[]. let",
+    "          l:f32[64,128] = convert_element_type[",
+    "            new_dtype=float32",
+    "            weak_type=False",
+    "          ] j",
+    "          m:f32[64] = reduce_sum[axes=(1,)] l",
+    "          n:f32[64,1] = broadcast_in_dim[",
+    "            broadcast_dimensions=(0,)",
+    "            shape=(64, 1)",
+    "            sharding=None",
+    "          ] m",
+    "          o:f32[64,1] = div n 128.0",
+    "          p:f32[64,128] = sub l o",
+    "          q:f32[64,128] = square p",
+    "          r:f32[] = convert_element_type[new_dtype=float32 weak_type=False] k",
+    "          s:f32[] = sub 128.0 r",
+    "          t:f32[64] = reduce_sum[axes=(1,)] q",
+    "          u:f32[64,1] = broadcast_in_dim[",
+    "            broadcast_dimensions=(0,)",
+    "            shape=(64, 1)",
+    "            sharding=None",
+    "          ] t",
+    "          v:f32[64,1] = div u s",
+    "          w:bf16[64,1] = convert_element_type[",
+    "            new_dtype=bfloat16",
+    "            weak_type=False",
+    "          ] v",
+    "          x:bool[] = gt s 0.0",
+    "          y:bf16[64,1] = pjit[",
+    "            name=_where",
+    "            jaxpr={ lambda ; z:bool[] ba:bf16[64,1] bb:f32[]. let",
+    "                bc:bf16[] = convert_element_type[",
+    "                  new_dtype=bfloat16",
+    "                  weak_type=False",
+    "                ] bb",
+    "                bd:bf16[64,1] = broadcast_in_dim[",
+    "                  broadcast_dimensions=()",
+    "                  shape=(64, 1)",
+    "                  sharding=None",
+    "                ] bc",
+    "                be:bf16[64,1] = select_n z bd ba",
+    "              in (be,) }",
+    "          ] x w nan",
+    "        in (y,) }",
+    "    ] a 0",
+    "    bf:bf16[64,128] = sub a h",
+    "    bg:bf16[64,1] = add i 9.98378e-07",
+    "    bh:bf16[64,1] = rsqrt bg",
+    "    bi:bf16[64,128] = mul bf bh",
+    "    bj:bf16[1,128] = broadcast_in_dim[",
+    "      broadcast_dimensions=(1,)",
+    "      shape=(1, 128)",
+    "      sharding=None",
+    "    ] b",
+    "    bk:bf16[64,128] = mul bi bj",
+    "    bl:bf16[1,128] = broadcast_in_dim[",
+    "      broadcast_dimensions=(1,)",
+    "      shape=(1, 128)",
+    "      sharding=None",
+    "    ] c",
+    "    bm:bf16[64,128] = add bk bl",
+    "  in (bm,) }"
+   ],
+   "stablehlo": [
+    "module @jit_layernorm attributes {mhlo.num_partitions = 1 : i32, mhlo.num_replicas = 1 : i32} {",
+    "  func.func public @main(%arg0: tensor<64x128xbf16>, %arg1: tensor<128xbf16>, %arg2: tensor<128xbf16>) -> (tensor<64x128xbf16> {jax.result_info = \"\"}) {",
+    "    %0 = stablehlo.convert %arg0 : (tensor<64x128xbf16>) -> tensor<64x128xf32>",
+    "    %cst = stablehlo.constant dense<0.000000e+00> : tensor<f32>",
+    "    %1 = stablehlo.reduce(%0 init: %cst) applies stablehlo.add across dimensions = [1] : (tensor<64x128xf32>, tensor<f32>) -> tensor<64xf32>",
+    "    %2 = stablehlo.broadcast_in_dim %1, dims = [0] : (tensor<64xf32>) -> tensor<64x1xf32>",
+    "    %cst_0 = stablehlo.constant dense<1.280000e+02> : tensor<f32>",
+    "    %3 = stablehlo.broadcast_in_dim %cst_0, dims = [] : (tensor<f32>) -> tensor<64x1xf32>",
+    "    %4 = stablehlo.divide %2, %3 : tensor<64x1xf32>",
+    "    %5 = stablehlo.convert %4 : (tensor<64x1xf32>) -> tensor<64x1xbf16>",
+    "    %c = stablehlo.constant dense<0> : tensor<i32>",
+    "    %6 = call @_var(%arg0, %c) : (tensor<64x128xbf16>, tensor<i32>) -> tensor<64x1xbf16>",
+    "    %7 = stablehlo.broadcast_in_dim %5, dims = [0, 1] : (tensor<64x1xbf16>) -> tensor<64x128xbf16>",
+    "    %8 = stablehlo.subtract %arg0, %7 : tensor<64x128xbf16>",
+    "    %cst_1 = stablehlo.constant dense<9.983770e-07> : tensor<bf16>",
+    "    %9 = stablehlo.broadcast_in_dim %cst_1, dims = [] : (tensor<bf16>) -> tensor<64x1xbf16>",
+    "    %10 = stablehlo.add %6, %9 : tensor<64x1xbf16>",
+    "    %11 = stablehlo.rsqrt %10 : tensor<64x1xbf16>",
+    "    %12 = stablehlo.broadcast_in_dim %11, dims = [0, 1] : (tensor<64x1xbf16>) -> tensor<64x128xbf16>",
+    "    %13 = stablehlo.multiply %8, %12 : tensor<64x128xbf16>",
+    "    %14 = stablehlo.broadcast_in_dim %arg1, dims = [1] : (tensor<128xbf16>) -> tensor<1x128xbf16>",
+    "    %15 = stablehlo.broadcast_in_dim %14, dims = [0, 1] : (tensor<1x128xbf16>) -> tensor<64x128xbf16>",
+    "    %16 = stablehlo.multiply %13, %15 : tensor<64x128xbf16>",
+    "    %17 = stablehlo.broadcast_in_dim %arg2, dims = [1] : (tensor<128xbf16>) -> tensor<1x128xbf16>",
+    "    %18 = stablehlo.broadcast_in_dim %17, dims = [0, 1] : (tensor<1x128xbf16>) -> tensor<64x128xbf16>",
+    "    %19 = stablehlo.add %16, %18 : tensor<64x128xbf16>",
+    "    return %19 : tensor<64x128xbf16>",
+    "  }",
+    "  func.func private @_var(%arg0: tensor<64x128xbf16>, %arg1: tensor<i32>) -> tensor<64x1xbf16> {",
+    "    %0 = stablehlo.convert %arg0 : (tensor<64x128xbf16>) -> tensor<64x128xf32>",
+    "    %cst = stablehlo.constant dense<0.000000e+00> : tensor<f32>",
+    "    %1 = stablehlo.reduce(%0 init: %cst) applies stablehlo.add across dimensions = [1] : (tensor<64x128xf32>, tensor<f32>) -> tensor<64xf32>",
+    "    %2 = stablehlo.broadcast_in_dim %1, dims = [0] : (tensor<64xf32>) -> tensor<64x1xf32>",
+    "    %cst_0 = stablehlo.constant dense<1.280000e+02> : tensor<f32>",
+    "    %3 = stablehlo.broadcast_in_dim %cst_0, dims = [] : (tensor<f32>) -> tensor<64x1xf32>",
+    "    %4 = stablehlo.divide %2, %3 : tensor<64x1xf32>",
+    "    %5 = stablehlo.broadcast_in_dim %4, dims = [0, 1] : (tensor<64x1xf32>) -> tensor<64x128xf32>",
+    "    %6 = stablehlo.subtract %0, %5 : tensor<64x128xf32>",
+    "    %7 = stablehlo.multiply %6, %6 : tensor<64x128xf32>",
+    "    %8 = stablehlo.convert %arg1 : (tensor<i32>) -> tensor<f32>",
+    "    %9 = stablehlo.subtract %cst_0, %8 : tensor<f32>",
+    "    %cst_1 = stablehlo.constant dense<0.000000e+00> : tensor<f32>",
+    "    %10 = stablehlo.reduce(%7 init: %cst_1) applies stablehlo.add across dimensions = [1] : (tensor<64x128xf32>, tensor<f32>) -> tensor<64xf32>",
+    "    %11 = stablehlo.broadcast_in_dim %10, dims = [0] : (tensor<64xf32>) -> tensor<64x1xf32>",
+    "    %12 = stablehlo.broadcast_in_dim %9, dims = [] : (tensor<f32>) -> tensor<64x1xf32>",
+    "    %13 = stablehlo.divide %11, %12 : tensor<64x1xf32>",
+    "    %14 = stablehlo.convert %13 : (tensor<64x1xf32>) -> tensor<64x1xbf16>",
+    "    %cst_2 = stablehlo.constant dense<0.000000e+00> : tensor<f32>",
+    "    %15 = stablehlo.compare  GT, %9, %cst_2,  FLOAT : (tensor<f32>, tensor<f32>) -> tensor<i1>",
+    "    %cst_3 = stablehlo.constant dense<0x7FC00000> : tensor<f32>",
+    "    %16 = call @_where(%15, %14, %cst_3) : (tensor<i1>, tensor<64x1xbf16>, tensor<f32>) -> tensor<64x1xbf16>",
+    "    return %16 : tensor<64x1xbf16>",
+    "  }",
+    "  func.func private @_where(%arg0: tensor<i1>, %arg1: tensor<64x1xbf16>, %arg2: tensor<f32>) -> tensor<64x1xbf16> {",
+    "    %0 = stablehlo.convert %arg2 : (tensor<f32>) -> tensor<bf16>",
+    "    %1 = stablehlo.broadcast_in_dim %0, dims = [] : (tensor<bf16>) -> tensor<64x1xbf16>",
+    "    %2 = stablehlo.select %arg0, %arg1, %1 : tensor<i1>, tensor<64x1xbf16>",
+    "    return %2 : tensor<64x1xbf16>",
+    "  }",
+    "}"
+   ],
+   "eqns": [
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "reduce_sum",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "div",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        1
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "pjit",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      },
+      {
+       "dtype": "int32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "reduce_sum",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "div",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        1
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "sub",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        128
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "square",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "int32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ]
+    },
+    {
+     "op": "sub",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": []
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ]
+    },
+    {
+     "op": "reduce_sum",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "div",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        1
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "gt",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": []
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bool",
+       "shape": []
+      }
+     ]
+    },
+    {
+     "op": "pjit",
+     "inputs": [
+      {
+       "dtype": "bool",
+       "shape": []
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": []
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "select_n",
+     "inputs": [
+      {
+       "dtype": "bool",
+       "shape": []
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "sub",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "rsqrt",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "mul",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        1,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "mul",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        1,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        1,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        1,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rmsnorm",
+   "title": "RMSNorm",
+   "note": "LayerNorm minus the mean subtraction; compare their jaxprs line by line",
+   "source": [
+    "def rmsnorm(x, g):",
+    "    ms = jnp.mean(x * x, axis=-1, keepdims=True)",
+    "    return x * jax.lax.rsqrt(ms + 1e-6) * g"
+   ],
+   "jaxpr": [
+    "{ lambda ; a:bf16[64,128] b:bf16[128]. let",
+    "    c:bf16[64,128] = mul a a",
+    "    d:f32[64,128] = convert_element_type[new_dtype=float32 weak_type=False] c",
+    "    e:f32[64] = reduce_sum[axes=(1,)] d",
+    "    f:f32[64,1] = broadcast_in_dim[",
+    "      broadcast_dimensions=(0,)",
+    "      shape=(64, 1)",
+    "      sharding=None",
+    "    ] e",
+    "    g:f32[64,1] = div f 128.0",
+    "    h:bf16[64,1] = convert_element_type[new_dtype=bfloat16 weak_type=False] g",
+    "    i:bf16[64,1] = add h 9.98378e-07",
+    "    j:bf16[64,1] = rsqrt i",
+    "    k:bf16[64,128] = mul a j",
+    "    l:bf16[1,128] = broadcast_in_dim[",
+    "      broadcast_dimensions=(1,)",
+    "      shape=(1, 128)",
+    "      sharding=None",
+    "    ] b",
+    "    m:bf16[64,128] = mul k l",
+    "  in (m,) }"
+   ],
+   "stablehlo": [
+    "module @jit_rmsnorm attributes {mhlo.num_partitions = 1 : i32, mhlo.num_replicas = 1 : i32} {",
+    "  func.func public @main(%arg0: tensor<64x128xbf16>, %arg1: tensor<128xbf16>) -> (tensor<64x128xbf16> {jax.result_info = \"\"}) {",
+    "    %0 = stablehlo.multiply %arg0, %arg0 : tensor<64x128xbf16>",
+    "    %1 = stablehlo.convert %0 : (tensor<64x128xbf16>) -> tensor<64x128xf32>",
+    "    %cst = stablehlo.constant dense<0.000000e+00> : tensor<f32>",
+    "    %2 = stablehlo.reduce(%1 init: %cst) applies stablehlo.add across dimensions = [1] : (tensor<64x128xf32>, tensor<f32>) -> tensor<64xf32>",
+    "    %3 = stablehlo.broadcast_in_dim %2, dims = [0] : (tensor<64xf32>) -> tensor<64x1xf32>",
+    "    %cst_0 = stablehlo.constant dense<1.280000e+02> : tensor<f32>",
+    "    %4 = stablehlo.broadcast_in_dim %cst_0, dims = [] : (tensor<f32>) -> tensor<64x1xf32>",
+    "    %5 = stablehlo.divide %3, %4 : tensor<64x1xf32>",
+    "    %6 = stablehlo.convert %5 : (tensor<64x1xf32>) -> tensor<64x1xbf16>",
+    "    %cst_1 = stablehlo.constant dense<9.983770e-07> : tensor<bf16>",
+    "    %7 = stablehlo.broadcast_in_dim %cst_1, dims = [] : (tensor<bf16>) -> tensor<64x1xbf16>",
+    "    %8 = stablehlo.add %6, %7 : tensor<64x1xbf16>",
+    "    %9 = stablehlo.rsqrt %8 : tensor<64x1xbf16>",
+    "    %10 = stablehlo.broadcast_in_dim %9, dims = [0, 1] : (tensor<64x1xbf16>) -> tensor<64x128xbf16>",
+    "    %11 = stablehlo.multiply %arg0, %10 : tensor<64x128xbf16>",
+    "    %12 = stablehlo.broadcast_in_dim %arg1, dims = [1] : (tensor<128xbf16>) -> tensor<1x128xbf16>",
+    "    %13 = stablehlo.broadcast_in_dim %12, dims = [0, 1] : (tensor<1x128xbf16>) -> tensor<64x128xbf16>",
+    "    %14 = stablehlo.multiply %11, %13 : tensor<64x128xbf16>",
+    "    return %14 : tensor<64x128xbf16>",
+    "  }",
+    "}"
+   ],
+   "eqns": [
+    {
+     "op": "mul",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "reduce_sum",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "div",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        1
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "rsqrt",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "mul",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        1,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "mul",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        1,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "softmax",
+   "title": "softmax over rows",
+   "note": "max, subtract, exp, sum, divide: five primitives and one upcast",
+   "source": [
+    "def softmax_rows(x):",
+    "    return jax.nn.softmax(x, axis=-1)"
+   ],
+   "jaxpr": [
+    "{ lambda ; a:bf16[64,128]. let",
+    "    b:bf16[64] = reduce_max[axes=(1,)] a",
+    "    c:bf16[64] = max -inf b",
+    "    d:bf16[64,1] = broadcast_in_dim[",
+    "      broadcast_dimensions=(0,)",
+    "      shape=(64, 1)",
+    "      sharding=None",
+    "    ] c",
+    "    e:bf16[64,1] = stop_gradient d",
+    "    f:bf16[64,128] = sub a e",
+    "    g:bf16[64,128] = exp f",
+    "    h:f32[64,128] = convert_element_type[new_dtype=float32 weak_type=False] g",
+    "    i:f32[64] = reduce_sum[axes=(1,)] h",
+    "    j:f32[64,1] = broadcast_in_dim[",
+    "      broadcast_dimensions=(0,)",
+    "      shape=(64, 1)",
+    "      sharding=None",
+    "    ] i",
+    "    k:bf16[64,1] = convert_element_type[new_dtype=bfloat16 weak_type=False] j",
+    "    l:bf16[64,128] = div g k",
+    "  in (l,) }"
+   ],
+   "stablehlo": [
+    "module @jit_softmax_rows attributes {mhlo.num_partitions = 1 : i32, mhlo.num_replicas = 1 : i32} {",
+    "  func.func public @main(%arg0: tensor<64x128xbf16>) -> (tensor<64x128xbf16> {jax.result_info = \"\"}) {",
+    "    %cst = stablehlo.constant dense<0xFF80> : tensor<bf16>",
+    "    %0 = stablehlo.reduce(%arg0 init: %cst) applies stablehlo.maximum across dimensions = [1] : (tensor<64x128xbf16>, tensor<bf16>) -> tensor<64xbf16>",
+    "    %cst_0 = stablehlo.constant dense<0xFF80> : tensor<bf16>",
+    "    %1 = stablehlo.broadcast_in_dim %cst_0, dims = [] : (tensor<bf16>) -> tensor<64xbf16>",
+    "    %2 = stablehlo.maximum %1, %0 : tensor<64xbf16>",
+    "    %3 = stablehlo.broadcast_in_dim %2, dims = [0] : (tensor<64xbf16>) -> tensor<64x1xbf16>",
+    "    %4 = stablehlo.broadcast_in_dim %3, dims = [0, 1] : (tensor<64x1xbf16>) -> tensor<64x128xbf16>",
+    "    %5 = stablehlo.subtract %arg0, %4 : tensor<64x128xbf16>",
+    "    %6 = stablehlo.exponential %5 : tensor<64x128xbf16>",
+    "    %7 = stablehlo.convert %6 : (tensor<64x128xbf16>) -> tensor<64x128xf32>",
+    "    %cst_1 = stablehlo.constant dense<0.000000e+00> : tensor<f32>",
+    "    %8 = stablehlo.reduce(%7 init: %cst_1) applies stablehlo.add across dimensions = [1] : (tensor<64x128xf32>, tensor<f32>) -> tensor<64xf32>",
+    "    %9 = stablehlo.broadcast_in_dim %8, dims = [0] : (tensor<64xf32>) -> tensor<64x1xf32>",
+    "    %10 = stablehlo.convert %9 : (tensor<64x1xf32>) -> tensor<64x1xbf16>",
+    "    %11 = stablehlo.broadcast_in_dim %10, dims = [0, 1] : (tensor<64x1xbf16>) -> tensor<64x128xbf16>",
+    "    %12 = stablehlo.divide %6, %11 : tensor<64x128xbf16>",
+    "    return %12 : tensor<64x128xbf16>",
+    "  }",
+    "}"
+   ],
+   "eqns": [
+    {
+     "op": "reduce_max",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "max",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": []
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "stop_gradient",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "sub",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "exp",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "reduce_sum",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "div",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "logsumexp",
+   "title": "log-sum-exp",
+   "note": "the numerically stable form: same skeleton as softmax, one log at the end",
+   "source": [
+    "def logsumexp_rows(x):",
+    "    m = jnp.max(x, axis=-1, keepdims=True)",
+    "    return m + jnp.log(jnp.sum(jnp.exp(x - m), axis=-1, keepdims=True))"
+   ],
+   "jaxpr": [
+    "{ lambda ; a:bf16[64,128]. let",
+    "    b:bf16[64] = reduce_max[axes=(1,)] a",
+    "    c:bf16[64,1] = broadcast_in_dim[",
+    "      broadcast_dimensions=(0,)",
+    "      shape=(64, 1)",
+    "      sharding=None",
+    "    ] b",
+    "    d:bf16[64,128] = sub a c",
+    "    e:bf16[64,128] = exp d",
+    "    f:f32[64,128] = convert_element_type[new_dtype=float32 weak_type=False] e",
+    "    g:f32[64] = reduce_sum[axes=(1,)] f",
+    "    h:f32[64,1] = broadcast_in_dim[",
+    "      broadcast_dimensions=(0,)",
+    "      shape=(64, 1)",
+    "      sharding=None",
+    "    ] g",
+    "    i:bf16[64,1] = convert_element_type[new_dtype=bfloat16 weak_type=False] h",
+    "    j:bf16[64,1] = log i",
+    "    k:bf16[64,1] = add c j",
+    "  in (k,) }"
+   ],
+   "stablehlo": [
+    "module @jit_logsumexp_rows attributes {mhlo.num_partitions = 1 : i32, mhlo.num_replicas = 1 : i32} {",
+    "  func.func public @main(%arg0: tensor<64x128xbf16>) -> (tensor<64x1xbf16> {jax.result_info = \"\"}) {",
+    "    %cst = stablehlo.constant dense<0xFF80> : tensor<bf16>",
+    "    %0 = stablehlo.reduce(%arg0 init: %cst) applies stablehlo.maximum across dimensions = [1] : (tensor<64x128xbf16>, tensor<bf16>) -> tensor<64xbf16>",
+    "    %1 = stablehlo.broadcast_in_dim %0, dims = [0] : (tensor<64xbf16>) -> tensor<64x1xbf16>",
+    "    %2 = stablehlo.broadcast_in_dim %1, dims = [0, 1] : (tensor<64x1xbf16>) -> tensor<64x128xbf16>",
+    "    %3 = stablehlo.subtract %arg0, %2 : tensor<64x128xbf16>",
+    "    %4 = stablehlo.exponential %3 : tensor<64x128xbf16>",
+    "    %5 = stablehlo.convert %4 : (tensor<64x128xbf16>) -> tensor<64x128xf32>",
+    "    %cst_0 = stablehlo.constant dense<0.000000e+00> : tensor<f32>",
+    "    %6 = stablehlo.reduce(%5 init: %cst_0) applies stablehlo.add across dimensions = [1] : (tensor<64x128xf32>, tensor<f32>) -> tensor<64xf32>",
+    "    %7 = stablehlo.broadcast_in_dim %6, dims = [0] : (tensor<64xf32>) -> tensor<64x1xf32>",
+    "    %8 = stablehlo.convert %7 : (tensor<64x1xf32>) -> tensor<64x1xbf16>",
+    "    %9 = stablehlo.log %8 : tensor<64x1xbf16>",
+    "    %10 = stablehlo.add %1, %9 : tensor<64x1xbf16>",
+    "    return %10 : tensor<64x1xbf16>",
+    "  }",
+    "}"
+   ],
+   "eqns": [
+    {
+     "op": "reduce_max",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "sub",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "exp",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "reduce_sum",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "log",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "attention",
+   "title": "naive attention",
+   "note": "the track's running example: two dot_generals bracketing a softmax",
+   "source": [
+    "def attention(q, k, v):",
+    "    s = q @ k.T",
+    "    m = jnp.max(s, axis=-1, keepdims=True)",
+    "    p = jnp.exp(s - m)",
+    "    return (p / jnp.sum(p, axis=-1, keepdims=True)) @ v"
+   ],
+   "jaxpr": [
+    "{ lambda ; a:bf16[128,64] b:bf16[128,64] c:bf16[128,64]. let",
+    "    d:bf16[64,128] = transpose[permutation=(1, 0)] b",
+    "    e:bf16[128,128] = dot_general[",
+    "      dimension_numbers=(([1], [0]), ([], []))",
+    "      preferred_element_type=bfloat16",
+    "    ] a d",
+    "    f:bf16[128] = reduce_max[axes=(1,)] e",
+    "    g:bf16[128,1] = broadcast_in_dim[",
+    "      broadcast_dimensions=(0,)",
+    "      shape=(128, 1)",
+    "      sharding=None",
+    "    ] f",
+    "    h:bf16[128,128] = sub e g",
+    "    i:bf16[128,128] = exp h",
+    "    j:f32[128,128] = convert_element_type[new_dtype=float32 weak_type=False] i",
+    "    k:f32[128] = reduce_sum[axes=(1,)] j",
+    "    l:f32[128,1] = broadcast_in_dim[",
+    "      broadcast_dimensions=(0,)",
+    "      shape=(128, 1)",
+    "      sharding=None",
+    "    ] k",
+    "    m:bf16[128,1] = convert_element_type[new_dtype=bfloat16 weak_type=False] l",
+    "    n:bf16[128,128] = div i m",
+    "    o:bf16[128,64] = dot_general[",
+    "      dimension_numbers=(([1], [0]), ([], []))",
+    "      preferred_element_type=bfloat16",
+    "    ] n c",
+    "  in (o,) }"
+   ],
+   "stablehlo": [
+    "module @jit_attention attributes {mhlo.num_partitions = 1 : i32, mhlo.num_replicas = 1 : i32} {",
+    "  func.func public @main(%arg0: tensor<128x64xbf16>, %arg1: tensor<128x64xbf16>, %arg2: tensor<128x64xbf16>) -> (tensor<128x64xbf16> {jax.result_info = \"\"}) {",
+    "    %0 = stablehlo.transpose %arg1, dims = [1, 0] : (tensor<128x64xbf16>) -> tensor<64x128xbf16>",
+    "    %1 = stablehlo.dot_general %arg0, %0, contracting_dims = [1] x [0], precision = [DEFAULT, DEFAULT] : (tensor<128x64xbf16>, tensor<64x128xbf16>) -> tensor<128x128xbf16>",
+    "    %cst = stablehlo.constant dense<0xFF80> : tensor<bf16>",
+    "    %2 = stablehlo.reduce(%1 init: %cst) applies stablehlo.maximum across dimensions = [1] : (tensor<128x128xbf16>, tensor<bf16>) -> tensor<128xbf16>",
+    "    %3 = stablehlo.broadcast_in_dim %2, dims = [0] : (tensor<128xbf16>) -> tensor<128x1xbf16>",
+    "    %4 = stablehlo.broadcast_in_dim %3, dims = [0, 1] : (tensor<128x1xbf16>) -> tensor<128x128xbf16>",
+    "    %5 = stablehlo.subtract %1, %4 : tensor<128x128xbf16>",
+    "    %6 = stablehlo.exponential %5 : tensor<128x128xbf16>",
+    "    %7 = stablehlo.convert %6 : (tensor<128x128xbf16>) -> tensor<128x128xf32>",
+    "    %cst_0 = stablehlo.constant dense<0.000000e+00> : tensor<f32>",
+    "    %8 = stablehlo.reduce(%7 init: %cst_0) applies stablehlo.add across dimensions = [1] : (tensor<128x128xf32>, tensor<f32>) -> tensor<128xf32>",
+    "    %9 = stablehlo.broadcast_in_dim %8, dims = [0] : (tensor<128xf32>) -> tensor<128x1xf32>",
+    "    %10 = stablehlo.convert %9 : (tensor<128x1xf32>) -> tensor<128x1xbf16>",
+    "    %11 = stablehlo.broadcast_in_dim %10, dims = [0, 1] : (tensor<128x1xbf16>) -> tensor<128x128xbf16>",
+    "    %12 = stablehlo.divide %6, %11 : tensor<128x128xbf16>",
+    "    %13 = stablehlo.dot_general %12, %arg2, contracting_dims = [1] x [0], precision = [DEFAULT, DEFAULT] : (tensor<128x128xbf16>, tensor<128x64xbf16>) -> tensor<128x64xbf16>",
+    "    return %13 : tensor<128x64xbf16>",
+    "  }",
+    "}"
+   ],
+   "eqns": [
+    {
+     "op": "transpose",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "dot_general",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        64
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ],
+     "dimension_numbers": [
+      [
+       [
+        1
+       ],
+       [
+        0
+       ]
+      ],
+      [
+       [],
+       []
+      ]
+     ]
+    },
+    {
+     "op": "reduce_max",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "sub",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "exp",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "reduce_sum",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        128,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        128,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "div",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "dot_general",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        64
+       ]
+      }
+     ],
+     "dimension_numbers": [
+      [
+       [
+        1
+       ],
+       [
+        0
+       ]
+      ],
+      [
+       [],
+       []
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "causal",
+   "title": "causal attention",
+   "note": "a where against -inf before the softmax: find the select and the constant",
+   "source": [
+    "def causal_attention(q, k, v):",
+    "    s = q @ k.T",
+    "    n = s.shape[-1]",
+    "    mask = jnp.tril(jnp.ones((n, n), bool))",
+    "    s = jnp.where(mask, s, -jnp.inf)",
+    "    return jax.nn.softmax(s, axis=-1) @ v"
+   ],
+   "jaxpr": [
+    "{ lambda ; a:bf16[128,64] b:bf16[128,64] c:bf16[128,64]. let",
+    "    d:bf16[64,128] = transpose[permutation=(1, 0)] b",
+    "    e:bf16[128,128] = dot_general[",
+    "      dimension_numbers=(([1], [0]), ([], []))",
+    "      preferred_element_type=bfloat16",
+    "    ] a d",
+    "    f:bool[128,128] = broadcast_in_dim[",
+    "      broadcast_dimensions=()",
+    "      shape=(128, 128)",
+    "      sharding=None",
+    "    ] True",
+    "    g:bool[128,128] = pjit[",
+    "      name=tril",
+    "      jaxpr={ lambda ; h:bool[128,128]. let",
+    "          i:i32[128,128] = iota[",
+    "            dimension=0",
+    "            dtype=int32",
+    "            shape=(128, 128)",
+    "            sharding=None",
+    "          ] ",
+    "          j:i32[128,128] = add i 0",
+    "          k:i32[128,128] = iota[",
+    "            dimension=1",
+    "            dtype=int32",
+    "            shape=(128, 128)",
+    "            sharding=None",
+    "          ] ",
+    "          l:bool[128,128] = ge j k",
+    "          m:bool[128,128] = broadcast_in_dim[",
+    "            broadcast_dimensions=()",
+    "            shape=(128, 128)",
+    "            sharding=None",
+    "          ] False",
+    "          n:bool[128,128] = select_n l m h",
+    "        in (n,) }",
+    "    ] f",
+    "    o:bf16[128,128] = pjit[",
+    "      name=_where",
+    "      jaxpr={ lambda ; p:bool[128,128] q:bf16[128,128] r:f32[]. let",
+    "          s:bf16[] = convert_element_type[new_dtype=bfloat16 weak_type=False] r",
+    "          t:bf16[128,128] = broadcast_in_dim[",
+    "            broadcast_dimensions=()",
+    "            shape=(128, 128)",
+    "            sharding=None",
+    "          ] s",
+    "          u:bf16[128,128] = select_n p t q",
+    "        in (u,) }",
+    "    ] g e -inf",
+    "    v:bf16[128] = reduce_max[axes=(1,)] o",
+    "    w:bf16[128] = max -inf v",
+    "    x:bf16[128,1] = broadcast_in_dim[",
+    "      broadcast_dimensions=(0,)",
+    "      shape=(128, 1)",
+    "      sharding=None",
+    "    ] w",
+    "    y:bf16[128,1] = stop_gradient x",
+    "    z:bf16[128,128] = sub o y",
+    "    ba:bf16[128,128] = exp z",
+    "    bb:f32[128,128] = convert_element_type[new_dtype=float32 weak_type=False] ba",
+    "    bc:f32[128] = reduce_sum[axes=(1,)] bb",
+    "    bd:f32[128,1] = broadcast_in_dim[",
+    "      broadcast_dimensions=(0,)",
+    "      shape=(128, 1)",
+    "      sharding=None",
+    "    ] bc",
+    "    be:bf16[128,1] = convert_element_type[new_dtype=bfloat16 weak_type=False] bd",
+    "    bf:bf16[128,128] = div ba be",
+    "    bg:bf16[128,64] = dot_general[",
+    "      dimension_numbers=(([1], [0]), ([], []))",
+    "      preferred_element_type=bfloat16",
+    "    ] bf c",
+    "  in (bg,) }"
+   ],
+   "stablehlo": [
+    "module @jit_causal_attention attributes {mhlo.num_partitions = 1 : i32, mhlo.num_replicas = 1 : i32} {",
+    "  func.func public @main(%arg0: tensor<128x64xbf16>, %arg1: tensor<128x64xbf16>, %arg2: tensor<128x64xbf16>) -> (tensor<128x64xbf16> {jax.result_info = \"\"}) {",
+    "    %0 = stablehlo.transpose %arg1, dims = [1, 0] : (tensor<128x64xbf16>) -> tensor<64x128xbf16>",
+    "    %1 = stablehlo.dot_general %arg0, %0, contracting_dims = [1] x [0], precision = [DEFAULT, DEFAULT] : (tensor<128x64xbf16>, tensor<64x128xbf16>) -> tensor<128x128xbf16>",
+    "    %c = stablehlo.constant dense<true> : tensor<i1>",
+    "    %2 = stablehlo.broadcast_in_dim %c, dims = [] : (tensor<i1>) -> tensor<128x128xi1>",
+    "    %3 = call @tril(%2) : (tensor<128x128xi1>) -> tensor<128x128xi1>",
+    "    %cst = stablehlo.constant dense<0xFF800000> : tensor<f32>",
+    "    %4 = call @_where(%3, %1, %cst) : (tensor<128x128xi1>, tensor<128x128xbf16>, tensor<f32>) -> tensor<128x128xbf16>",
+    "    %cst_0 = stablehlo.constant dense<0xFF80> : tensor<bf16>",
+    "    %5 = stablehlo.reduce(%4 init: %cst_0) applies stablehlo.maximum across dimensions = [1] : (tensor<128x128xbf16>, tensor<bf16>) -> tensor<128xbf16>",
+    "    %cst_1 = stablehlo.constant dense<0xFF80> : tensor<bf16>",
+    "    %6 = stablehlo.broadcast_in_dim %cst_1, dims = [] : (tensor<bf16>) -> tensor<128xbf16>",
+    "    %7 = stablehlo.maximum %6, %5 : tensor<128xbf16>",
+    "    %8 = stablehlo.broadcast_in_dim %7, dims = [0] : (tensor<128xbf16>) -> tensor<128x1xbf16>",
+    "    %9 = stablehlo.broadcast_in_dim %8, dims = [0, 1] : (tensor<128x1xbf16>) -> tensor<128x128xbf16>",
+    "    %10 = stablehlo.subtract %4, %9 : tensor<128x128xbf16>",
+    "    %11 = stablehlo.exponential %10 : tensor<128x128xbf16>",
+    "    %12 = stablehlo.convert %11 : (tensor<128x128xbf16>) -> tensor<128x128xf32>",
+    "    %cst_2 = stablehlo.constant dense<0.000000e+00> : tensor<f32>",
+    "    %13 = stablehlo.reduce(%12 init: %cst_2) applies stablehlo.add across dimensions = [1] : (tensor<128x128xf32>, tensor<f32>) -> tensor<128xf32>",
+    "    %14 = stablehlo.broadcast_in_dim %13, dims = [0] : (tensor<128xf32>) -> tensor<128x1xf32>",
+    "    %15 = stablehlo.convert %14 : (tensor<128x1xf32>) -> tensor<128x1xbf16>",
+    "    %16 = stablehlo.broadcast_in_dim %15, dims = [0, 1] : (tensor<128x1xbf16>) -> tensor<128x128xbf16>",
+    "    %17 = stablehlo.divide %11, %16 : tensor<128x128xbf16>",
+    "    %18 = stablehlo.dot_general %17, %arg2, contracting_dims = [1] x [0], precision = [DEFAULT, DEFAULT] : (tensor<128x128xbf16>, tensor<128x64xbf16>) -> tensor<128x64xbf16>",
+    "    return %18 : tensor<128x64xbf16>",
+    "  }",
+    "  func.func private @tril(%arg0: tensor<128x128xi1>) -> tensor<128x128xi1> {",
+    "    %0 = stablehlo.iota dim = 0 : tensor<128x128xi32>",
+    "    %c = stablehlo.constant dense<0> : tensor<i32>",
+    "    %1 = stablehlo.broadcast_in_dim %c, dims = [] : (tensor<i32>) -> tensor<128x128xi32>",
+    "    %2 = stablehlo.add %0, %1 : tensor<128x128xi32>",
+    "    %3 = stablehlo.iota dim = 1 : tensor<128x128xi32>",
+    "    %4 = stablehlo.compare  GE, %2, %3,  SIGNED : (tensor<128x128xi32>, tensor<128x128xi32>) -> tensor<128x128xi1>",
+    "    %c_0 = stablehlo.constant dense<false> : tensor<i1>",
+    "    %5 = stablehlo.broadcast_in_dim %c_0, dims = [] : (tensor<i1>) -> tensor<128x128xi1>",
+    "    %6 = stablehlo.select %4, %arg0, %5 : tensor<128x128xi1>, tensor<128x128xi1>",
+    "    return %6 : tensor<128x128xi1>",
+    "  }",
+    "  func.func private @_where(%arg0: tensor<128x128xi1>, %arg1: tensor<128x128xbf16>, %arg2: tensor<f32>) -> tensor<128x128xbf16> {",
+    "    %0 = stablehlo.convert %arg2 : (tensor<f32>) -> tensor<bf16>",
+    "    %1 = stablehlo.broadcast_in_dim %0, dims = [] : (tensor<bf16>) -> tensor<128x128xbf16>",
+    "    %2 = stablehlo.select %arg0, %arg1, %1 : tensor<128x128xi1>, tensor<128x128xbf16>",
+    "    return %2 : tensor<128x128xbf16>",
+    "  }",
+    "}"
+   ],
+   "eqns": [
+    {
+     "op": "transpose",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "dot_general",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        64
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ],
+     "dimension_numbers": [
+      [
+       [
+        1
+       ],
+       [
+        0
+       ]
+      ],
+      [
+       [],
+       []
+      ]
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "bool",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bool",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "pjit",
+     "inputs": [
+      {
+       "dtype": "bool",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bool",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "iota",
+     "inputs": [],
+     "outputs": [
+      {
+       "dtype": "int32",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "int32",
+       "shape": [
+        128,
+        128
+       ]
+      },
+      {
+       "dtype": "int32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "int32",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "iota",
+     "inputs": [],
+     "outputs": [
+      {
+       "dtype": "int32",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "ge",
+     "inputs": [
+      {
+       "dtype": "int32",
+       "shape": [
+        128,
+        128
+       ]
+      },
+      {
+       "dtype": "int32",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bool",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "bool",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bool",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "select_n",
+     "inputs": [
+      {
+       "dtype": "bool",
+       "shape": [
+        128,
+        128
+       ]
+      },
+      {
+       "dtype": "bool",
+       "shape": [
+        128,
+        128
+       ]
+      },
+      {
+       "dtype": "bool",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bool",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "pjit",
+     "inputs": [
+      {
+       "dtype": "bool",
+       "shape": [
+        128,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": []
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "select_n",
+     "inputs": [
+      {
+       "dtype": "bool",
+       "shape": [
+        128,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "reduce_max",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "max",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": []
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "stop_gradient",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "sub",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "exp",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "reduce_sum",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        128,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        128,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "div",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "dot_general",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        64
+       ]
+      }
+     ],
+     "dimension_numbers": [
+      [
+       [
+        1
+       ],
+       [
+        0
+       ]
+      ],
+      [
+       [],
+       []
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "mha",
+   "title": "batched multi-head attention",
+   "note": "einsums become dot_generals with batch dimensions: decode all four groups",
+   "source": [
+    "def batched_mha(q, k, v):",
+    "    # [batch, heads, seq, dim] scaled dot-product attention via einsum",
+    "    s = jnp.einsum(\"bhqd,bhkd->bhqk\", q, k) / jnp.sqrt(q.shape[-1]).astype(q.dtype)",
+    "    return jnp.einsum(\"bhqk,bhkd->bhqd\", jax.nn.softmax(s, axis=-1), v)"
+   ],
+   "jaxpr": [
+    "{ lambda ; a:bf16[2,4,64,32] b:bf16[2,4,64,32] c:bf16[2,4,64,32]. let",
+    "    d:bf16[2,4,64,64] = dot_general[",
+    "      dimension_numbers=(([3], [3]), ([0, 1], [0, 1]))",
+    "      preferred_element_type=bfloat16",
+    "    ] a b",
+    "    e:f32[] = sqrt 32.0",
+    "    f:bf16[] = convert_element_type[new_dtype=bfloat16 weak_type=False] e",
+    "    g:bf16[2,4,64,64] = div d f",
+    "    h:bf16[2,4,64] = reduce_max[axes=(3,)] g",
+    "    i:bf16[2,4,64] = max -inf h",
+    "    j:bf16[2,4,64,1] = broadcast_in_dim[",
+    "      broadcast_dimensions=(0, 1, 2)",
+    "      shape=(2, 4, 64, 1)",
+    "      sharding=None",
+    "    ] i",
+    "    k:bf16[2,4,64,1] = stop_gradient j",
+    "    l:bf16[2,4,64,64] = sub g k",
+    "    m:bf16[2,4,64,64] = exp l",
+    "    n:f32[2,4,64,64] = convert_element_type[new_dtype=float32 weak_type=False] m",
+    "    o:f32[2,4,64] = reduce_sum[axes=(3,)] n",
+    "    p:f32[2,4,64,1] = broadcast_in_dim[",
+    "      broadcast_dimensions=(0, 1, 2)",
+    "      shape=(2, 4, 64, 1)",
+    "      sharding=None",
+    "    ] o",
+    "    q:bf16[2,4,64,1] = convert_element_type[new_dtype=bfloat16 weak_type=False] p",
+    "    r:bf16[2,4,64,64] = div m q",
+    "    s:bf16[2,4,64,32] = dot_general[",
+    "      dimension_numbers=(([3], [2]), ([0, 1], [0, 1]))",
+    "      preferred_element_type=bfloat16",
+    "    ] r c",
+    "  in (s,) }"
+   ],
+   "stablehlo": [
+    "module @jit_batched_mha attributes {mhlo.num_partitions = 1 : i32, mhlo.num_replicas = 1 : i32} {",
+    "  func.func public @main(%arg0: tensor<2x4x64x32xbf16>, %arg1: tensor<2x4x64x32xbf16>, %arg2: tensor<2x4x64x32xbf16>) -> (tensor<2x4x64x32xbf16> {jax.result_info = \"\"}) {",
+    "    %0 = stablehlo.dot_general %arg0, %arg1, batching_dims = [0, 1] x [0, 1], contracting_dims = [3] x [3], precision = [DEFAULT, DEFAULT] : (tensor<2x4x64x32xbf16>, tensor<2x4x64x32xbf16>) -> tensor<2x4x64x64xbf16>",
+    "    %cst = stablehlo.constant dense<3.200000e+01> : tensor<f32>",
+    "    %1 = stablehlo.sqrt %cst : tensor<f32>",
+    "    %2 = stablehlo.convert %1 : (tensor<f32>) -> tensor<bf16>",
+    "    %3 = stablehlo.broadcast_in_dim %2, dims = [] : (tensor<bf16>) -> tensor<2x4x64x64xbf16>",
+    "    %4 = stablehlo.divide %0, %3 : tensor<2x4x64x64xbf16>",
+    "    %cst_0 = stablehlo.constant dense<0xFF80> : tensor<bf16>",
+    "    %5 = stablehlo.reduce(%4 init: %cst_0) applies stablehlo.maximum across dimensions = [3] : (tensor<2x4x64x64xbf16>, tensor<bf16>) -> tensor<2x4x64xbf16>",
+    "    %cst_1 = stablehlo.constant dense<0xFF80> : tensor<bf16>",
+    "    %6 = stablehlo.broadcast_in_dim %cst_1, dims = [] : (tensor<bf16>) -> tensor<2x4x64xbf16>",
+    "    %7 = stablehlo.maximum %6, %5 : tensor<2x4x64xbf16>",
+    "    %8 = stablehlo.broadcast_in_dim %7, dims = [0, 1, 2] : (tensor<2x4x64xbf16>) -> tensor<2x4x64x1xbf16>",
+    "    %9 = stablehlo.broadcast_in_dim %8, dims = [0, 1, 2, 3] : (tensor<2x4x64x1xbf16>) -> tensor<2x4x64x64xbf16>",
+    "    %10 = stablehlo.subtract %4, %9 : tensor<2x4x64x64xbf16>",
+    "    %11 = stablehlo.exponential %10 : tensor<2x4x64x64xbf16>",
+    "    %12 = stablehlo.convert %11 : (tensor<2x4x64x64xbf16>) -> tensor<2x4x64x64xf32>",
+    "    %cst_2 = stablehlo.constant dense<0.000000e+00> : tensor<f32>",
+    "    %13 = stablehlo.reduce(%12 init: %cst_2) applies stablehlo.add across dimensions = [3] : (tensor<2x4x64x64xf32>, tensor<f32>) -> tensor<2x4x64xf32>",
+    "    %14 = stablehlo.broadcast_in_dim %13, dims = [0, 1, 2] : (tensor<2x4x64xf32>) -> tensor<2x4x64x1xf32>",
+    "    %15 = stablehlo.convert %14 : (tensor<2x4x64x1xf32>) -> tensor<2x4x64x1xbf16>",
+    "    %16 = stablehlo.broadcast_in_dim %15, dims = [0, 1, 2, 3] : (tensor<2x4x64x1xbf16>) -> tensor<2x4x64x64xbf16>",
+    "    %17 = stablehlo.divide %11, %16 : tensor<2x4x64x64xbf16>",
+    "    %18 = stablehlo.dot_general %17, %arg2, batching_dims = [0, 1] x [0, 1], contracting_dims = [3] x [2], precision = [DEFAULT, DEFAULT] : (tensor<2x4x64x64xbf16>, tensor<2x4x64x32xbf16>) -> tensor<2x4x64x32xbf16>",
+    "    return %18 : tensor<2x4x64x32xbf16>",
+    "  }",
+    "}"
+   ],
+   "eqns": [
+    {
+     "op": "dot_general",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        32
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        64
+       ]
+      }
+     ],
+     "dimension_numbers": [
+      [
+       [
+        3
+       ],
+       [
+        3
+       ]
+      ],
+      [
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        1
+       ]
+      ]
+     ]
+    },
+    {
+     "op": "sqrt",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": []
+      }
+     ]
+    },
+    {
+     "op": "div",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        64
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "reduce_max",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "max",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": []
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "stop_gradient",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "sub",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        64
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "exp",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        2,
+        4,
+        64,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "reduce_sum",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        2,
+        4,
+        64,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        2,
+        4,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        2,
+        4,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        2,
+        4,
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        2,
+        4,
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "div",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        64
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "dot_general",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        64
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        32
+       ]
+      }
+     ],
+     "dimension_numbers": [
+      [
+       [
+        3
+       ],
+       [
+        2
+       ]
+      ],
+      [
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        1
+       ]
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gqa",
+   "title": "grouped-query scores",
+   "note": "a reshape then an einsum with an unshared axis: GQA in two lines",
+   "source": [
+    "def gqa_scores(q, k):",
+    "    # grouped queries: 8 q heads share each of 2 kv heads",
+    "    qg = q.reshape(2, 4, *q.shape[1:])",
+    "    return jnp.einsum(\"ghqd,gkd->ghqk\", qg, k)"
+   ],
+   "jaxpr": [
+    "{ lambda ; a:bf16[8,64,32] b:bf16[2,64,32]. let",
+    "    c:bf16[2,4,64,32] = reshape[",
+    "      dimensions=None",
+    "      new_sizes=(2, 4, 64, 32)",
+    "      sharding=None",
+    "    ] a",
+    "    d:bf16[2,4,64,64] = dot_general[",
+    "      dimension_numbers=(([3], [2]), ([0], [0]))",
+    "      preferred_element_type=bfloat16",
+    "    ] c b",
+    "  in (d,) }"
+   ],
+   "stablehlo": [
+    "module @jit_gqa_scores attributes {mhlo.num_partitions = 1 : i32, mhlo.num_replicas = 1 : i32} {",
+    "  func.func public @main(%arg0: tensor<8x64x32xbf16>, %arg1: tensor<2x64x32xbf16>) -> (tensor<2x4x64x64xbf16> {jax.result_info = \"\"}) {",
+    "    %0 = stablehlo.reshape %arg0 : (tensor<8x64x32xbf16>) -> tensor<2x4x64x32xbf16>",
+    "    %1 = stablehlo.dot_general %0, %arg1, batching_dims = [0] x [0], contracting_dims = [3] x [2], precision = [DEFAULT, DEFAULT] : (tensor<2x4x64x32xbf16>, tensor<2x64x32xbf16>) -> tensor<2x4x64x64xbf16>",
+    "    return %1 : tensor<2x4x64x64xbf16>",
+    "  }",
+    "}"
+   ],
+   "eqns": [
+    {
+     "op": "reshape",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        8,
+        64,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "dot_general",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        32
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        64,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        2,
+        4,
+        64,
+        64
+       ]
+      }
+     ],
+     "dimension_numbers": [
+      [
+       [
+        3
+       ],
+       [
+        2
+       ]
+      ],
+      [
+       [
+        0
+       ],
+       [
+        0
+       ]
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rope",
+   "title": "rotary embedding",
+   "note": "split, multiply, concatenate: position becomes rotation",
+   "source": [
+    "def rope(x, cos, sin):",
+    "    x1, x2 = jnp.split(x, 2, axis=-1)",
+    "    return jnp.concatenate([x1 * cos - x2 * sin, x2 * cos + x1 * sin], axis=-1)"
+   ],
+   "jaxpr": [
+    "{ lambda ; a:bf16[64,128] b:bf16[64,64] c:bf16[64,64]. let",
+    "    d:bf16[64,64] e:bf16[64,64] = split[",
+    "      axis=1",
+    "      sizes=(np.int64(64), np.int64(64))",
+    "    ] a",
+    "    f:bf16[64,64] = mul d b",
+    "    g:bf16[64,64] = mul e c",
+    "    h:bf16[64,64] = sub f g",
+    "    i:bf16[64,64] = mul e b",
+    "    j:bf16[64,64] = mul d c",
+    "    k:bf16[64,64] = add i j",
+    "    l:bf16[64,128] = concatenate[dimension=1] h k",
+    "  in (l,) }"
+   ],
+   "stablehlo": [
+    "module @jit_rope attributes {mhlo.num_partitions = 1 : i32, mhlo.num_replicas = 1 : i32} {",
+    "  func.func public @main(%arg0: tensor<64x128xbf16>, %arg1: tensor<64x64xbf16>, %arg2: tensor<64x64xbf16>) -> (tensor<64x128xbf16> {jax.result_info = \"\"}) {",
+    "    %0 = stablehlo.slice %arg0 [0:64, 0:64] : (tensor<64x128xbf16>) -> tensor<64x64xbf16>",
+    "    %1 = stablehlo.slice %arg0 [0:64, 64:128] : (tensor<64x128xbf16>) -> tensor<64x64xbf16>",
+    "    %2 = stablehlo.multiply %0, %arg1 : tensor<64x64xbf16>",
+    "    %3 = stablehlo.multiply %1, %arg2 : tensor<64x64xbf16>",
+    "    %4 = stablehlo.subtract %2, %3 : tensor<64x64xbf16>",
+    "    %5 = stablehlo.multiply %1, %arg1 : tensor<64x64xbf16>",
+    "    %6 = stablehlo.multiply %0, %arg2 : tensor<64x64xbf16>",
+    "    %7 = stablehlo.add %5, %6 : tensor<64x64xbf16>",
+    "    %8 = stablehlo.concatenate %4, %7, dim = 1 : (tensor<64x64xbf16>, tensor<64x64xbf16>) -> tensor<64x128xbf16>",
+    "    return %8 : tensor<64x128xbf16>",
+    "  }",
+    "}"
+   ],
+   "eqns": [
+    {
+     "op": "split",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "mul",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "mul",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "sub",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "mul",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "mul",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "concatenate",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "scan",
+   "title": "associative cumulative sum",
+   "note": "associative_scan unrolls into a log-depth tree: count the adds",
+   "source": [
+    "def cumsum_scan(x):",
+    "    return jax.lax.associative_scan(jnp.add, x, axis=-1)"
+   ],
+   "jaxpr": [
+    "{ lambda ; a:f32[8,128]. let",
+    "    b:f32[8,64] = slice[",
+    "      limit_indices=(8, 127)",
+    "      start_indices=(0, 0)",
+    "      strides=(1, 2)",
+    "    ] a",
+    "    c:f32[8,64] = slice[",
+    "      limit_indices=(8, 128)",
+    "      start_indices=(0, 1)",
+    "      strides=(1, 2)",
+    "    ] a",
+    "    d:f32[8,64] = add b c",
+    "    e:f32[8,32] = slice[",
+    "      limit_indices=(8, 63)",
+    "      start_indices=(0, 0)",
+    "      strides=(1, 2)",
+    "    ] d",
+    "    f:f32[8,32] = slice[",
+    "      limit_indices=(8, 64)",
+    "      start_indices=(0, 1)",
+    "      strides=(1, 2)",
+    "    ] d",
+    "    g:f32[8,32] = add e f",
+    "    h:f32[8,16] = slice[",
+    "      limit_indices=(8, 31)",
+    "      start_indices=(0, 0)",
+    "      strides=(1, 2)",
+    "    ] g",
+    "    i:f32[8,16] = slice[",
+    "      limit_indices=(8, 32)",
+    "      start_indices=(0, 1)",
+    "      strides=(1, 2)",
+    "    ] g",
+    "    j:f32[8,16] = add h i",
+    "    k:f32[8,8] = slice[",
+    "      limit_indices=(8, 15)",
+    "      start_indices=(0, 0)",
+    "      strides=(1, 2)",
+    "    ] j",
+    "    l:f32[8,8] = slice[",
+    "      limit_indices=(8, 16)",
+    "      start_indices=(0, 1)",
+    "      strides=(1, 2)",
+    "    ] j",
+    "    m:f32[8,8] = add k l",
+    "    n:f32[8,4] = slice[limit_indices=(8, 7) start_indices=(0, 0) strides=(1, 2)] m",
+    "    o:f32[8,4] = slice[limit_indices=(8, 8) start_indices=(0, 1) strides=(1, 2)] m",
+    "    p:f32[8,4] = add n o",
+    "    q:f32[8,2] = slice[limit_indices=(8, 3) start_indices=(0, 0) strides=(1, 2)] p",
+    "    r:f32[8,2] = slice[limit_indices=(8, 4) start_indices=(0, 1) strides=(1, 2)] p",
+    "    s:f32[8,2] = add q r",
+    "    t:f32[8,1] = slice[limit_indices=(8, 1) start_indices=(0, 0) strides=(1, 2)] s",
+    "    u:f32[8,1] = slice[limit_indices=(8, 2) start_indices=(0, 1) strides=(1, 2)] s",
+    "    v:f32[8,1] = add t u",
+    "    w:f32[8,0] = slice[limit_indices=(8, 0) start_indices=(0, 0) strides=(1, 1)] v",
+    "    x:f32[8,0] = slice[limit_indices=(8, 2) start_indices=(0, 2) strides=(1, 2)] s",
+    "    y:f32[8,0] = add w x",
+    "    z:f32[8,1] = slice[limit_indices=(8, 1) start_indices=(0, 0) strides=(1, 1)] s",
+    "    ba:f32[8,1] = concatenate[dimension=1] z y",
+    "    bb:f32[8,2] = pad[padding_config=((0, 0, 0), (0, 1, 1))] ba 0.0",
+    "    bc:f32[8,2] = pad[padding_config=((0, 0, 0), (1, 0, 1))] v 0.0",
+    "    bd:f32[8,2] = add bb bc",
+    "    be:f32[8,1] = slice[",
+    "      limit_indices=(8, 1)",
+    "      start_indices=(0, 0)",
+    "      strides=(1, 1)",
+    "    ] bd",
+    "    bf:f32[8,1] = slice[",
+    "      limit_indices=(8, 4)",
+    "      start_indices=(0, 2)",
+    "      strides=(1, 2)",
+    "    ] p",
+    "    bg:f32[8,1] = add be bf",
+    "    bh:f32[8,1] = slice[",
+    "      limit_indices=(8, 1)",
+    "      start_indices=(0, 0)",
+    "      strides=(1, 1)",
+    "    ] p",
+    "    bi:f32[8,2] = concatenate[dimension=1] bh bg",
+    "    bj:f32[8,4] = pad[padding_config=((0, 0, 0), (0, 1, 1))] bi 0.0",
+    "    bk:f32[8,4] = pad[padding_config=((0, 0, 0), (1, 0, 1))] bd 0.0",
+    "    bl:f32[8,4] = add bj bk",
+    "    bm:f32[8,3] = slice[",
+    "      limit_indices=(8, 3)",
+    "      start_indices=(0, 0)",
+    "      strides=(1, 1)",
+    "    ] bl",
+    "    bn:f32[8,3] = slice[",
+    "      limit_indices=(8, 8)",
+    "      start_indices=(0, 2)",
+    "      strides=(1, 2)",
+    "    ] m",
+    "    bo:f32[8,3] = add bm bn",
+    "    bp:f32[8,1] = slice[",
+    "      limit_indices=(8, 1)",
+    "      start_indices=(0, 0)",
+    "      strides=(1, 1)",
+    "    ] m",
+    "    bq:f32[8,4] = concatenate[dimension=1] bp bo",
+    "    br:f32[8,8] = pad[padding_config=((0, 0, 0), (0, 1, 1))] bq 0.0",
+    "    bs:f32[8,8] = pad[padding_config=((0, 0, 0), (1, 0, 1))] bl 0.0",
+    "    bt:f32[8,8] = add br bs",
+    "    bu:f32[8,7] = slice[",
+    "      limit_indices=(8, 7)",
+    "      start_indices=(0, 0)",
+    "      strides=(1, 1)",
+    "    ] bt",
+    "    bv:f32[8,7] = slice[",
+    "      limit_indices=(8, 16)",
+    "      start_indices=(0, 2)",
+    "      strides=(1, 2)",
+    "    ] j",
+    "    bw:f32[8,7] = add bu bv",
+    "    bx:f32[8,1] = slice[",
+    "      limit_indices=(8, 1)",
+    "      start_indices=(0, 0)",
+    "      strides=(1, 1)",
+    "    ] j",
+    "    by:f32[8,8] = concatenate[dimension=1] bx bw",
+    "    bz:f32[8,16] = pad[padding_config=((0, 0, 0), (0, 1, 1))] by 0.0",
+    "    ca:f32[8,16] = pad[padding_config=((0, 0, 0), (1, 0, 1))] bt 0.0",
+    "    cb:f32[8,16] = add bz ca",
+    "    cc:f32[8,15] = slice[",
+    "      limit_indices=(8, 15)",
+    "      start_indices=(0, 0)",
+    "      strides=(1, 1)",
+    "    ] cb",
+    "    cd:f32[8,15] = slice[",
+    "      limit_indices=(8, 32)",
+    "      start_indices=(0, 2)",
+    "      strides=(1, 2)",
+    "    ] g",
+    "    ce:f32[8,15] = add cc cd",
+    "    cf:f32[8,1] = slice[",
+    "      limit_indices=(8, 1)",
+    "      start_indices=(0, 0)",
+    "      strides=(1, 1)",
+    "    ] g",
+    "    cg:f32[8,16] = concatenate[dimension=1] cf ce",
+    "    ch:f32[8,32] = pad[padding_config=((0, 0, 0), (0, 1, 1))] cg 0.0",
+    "    ci:f32[8,32] = pad[padding_config=((0, 0, 0), (1, 0, 1))] cb 0.0",
+    "    cj:f32[8,32] = add ch ci",
+    "    ck:f32[8,31] = slice[",
+    "      limit_indices=(8, 31)",
+    "      start_indices=(0, 0)",
+    "      strides=(1, 1)",
+    "    ] cj",
+    "    cl:f32[8,31] = slice[",
+    "      limit_indices=(8, 64)",
+    "      start_indices=(0, 2)",
+    "      strides=(1, 2)",
+    "    ] d",
+    "    cm:f32[8,31] = add ck cl",
+    "    cn:f32[8,1] = slice[",
+    "      limit_indices=(8, 1)",
+    "      start_indices=(0, 0)",
+    "      strides=(1, 1)",
+    "    ] d",
+    "    co:f32[8,32] = concatenate[dimension=1] cn cm",
+    "    cp:f32[8,64] = pad[padding_config=((0, 0, 0), (0, 1, 1))] co 0.0",
+    "    cq:f32[8,64] = pad[padding_config=((0, 0, 0), (1, 0, 1))] cj 0.0",
+    "    cr:f32[8,64] = add cp cq",
+    "    cs:f32[8,63] = slice[",
+    "      limit_indices=(8, 63)",
+    "      start_indices=(0, 0)",
+    "      strides=(1, 1)",
+    "    ] cr",
+    "    ct:f32[8,63] = slice[",
+    "      limit_indices=(8, 128)",
+    "      start_indices=(0, 2)",
+    "      strides=(1, 2)",
+    "    ] a",
+    "    cu:f32[8,63] = add cs ct",
+    "    cv:f32[8,1] = slice[",
+    "      limit_indices=(8, 1)",
+    "      start_indices=(0, 0)",
+    "      strides=(1, 1)",
+    "    ] a",
+    "    cw:f32[8,64] = concatenate[dimension=1] cv cu",
+    "    cx:f32[8,128] = pad[padding_config=((0, 0, 0), (0, 1, 1))] cw 0.0",
+    "    cy:f32[8,128] = pad[padding_config=((0, 0, 0), (1, 0, 1))] cr 0.0",
+    "    cz:f32[8,128] = add cx cy",
+    "  in (cz,) }"
+   ],
+   "stablehlo": [
+    "module @jit_cumsum_scan attributes {mhlo.num_partitions = 1 : i32, mhlo.num_replicas = 1 : i32} {",
+    "  func.func public @main(%arg0: tensor<8x128xf32>) -> (tensor<8x128xf32> {jax.result_info = \"\"}) {",
+    "    %0 = stablehlo.slice %arg0 [0:8, 0:127:2] : (tensor<8x128xf32>) -> tensor<8x64xf32>",
+    "    %1 = stablehlo.slice %arg0 [0:8, 1:128:2] : (tensor<8x128xf32>) -> tensor<8x64xf32>",
+    "    %2 = stablehlo.add %0, %1 : tensor<8x64xf32>",
+    "    %3 = stablehlo.slice %2 [0:8, 0:63:2] : (tensor<8x64xf32>) -> tensor<8x32xf32>",
+    "    %4 = stablehlo.slice %2 [0:8, 1:64:2] : (tensor<8x64xf32>) -> tensor<8x32xf32>",
+    "    %5 = stablehlo.add %3, %4 : tensor<8x32xf32>",
+    "    %6 = stablehlo.slice %5 [0:8, 0:31:2] : (tensor<8x32xf32>) -> tensor<8x16xf32>",
+    "    %7 = stablehlo.slice %5 [0:8, 1:32:2] : (tensor<8x32xf32>) -> tensor<8x16xf32>",
+    "    %8 = stablehlo.add %6, %7 : tensor<8x16xf32>",
+    "    %9 = stablehlo.slice %8 [0:8, 0:15:2] : (tensor<8x16xf32>) -> tensor<8x8xf32>",
+    "    %10 = stablehlo.slice %8 [0:8, 1:16:2] : (tensor<8x16xf32>) -> tensor<8x8xf32>",
+    "    %11 = stablehlo.add %9, %10 : tensor<8x8xf32>",
+    "    %12 = stablehlo.slice %11 [0:8, 0:7:2] : (tensor<8x8xf32>) -> tensor<8x4xf32>",
+    "    %13 = stablehlo.slice %11 [0:8, 1:8:2] : (tensor<8x8xf32>) -> tensor<8x4xf32>",
+    "    %14 = stablehlo.add %12, %13 : tensor<8x4xf32>",
+    "    %15 = stablehlo.slice %14 [0:8, 0:3:2] : (tensor<8x4xf32>) -> tensor<8x2xf32>",
+    "    %16 = stablehlo.slice %14 [0:8, 1:4:2] : (tensor<8x4xf32>) -> tensor<8x2xf32>",
+    "    %17 = stablehlo.add %15, %16 : tensor<8x2xf32>",
+    "    %18 = stablehlo.slice %17 [0:8, 0:1:2] : (tensor<8x2xf32>) -> tensor<8x1xf32>",
+    "    %19 = stablehlo.slice %17 [0:8, 1:2:2] : (tensor<8x2xf32>) -> tensor<8x1xf32>",
+    "    %20 = stablehlo.add %18, %19 : tensor<8x1xf32>",
+    "    %21 = stablehlo.slice %20 [0:8, 0:0] : (tensor<8x1xf32>) -> tensor<8x0xf32>",
+    "    %22 = stablehlo.slice %17 [0:8, 2:2:2] : (tensor<8x2xf32>) -> tensor<8x0xf32>",
+    "    %23 = stablehlo.add %21, %22 : tensor<8x0xf32>",
+    "    %24 = stablehlo.slice %17 [0:8, 0:1] : (tensor<8x2xf32>) -> tensor<8x1xf32>",
+    "    %25 = stablehlo.concatenate %24, %23, dim = 1 : (tensor<8x1xf32>, tensor<8x0xf32>) -> tensor<8x1xf32>",
+    "    %cst = stablehlo.constant dense<0.000000e+00> : tensor<f32>",
+    "    %26 = stablehlo.pad %25, %cst, low = [0, 0], high = [0, 1], interior = [0, 1] : (tensor<8x1xf32>, tensor<f32>) -> tensor<8x2xf32>",
+    "    %27 = stablehlo.pad %20, %cst, low = [0, 1], high = [0, 0], interior = [0, 1] : (tensor<8x1xf32>, tensor<f32>) -> tensor<8x2xf32>",
+    "    %28 = stablehlo.add %26, %27 : tensor<8x2xf32>",
+    "    %29 = stablehlo.slice %28 [0:8, 0:1] : (tensor<8x2xf32>) -> tensor<8x1xf32>",
+    "    %30 = stablehlo.slice %14 [0:8, 2:4:2] : (tensor<8x4xf32>) -> tensor<8x1xf32>",
+    "    %31 = stablehlo.add %29, %30 : tensor<8x1xf32>",
+    "    %32 = stablehlo.slice %14 [0:8, 0:1] : (tensor<8x4xf32>) -> tensor<8x1xf32>",
+    "    %33 = stablehlo.concatenate %32, %31, dim = 1 : (tensor<8x1xf32>, tensor<8x1xf32>) -> tensor<8x2xf32>",
+    "    %34 = stablehlo.pad %33, %cst, low = [0, 0], high = [0, 1], interior = [0, 1] : (tensor<8x2xf32>, tensor<f32>) -> tensor<8x4xf32>",
+    "    %35 = stablehlo.pad %28, %cst, low = [0, 1], high = [0, 0], interior = [0, 1] : (tensor<8x2xf32>, tensor<f32>) -> tensor<8x4xf32>",
+    "    %36 = stablehlo.add %34, %35 : tensor<8x4xf32>",
+    "    %37 = stablehlo.slice %36 [0:8, 0:3] : (tensor<8x4xf32>) -> tensor<8x3xf32>",
+    "    %38 = stablehlo.slice %11 [0:8, 2:8:2] : (tensor<8x8xf32>) -> tensor<8x3xf32>",
+    "    %39 = stablehlo.add %37, %38 : tensor<8x3xf32>",
+    "    %40 = stablehlo.slice %11 [0:8, 0:1] : (tensor<8x8xf32>) -> tensor<8x1xf32>",
+    "    %41 = stablehlo.concatenate %40, %39, dim = 1 : (tensor<8x1xf32>, tensor<8x3xf32>) -> tensor<8x4xf32>",
+    "    %42 = stablehlo.pad %41, %cst, low = [0, 0], high = [0, 1], interior = [0, 1] : (tensor<8x4xf32>, tensor<f32>) -> tensor<8x8xf32>",
+    "    %43 = stablehlo.pad %36, %cst, low = [0, 1], high = [0, 0], interior = [0, 1] : (tensor<8x4xf32>, tensor<f32>) -> tensor<8x8xf32>",
+    "    %44 = stablehlo.add %42, %43 : tensor<8x8xf32>",
+    "    %45 = stablehlo.slice %44 [0:8, 0:7] : (tensor<8x8xf32>) -> tensor<8x7xf32>",
+    "    %46 = stablehlo.slice %8 [0:8, 2:16:2] : (tensor<8x16xf32>) -> tensor<8x7xf32>",
+    "    %47 = stablehlo.add %45, %46 : tensor<8x7xf32>",
+    "    %48 = stablehlo.slice %8 [0:8, 0:1] : (tensor<8x16xf32>) -> tensor<8x1xf32>",
+    "    %49 = stablehlo.concatenate %48, %47, dim = 1 : (tensor<8x1xf32>, tensor<8x7xf32>) -> tensor<8x8xf32>",
+    "    %50 = stablehlo.pad %49, %cst, low = [0, 0], high = [0, 1], interior = [0, 1] : (tensor<8x8xf32>, tensor<f32>) -> tensor<8x16xf32>",
+    "    %51 = stablehlo.pad %44, %cst, low = [0, 1], high = [0, 0], interior = [0, 1] : (tensor<8x8xf32>, tensor<f32>) -> tensor<8x16xf32>",
+    "    %52 = stablehlo.add %50, %51 : tensor<8x16xf32>",
+    "    %53 = stablehlo.slice %52 [0:8, 0:15] : (tensor<8x16xf32>) -> tensor<8x15xf32>",
+    "    %54 = stablehlo.slice %5 [0:8, 2:32:2] : (tensor<8x32xf32>) -> tensor<8x15xf32>",
+    "    %55 = stablehlo.add %53, %54 : tensor<8x15xf32>",
+    "    %56 = stablehlo.slice %5 [0:8, 0:1] : (tensor<8x32xf32>) -> tensor<8x1xf32>",
+    "    %57 = stablehlo.concatenate %56, %55, dim = 1 : (tensor<8x1xf32>, tensor<8x15xf32>) -> tensor<8x16xf32>",
+    "    %58 = stablehlo.pad %57, %cst, low = [0, 0], high = [0, 1], interior = [0, 1] : (tensor<8x16xf32>, tensor<f32>) -> tensor<8x32xf32>",
+    "    %59 = stablehlo.pad %52, %cst, low = [0, 1], high = [0, 0], interior = [0, 1] : (tensor<8x16xf32>, tensor<f32>) -> tensor<8x32xf32>",
+    "    %60 = stablehlo.add %58, %59 : tensor<8x32xf32>",
+    "    %61 = stablehlo.slice %60 [0:8, 0:31] : (tensor<8x32xf32>) -> tensor<8x31xf32>",
+    "    %62 = stablehlo.slice %2 [0:8, 2:64:2] : (tensor<8x64xf32>) -> tensor<8x31xf32>",
+    "    %63 = stablehlo.add %61, %62 : tensor<8x31xf32>",
+    "    %64 = stablehlo.slice %2 [0:8, 0:1] : (tensor<8x64xf32>) -> tensor<8x1xf32>",
+    "    %65 = stablehlo.concatenate %64, %63, dim = 1 : (tensor<8x1xf32>, tensor<8x31xf32>) -> tensor<8x32xf32>",
+    "    %66 = stablehlo.pad %65, %cst, low = [0, 0], high = [0, 1], interior = [0, 1] : (tensor<8x32xf32>, tensor<f32>) -> tensor<8x64xf32>",
+    "    %67 = stablehlo.pad %60, %cst, low = [0, 1], high = [0, 0], interior = [0, 1] : (tensor<8x32xf32>, tensor<f32>) -> tensor<8x64xf32>",
+    "    %68 = stablehlo.add %66, %67 : tensor<8x64xf32>",
+    "    %69 = stablehlo.slice %68 [0:8, 0:63] : (tensor<8x64xf32>) -> tensor<8x63xf32>",
+    "    %70 = stablehlo.slice %arg0 [0:8, 2:128:2] : (tensor<8x128xf32>) -> tensor<8x63xf32>",
+    "    %71 = stablehlo.add %69, %70 : tensor<8x63xf32>",
+    "    %72 = stablehlo.slice %arg0 [0:8, 0:1] : (tensor<8x128xf32>) -> tensor<8x1xf32>",
+    "    %73 = stablehlo.concatenate %72, %71, dim = 1 : (tensor<8x1xf32>, tensor<8x63xf32>) -> tensor<8x64xf32>",
+    "    %74 = stablehlo.pad %73, %cst, low = [0, 0], high = [0, 1], interior = [0, 1] : (tensor<8x64xf32>, tensor<f32>) -> tensor<8x128xf32>",
+    "    %75 = stablehlo.pad %68, %cst, low = [0, 1], high = [0, 0], interior = [0, 1] : (tensor<8x64xf32>, tensor<f32>) -> tensor<8x128xf32>",
+    "    %76 = stablehlo.add %74, %75 : tensor<8x128xf32>",
+    "    return %76 : tensor<8x128xf32>",
+    "  }",
+    "}"
+   ],
+   "eqns": [
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        64
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        32
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        16
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        16
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        16
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        16
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        16
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        16
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        8
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        16
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        8
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        8
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        8
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        8
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        8
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        4
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        8
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        4
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        4
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        4
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        4
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        4
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        2
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        4
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        2
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        2
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        2
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        2
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        2
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        2
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        0
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        2
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        0
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        0
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        0
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        0
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        2
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "concatenate",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        0
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "pad",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        2
+       ]
+      }
+     ]
+    },
+    {
+     "op": "pad",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        2
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        2
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        2
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        2
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        2
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        4
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        4
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "concatenate",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        2
+       ]
+      }
+     ]
+    },
+    {
+     "op": "pad",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        2
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        4
+       ]
+      }
+     ]
+    },
+    {
+     "op": "pad",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        2
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        4
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        4
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        4
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        4
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        4
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        3
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        8
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        3
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        3
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        3
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        3
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        8
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "concatenate",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        3
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        4
+       ]
+      }
+     ]
+    },
+    {
+     "op": "pad",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        4
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        8
+       ]
+      }
+     ]
+    },
+    {
+     "op": "pad",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        4
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        8
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        8
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        8
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        8
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        8
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        7
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        16
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        7
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        7
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        7
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        7
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        16
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "concatenate",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        7
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        8
+       ]
+      }
+     ]
+    },
+    {
+     "op": "pad",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        8
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        16
+       ]
+      }
+     ]
+    },
+    {
+     "op": "pad",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        8
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        16
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        16
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        16
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        16
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        16
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        15
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        15
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        15
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        15
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        15
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "concatenate",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        15
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        16
+       ]
+      }
+     ]
+    },
+    {
+     "op": "pad",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        16
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "pad",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        16
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        32
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        31
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        31
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        31
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        31
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        31
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "concatenate",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        31
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "pad",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        32
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "pad",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        32
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        64
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        63
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        63
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        63
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        63
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        63
+       ]
+      }
+     ]
+    },
+    {
+     "op": "slice",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "concatenate",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        1
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        63
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "pad",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        64
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "pad",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        64
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        128
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        128
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        8,
+        128
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "remat",
+   "title": "checkpointed MLP",
+   "note": "jax.checkpoint leaves a remat marker: find what will be recomputed",
+   "source": [
+    "def remat_mlp(x, w1, w2):",
+    "    f = jax.checkpoint(lambda y: jax.nn.gelu(y @ w1))",
+    "    return f(x) @ w2"
+   ],
+   "jaxpr": [
+    "{ lambda ; a:bf16[64,128] b:bf16[128,512] c:bf16[512,128]. let",
+    "    d:bf16[64,512] = remat2[",
+    "      differentiated=False",
+    "      jaxpr={ lambda ; e:bf16[128,512] f:bf16[64,128]. let",
+    "          g:bf16[64,512] = dot_general[",
+    "            dimension_numbers=(([1], [0]), ([], []))",
+    "            preferred_element_type=bfloat16",
+    "          ] f e",
+    "          h:bf16[64,512] = integer_pow[y=3] g",
+    "          i:bf16[64,512] = mul 0.0446777 h",
+    "          j:bf16[64,512] = add g i",
+    "          k:bf16[64,512] = mul 0.796875 j",
+    "          l:bf16[64,512] = tanh k",
+    "          m:bf16[64,512] = add 1 l",
+    "          n:bf16[64,512] = mul 0.5 m",
+    "          o:bf16[64,512] = mul g n",
+    "        in (o,) }",
+    "      policy=None",
+    "      prevent_cse=True",
+    "    ] b a",
+    "    p:bf16[64,128] = dot_general[",
+    "      dimension_numbers=(([1], [0]), ([], []))",
+    "      preferred_element_type=bfloat16",
+    "    ] d c",
+    "  in (p,) }"
+   ],
+   "stablehlo": [
+    "module @jit_remat_mlp attributes {mhlo.num_partitions = 1 : i32, mhlo.num_replicas = 1 : i32} {",
+    "  func.func public @main(%arg0: tensor<64x128xbf16>, %arg1: tensor<128x512xbf16>, %arg2: tensor<512x128xbf16>) -> (tensor<64x128xbf16> {jax.result_info = \"\"}) {",
+    "    %0 = stablehlo.dot_general %arg0, %arg1, contracting_dims = [1] x [0], precision = [DEFAULT, DEFAULT] : (tensor<64x128xbf16>, tensor<128x512xbf16>) -> tensor<64x512xbf16>",
+    "    %1 = stablehlo.multiply %0, %0 : tensor<64x512xbf16>",
+    "    %2 = stablehlo.multiply %1, %0 : tensor<64x512xbf16>",
+    "    %cst = stablehlo.constant dense<4.467770e-02> : tensor<bf16>",
+    "    %3 = stablehlo.broadcast_in_dim %cst, dims = [] : (tensor<bf16>) -> tensor<64x512xbf16>",
+    "    %4 = stablehlo.multiply %3, %2 : tensor<64x512xbf16>",
+    "    %5 = stablehlo.add %0, %4 : tensor<64x512xbf16>",
+    "    %cst_0 = stablehlo.constant dense<7.968750e-01> : tensor<bf16>",
+    "    %6 = stablehlo.broadcast_in_dim %cst_0, dims = [] : (tensor<bf16>) -> tensor<64x512xbf16>",
+    "    %7 = stablehlo.multiply %6, %5 : tensor<64x512xbf16>",
+    "    %8 = stablehlo.tanh %7 : tensor<64x512xbf16>",
+    "    %cst_1 = stablehlo.constant dense<1.000000e+00> : tensor<bf16>",
+    "    %9 = stablehlo.broadcast_in_dim %cst_1, dims = [] : (tensor<bf16>) -> tensor<64x512xbf16>",
+    "    %10 = stablehlo.add %9, %8 : tensor<64x512xbf16>",
+    "    %cst_2 = stablehlo.constant dense<5.000000e-01> : tensor<bf16>",
+    "    %11 = stablehlo.broadcast_in_dim %cst_2, dims = [] : (tensor<bf16>) -> tensor<64x512xbf16>",
+    "    %12 = stablehlo.multiply %11, %10 : tensor<64x512xbf16>",
+    "    %13 = stablehlo.multiply %0, %12 : tensor<64x512xbf16>",
+    "    %14 = stablehlo.dot_general %13, %arg2, contracting_dims = [1] x [0], precision = [DEFAULT, DEFAULT] : (tensor<64x512xbf16>, tensor<512x128xbf16>) -> tensor<64x128xbf16>",
+    "    return %14 : tensor<64x128xbf16>",
+    "  }",
+    "}"
+   ],
+   "eqns": [
+    {
+     "op": "remat2",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        512
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      }
+     ]
+    },
+    {
+     "op": "dot_general",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        512
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        512,
+        128
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      }
+     ],
+     "dimension_numbers": [
+      [
+       [
+        1
+       ],
+       [
+        0
+       ]
+      ],
+      [
+       [],
+       []
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "moe",
+   "title": "dense MoE dispatch",
+   "note": "argmax routing, one-hot dispatch, three einsums: the ragged problem, densely",
+   "source": [
+    "def moe_dispatch(tokens, routing, expert_w):",
+    "    # tokens routed to 4 experts by argmax, computed densely with masking",
+    "    onehot = jax.nn.one_hot(jnp.argmax(routing, axis=-1), 4, dtype=tokens.dtype)",
+    "    per_expert = jnp.einsum(\"te,td->etd\", onehot, tokens)",
+    "    out = jnp.einsum(\"etd,edf->etf\", per_expert, expert_w)",
+    "    return jnp.einsum(\"te,etf->tf\", onehot, out)"
+   ],
+   "jaxpr": [
+    "{ lambda ; a:bf16[64,32] b:f32[64,4] c:bf16[4,32,32]. let",
+    "    d:i32[64] = argmax[axes=(1,) index_dtype=int32] b",
+    "    e:bf16[64,4] = pjit[",
+    "      name=_one_hot",
+    "      jaxpr={ lambda ; f:i32[64]. let",
+    "          g:i32[64,1] = broadcast_in_dim[",
+    "            broadcast_dimensions=(0,)",
+    "            shape=(64, 1)",
+    "            sharding=None",
+    "          ] f",
+    "          h:i32[1,4] = iota[dimension=1 dtype=int32 shape=(1, 4) sharding=None] ",
+    "          i:bool[64,4] = eq g h",
+    "          j:bf16[64,4] = convert_element_type[",
+    "            new_dtype=bfloat16",
+    "            weak_type=False",
+    "          ] i",
+    "        in (j,) }",
+    "    ] d",
+    "    k:bf16[64,32,4] = dot_general[",
+    "      dimension_numbers=(([], []), ([0], [0]))",
+    "      preferred_element_type=bfloat16",
+    "    ] a e",
+    "    l:bf16[4,64,32] = transpose[permutation=(2, 0, 1)] k",
+    "    m:bf16[4,64,32] = dot_general[",
+    "      dimension_numbers=(([2], [1]), ([0], [0]))",
+    "      preferred_element_type=bfloat16",
+    "    ] l c",
+    "    n:bf16[64,32] = dot_general[",
+    "      dimension_numbers=(([1], [0]), ([0], [1]))",
+    "      preferred_element_type=bfloat16",
+    "    ] e m",
+    "  in (n,) }"
+   ],
+   "stablehlo": [
+    "module @jit_moe_dispatch attributes {mhlo.num_partitions = 1 : i32, mhlo.num_replicas = 1 : i32} {",
+    "  func.func public @main(%arg0: tensor<64x32xbf16>, %arg1: tensor<64x4xf32>, %arg2: tensor<4x32x32xbf16>) -> (tensor<64x32xbf16> {jax.result_info = \"\"}) {",
+    "    %0 = call @argmax(%arg1) : (tensor<64x4xf32>) -> tensor<64xi32>",
+    "    %1 = call @_one_hot(%0) : (tensor<64xi32>) -> tensor<64x4xbf16>",
+    "    %2 = stablehlo.dot_general %arg0, %1, batching_dims = [0] x [0], contracting_dims = [] x [], precision = [DEFAULT, DEFAULT] : (tensor<64x32xbf16>, tensor<64x4xbf16>) -> tensor<64x32x4xbf16>",
+    "    %3 = stablehlo.transpose %2, dims = [2, 0, 1] : (tensor<64x32x4xbf16>) -> tensor<4x64x32xbf16>",
+    "    %4 = stablehlo.dot_general %3, %arg2, batching_dims = [0] x [0], contracting_dims = [2] x [1], precision = [DEFAULT, DEFAULT] : (tensor<4x64x32xbf16>, tensor<4x32x32xbf16>) -> tensor<4x64x32xbf16>",
+    "    %5 = stablehlo.dot_general %1, %4, batching_dims = [0] x [1], contracting_dims = [1] x [0], precision = [DEFAULT, DEFAULT] : (tensor<64x4xbf16>, tensor<4x64x32xbf16>) -> tensor<64x32xbf16>",
+    "    return %5 : tensor<64x32xbf16>",
+    "  }",
+    "  func.func private @argmax(%arg0: tensor<64x4xf32>) -> tensor<64xi32> {",
+    "    %0 = stablehlo.iota dim = 1 : tensor<64x4xi32>",
+    "    %cst = stablehlo.constant dense<0xFF800000> : tensor<f32>",
+    "    %c = stablehlo.constant dense<0> : tensor<i32>",
+    "    %1:2 = stablehlo.reduce(%arg0 init: %cst), (%0 init: %c) across dimensions = [1] : (tensor<64x4xf32>, tensor<64x4xi32>, tensor<f32>, tensor<i32>) -> (tensor<64xf32>, tensor<64xi32>)",
+    "     reducer(%arg1: tensor<f32>, %arg3: tensor<f32>) (%arg2: tensor<i32>, %arg4: tensor<i32>)  {",
+    "      %2 = stablehlo.compare  GT, %arg1, %arg3,  FLOAT : (tensor<f32>, tensor<f32>) -> tensor<i1>",
+    "      %3 = stablehlo.compare  NE, %arg1, %arg1,  FLOAT : (tensor<f32>, tensor<f32>) -> tensor<i1>",
+    "      %4 = stablehlo.or %2, %3 : tensor<i1>",
+    "      %5 = stablehlo.compare  EQ, %arg1, %arg3,  FLOAT : (tensor<f32>, tensor<f32>) -> tensor<i1>",
+    "      %6 = stablehlo.compare  LT, %arg2, %arg4,  SIGNED : (tensor<i32>, tensor<i32>) -> tensor<i1>",
+    "      %7 = stablehlo.and %5, %6 : tensor<i1>",
+    "      %8 = stablehlo.or %4, %7 : tensor<i1>",
+    "      %9 = stablehlo.select %4, %arg1, %arg3 : tensor<i1>, tensor<f32>",
+    "      %10 = stablehlo.select %8, %arg2, %arg4 : tensor<i1>, tensor<i32>",
+    "      stablehlo.return %9, %10 : tensor<f32>, tensor<i32>",
+    "    }",
+    "    return %1#1 : tensor<64xi32>",
+    "  }",
+    "  func.func private @_one_hot(%arg0: tensor<64xi32>) -> tensor<64x4xbf16> {",
+    "    %0 = stablehlo.broadcast_in_dim %arg0, dims = [0] : (tensor<64xi32>) -> tensor<64x1xi32>",
+    "    %1 = stablehlo.iota dim = 1 : tensor<1x4xi32>",
+    "    %2 = stablehlo.broadcast_in_dim %0, dims = [0, 1] : (tensor<64x1xi32>) -> tensor<64x4xi32>",
+    "    %3 = stablehlo.broadcast_in_dim %1, dims = [0, 1] : (tensor<1x4xi32>) -> tensor<64x4xi32>",
+    "    %4 = stablehlo.compare  EQ, %2, %3,  SIGNED : (tensor<64x4xi32>, tensor<64x4xi32>) -> tensor<64x4xi1>",
+    "    %5 = stablehlo.convert %4 : (tensor<64x4xi1>) -> tensor<64x4xbf16>",
+    "    return %5 : tensor<64x4xbf16>",
+    "  }",
+    "}"
+   ],
+   "eqns": [
+    {
+     "op": "argmax",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        4
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "int32",
+       "shape": [
+        64
+       ]
+      }
+     ]
+    },
+    {
+     "op": "pjit",
+     "inputs": [
+      {
+       "dtype": "int32",
+       "shape": [
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        4
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "int32",
+       "shape": [
+        64
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "int32",
+       "shape": [
+        64,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "iota",
+     "inputs": [],
+     "outputs": [
+      {
+       "dtype": "int32",
+       "shape": [
+        1,
+        4
+       ]
+      }
+     ]
+    },
+    {
+     "op": "eq",
+     "inputs": [
+      {
+       "dtype": "int32",
+       "shape": [
+        64,
+        1
+       ]
+      },
+      {
+       "dtype": "int32",
+       "shape": [
+        1,
+        4
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bool",
+       "shape": [
+        64,
+        4
+       ]
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "bool",
+       "shape": [
+        64,
+        4
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        4
+       ]
+      }
+     ]
+    },
+    {
+     "op": "dot_general",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        32
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        4
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        32,
+        4
+       ]
+      }
+     ],
+     "dimension_numbers": [
+      [
+       [],
+       []
+      ],
+      [
+       [
+        0
+       ],
+       [
+        0
+       ]
+      ]
+     ]
+    },
+    {
+     "op": "transpose",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        32,
+        4
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        4,
+        64,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "dot_general",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        4,
+        64,
+        32
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        4,
+        32,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        4,
+        64,
+        32
+       ]
+      }
+     ],
+     "dimension_numbers": [
+      [
+       [
+        2
+       ],
+       [
+        1
+       ]
+      ],
+      [
+       [
+        0
+       ],
+       [
+        0
+       ]
+      ]
+     ]
+    },
+    {
+     "op": "dot_general",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        4
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        4,
+        64,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        32
+       ]
+      }
+     ],
+     "dimension_numbers": [
+      [
+       [
+        1
+       ],
+       [
+        0
+       ]
+      ],
+      [
+       [
+        0
+       ],
+       [
+        1
+       ]
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "grads",
+   "title": "attention gradients",
+   "note": "jax.grad of the running example: find D = rowsum(dO * O) hiding in the transposes",
+   "source": [
+    "def attention_grads(q, k, v):",
+    "    def loss(q, k, v):",
+    "        return jnp.sum(attention(q, k, v))",
+    "    return jax.grad(loss, argnums=(0, 1, 2))(q, k, v)"
+   ],
+   "jaxpr": [
+    "{ lambda ; a:f32[32,16] b:f32[32,16] c:f32[32,16]. let",
+    "    d:f32[16,32] = transpose[permutation=(1, 0)] b",
+    "    e:f32[32,32] = dot_general[",
+    "      dimension_numbers=(([1], [0]), ([], []))",
+    "      preferred_element_type=float32",
+    "    ] a d",
+    "    f:f32[32] = reduce_max[axes=(1,)] e",
+    "    g:f32[32,1] = reshape[dimensions=None new_sizes=(32, 1) sharding=None] f",
+    "    h:bool[32,32] = eq e g",
+    "    i:f32[32,32] = convert_element_type[new_dtype=float32 weak_type=False] h",
+    "    j:f32[32] = reduce_sum[axes=(1,)] i",
+    "    k:f32[32,1] = broadcast_in_dim[",
+    "      broadcast_dimensions=(0,)",
+    "      shape=(32, 1)",
+    "      sharding=None",
+    "    ] f",
+    "    l:f32[32,32] = sub e k",
+    "    m:f32[32,32] = exp l",
+    "    n:f32[32] = reduce_sum[axes=(1,)] m",
+    "    o:f32[32,1] = broadcast_in_dim[",
+    "      broadcast_dimensions=(0,)",
+    "      shape=(32, 1)",
+    "      sharding=None",
+    "    ] n",
+    "    p:f32[32,32] = div m o",
+    "    q:f32[32,1] = integer_pow[y=-2] o",
+    "    r:f32[32,16] = dot_general[",
+    "      dimension_numbers=(([1], [0]), ([], []))",
+    "      preferred_element_type=float32",
+    "    ] p c",
+    "    _:f32[] = reduce_sum[axes=(0, 1)] r",
+    "    s:f32[32,16] = broadcast_in_dim[",
+    "      broadcast_dimensions=()",
+    "      shape=(32, 16)",
+    "      sharding=None",
+    "    ] 1.0",
+    "    t:f32[16,32] = dot_general[",
+    "      dimension_numbers=(([0], [0]), ([], []))",
+    "      preferred_element_type=float32",
+    "    ] s p",
+    "    u:f32[32,16] = transpose[permutation=(1, 0)] t",
+    "    v:f32[32,32] = dot_general[",
+    "      dimension_numbers=(([1], [1]), ([], []))",
+    "      preferred_element_type=float32",
+    "    ] s c",
+    "    w:f32[32,32] = mul v q",
+    "    x:f32[32,32] = mul w m",
+    "    y:f32[32] = reduce_sum[axes=(1,)] x",
+    "    z:f32[32,1] = reshape[dimensions=None new_sizes=(32, 1) sharding=None] y",
+    "    ba:f32[32,1] = neg z",
+    "    bb:f32[32,32] = div v o",
+    "    bc:f32[32] = reduce_sum[axes=(np.int64(1),)] ba",
+    "    bd:f32[32,32] = broadcast_in_dim[",
+    "      broadcast_dimensions=(np.int64(0),)",
+    "      shape=(32, 32)",
+    "      sharding=None",
+    "    ] bc",
+    "    be:f32[32,32] = add_any bb bd",
+    "    bf:f32[32,32] = mul be m",
+    "    bg:f32[32,32] = neg bf",
+    "    bh:f32[32] = reduce_sum[axes=(1,)] bg",
+    "    bi:f32[32,1] = reshape[dimensions=None new_sizes=(32, 1) sharding=None] bh",
+    "    bj:f32[32] = reduce_sum[axes=(np.int64(1),)] bi",
+    "    bk:f32[32] = div bj j",
+    "    bl:f32[32,32] = broadcast_in_dim[",
+    "      broadcast_dimensions=(np.int64(0),)",
+    "      shape=(32, 32)",
+    "      sharding=None",
+    "    ] bk",
+    "    bm:f32[32,32] = mul bl i",
+    "    bn:f32[32,32] = add_any bf bm",
+    "    bo:f32[32,16] = dot_general[",
+    "      dimension_numbers=(([0], [0]), ([], []))",
+    "      preferred_element_type=float32",
+    "    ] bn a",
+    "    bp:f32[16,32] = transpose[permutation=(1, 0)] bo",
+    "    bq:f32[32,16] = dot_general[",
+    "      dimension_numbers=(([1], [1]), ([], []))",
+    "      preferred_element_type=float32",
+    "    ] bn d",
+    "    br:f32[32,16] = transpose[permutation=(1, 0)] bp",
+    "  in (bq, br, u) }"
+   ],
+   "stablehlo": [
+    "module @jit_attention_grads attributes {mhlo.num_partitions = 1 : i32, mhlo.num_replicas = 1 : i32} {",
+    "  func.func public @main(%arg0: tensor<32x16xf32>, %arg1: tensor<32x16xf32>, %arg2: tensor<32x16xf32>) -> (tensor<32x16xf32> {jax.result_info = \"[0]\"}, tensor<32x16xf32> {jax.result_info = \"[1]\"}, tensor<32x16xf32> {jax.result_info = \"[2]\"}) {",
+    "    %0 = stablehlo.transpose %arg1, dims = [1, 0] : (tensor<32x16xf32>) -> tensor<16x32xf32>",
+    "    %1 = stablehlo.dot_general %arg0, %0, contracting_dims = [1] x [0], precision = [DEFAULT, DEFAULT] : (tensor<32x16xf32>, tensor<16x32xf32>) -> tensor<32x32xf32>",
+    "    %cst = stablehlo.constant dense<0xFF800000> : tensor<f32>",
+    "    %2 = stablehlo.reduce(%1 init: %cst) applies stablehlo.maximum across dimensions = [1] : (tensor<32x32xf32>, tensor<f32>) -> tensor<32xf32>",
+    "    %3 = stablehlo.reshape %2 : (tensor<32xf32>) -> tensor<32x1xf32>",
+    "    %4 = stablehlo.broadcast_in_dim %3, dims = [0, 1] : (tensor<32x1xf32>) -> tensor<32x32xf32>",
+    "    %5 = stablehlo.compare  EQ, %1, %4,  FLOAT : (tensor<32x32xf32>, tensor<32x32xf32>) -> tensor<32x32xi1>",
+    "    %6 = stablehlo.convert %5 : (tensor<32x32xi1>) -> tensor<32x32xf32>",
+    "    %cst_0 = stablehlo.constant dense<0.000000e+00> : tensor<f32>",
+    "    %7 = stablehlo.reduce(%6 init: %cst_0) applies stablehlo.add across dimensions = [1] : (tensor<32x32xf32>, tensor<f32>) -> tensor<32xf32>",
+    "    %8 = stablehlo.broadcast_in_dim %2, dims = [0] : (tensor<32xf32>) -> tensor<32x1xf32>",
+    "    %9 = stablehlo.broadcast_in_dim %8, dims = [0, 1] : (tensor<32x1xf32>) -> tensor<32x32xf32>",
+    "    %10 = stablehlo.subtract %1, %9 : tensor<32x32xf32>",
+    "    %11 = stablehlo.exponential %10 : tensor<32x32xf32>",
+    "    %cst_1 = stablehlo.constant dense<0.000000e+00> : tensor<f32>",
+    "    %12 = stablehlo.reduce(%11 init: %cst_1) applies stablehlo.add across dimensions = [1] : (tensor<32x32xf32>, tensor<f32>) -> tensor<32xf32>",
+    "    %13 = stablehlo.broadcast_in_dim %12, dims = [0] : (tensor<32xf32>) -> tensor<32x1xf32>",
+    "    %14 = stablehlo.broadcast_in_dim %13, dims = [0, 1] : (tensor<32x1xf32>) -> tensor<32x32xf32>",
+    "    %15 = stablehlo.divide %11, %14 : tensor<32x32xf32>",
+    "    %16 = stablehlo.multiply %13, %13 : tensor<32x1xf32>",
+    "    %cst_2 = stablehlo.constant dense<1.000000e+00> : tensor<f32>",
+    "    %17 = stablehlo.broadcast_in_dim %cst_2, dims = [] : (tensor<f32>) -> tensor<32x1xf32>",
+    "    %18 = stablehlo.divide %17, %16 : tensor<32x1xf32>",
+    "    %cst_3 = stablehlo.constant dense<1.000000e+00> : tensor<f32>",
+    "    %19 = stablehlo.broadcast_in_dim %cst_3, dims = [] : (tensor<f32>) -> tensor<32x16xf32>",
+    "    %20 = stablehlo.dot_general %19, %15, contracting_dims = [0] x [0], precision = [DEFAULT, DEFAULT] : (tensor<32x16xf32>, tensor<32x32xf32>) -> tensor<16x32xf32>",
+    "    %21 = stablehlo.transpose %20, dims = [1, 0] : (tensor<16x32xf32>) -> tensor<32x16xf32>",
+    "    %22 = stablehlo.dot_general %19, %arg2, contracting_dims = [1] x [1], precision = [DEFAULT, DEFAULT] : (tensor<32x16xf32>, tensor<32x16xf32>) -> tensor<32x32xf32>",
+    "    %23 = stablehlo.broadcast_in_dim %18, dims = [0, 1] : (tensor<32x1xf32>) -> tensor<32x32xf32>",
+    "    %24 = stablehlo.multiply %22, %23 : tensor<32x32xf32>",
+    "    %25 = stablehlo.multiply %24, %11 : tensor<32x32xf32>",
+    "    %cst_4 = stablehlo.constant dense<0.000000e+00> : tensor<f32>",
+    "    %26 = stablehlo.reduce(%25 init: %cst_4) applies stablehlo.add across dimensions = [1] : (tensor<32x32xf32>, tensor<f32>) -> tensor<32xf32>",
+    "    %27 = stablehlo.reshape %26 : (tensor<32xf32>) -> tensor<32x1xf32>",
+    "    %28 = stablehlo.negate %27 : tensor<32x1xf32>",
+    "    %29 = stablehlo.broadcast_in_dim %13, dims = [0, 1] : (tensor<32x1xf32>) -> tensor<32x32xf32>",
+    "    %30 = stablehlo.divide %22, %29 : tensor<32x32xf32>",
+    "    %cst_5 = stablehlo.constant dense<0.000000e+00> : tensor<f32>",
+    "    %31 = stablehlo.reduce(%28 init: %cst_5) applies stablehlo.add across dimensions = [1] : (tensor<32x1xf32>, tensor<f32>) -> tensor<32xf32>",
+    "    %32 = stablehlo.broadcast_in_dim %31, dims = [0] : (tensor<32xf32>) -> tensor<32x32xf32>",
+    "    %33 = stablehlo.add %30, %32 : tensor<32x32xf32>",
+    "    %34 = stablehlo.multiply %33, %11 : tensor<32x32xf32>",
+    "    %35 = stablehlo.negate %34 : tensor<32x32xf32>",
+    "    %cst_6 = stablehlo.constant dense<0.000000e+00> : tensor<f32>",
+    "    %36 = stablehlo.reduce(%35 init: %cst_6) applies stablehlo.add across dimensions = [1] : (tensor<32x32xf32>, tensor<f32>) -> tensor<32xf32>",
+    "    %37 = stablehlo.reshape %36 : (tensor<32xf32>) -> tensor<32x1xf32>",
+    "    %cst_7 = stablehlo.constant dense<0.000000e+00> : tensor<f32>",
+    "    %38 = stablehlo.reduce(%37 init: %cst_7) applies stablehlo.add across dimensions = [1] : (tensor<32x1xf32>, tensor<f32>) -> tensor<32xf32>",
+    "    %39 = stablehlo.divide %38, %7 : tensor<32xf32>",
+    "    %40 = stablehlo.broadcast_in_dim %39, dims = [0] : (tensor<32xf32>) -> tensor<32x32xf32>",
+    "    %41 = stablehlo.multiply %40, %6 : tensor<32x32xf32>",
+    "    %42 = stablehlo.add %34, %41 : tensor<32x32xf32>",
+    "    %43 = stablehlo.dot_general %42, %arg0, contracting_dims = [0] x [0], precision = [DEFAULT, DEFAULT] : (tensor<32x32xf32>, tensor<32x16xf32>) -> tensor<32x16xf32>",
+    "    %44 = stablehlo.transpose %43, dims = [1, 0] : (tensor<32x16xf32>) -> tensor<16x32xf32>",
+    "    %45 = stablehlo.dot_general %42, %0, contracting_dims = [1] x [1], precision = [DEFAULT, DEFAULT] : (tensor<32x32xf32>, tensor<16x32xf32>) -> tensor<32x16xf32>",
+    "    %46 = stablehlo.transpose %44, dims = [1, 0] : (tensor<16x32xf32>) -> tensor<32x16xf32>",
+    "    return %45, %46, %21 : tensor<32x16xf32>, tensor<32x16xf32>, tensor<32x16xf32>",
+    "  }",
+    "}"
+   ],
+   "eqns": [
+    {
+     "op": "transpose",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        16
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        16,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "dot_general",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        16
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        16,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ],
+     "dimension_numbers": [
+      [
+       [
+        1
+       ],
+       [
+        0
+       ]
+      ],
+      [
+       [],
+       []
+      ]
+     ]
+    },
+    {
+     "op": "reduce_max",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "reshape",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "eq",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bool",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "bool",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "reduce_sum",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "sub",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "exp",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "reduce_sum",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "div",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "integer_pow",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "dot_general",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        16
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        16
+       ]
+      }
+     ],
+     "dimension_numbers": [
+      [
+       [
+        1
+       ],
+       [
+        0
+       ]
+      ],
+      [
+       [],
+       []
+      ]
+     ]
+    },
+    {
+     "op": "reduce_sum",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        16
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": []
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        16
+       ]
+      }
+     ]
+    },
+    {
+     "op": "dot_general",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        16
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        16,
+        32
+       ]
+      }
+     ],
+     "dimension_numbers": [
+      [
+       [
+        0
+       ],
+       [
+        0
+       ]
+      ],
+      [
+       [],
+       []
+      ]
+     ]
+    },
+    {
+     "op": "transpose",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        16,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        16
+       ]
+      }
+     ]
+    },
+    {
+     "op": "dot_general",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        16
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        16
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ],
+     "dimension_numbers": [
+      [
+       [
+        1
+       ],
+       [
+        1
+       ]
+      ],
+      [
+       [],
+       []
+      ]
+     ]
+    },
+    {
+     "op": "mul",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "mul",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "reduce_sum",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "reshape",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "neg",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "div",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "reduce_sum",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add_any",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "mul",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "neg",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "reduce_sum",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "reshape",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        1
+       ]
+      }
+     ]
+    },
+    {
+     "op": "reduce_sum",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        1
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "div",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "mul",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "add_any",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "dot_general",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        16
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        16
+       ]
+      }
+     ],
+     "dimension_numbers": [
+      [
+       [
+        0
+       ],
+       [
+        0
+       ]
+      ],
+      [
+       [],
+       []
+      ]
+     ]
+    },
+    {
+     "op": "transpose",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        16
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        16,
+        32
+       ]
+      }
+     ]
+    },
+    {
+     "op": "dot_general",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        32
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        16,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        16
+       ]
+      }
+     ],
+     "dimension_numbers": [
+      [
+       [
+        1
+       ],
+       [
+        1
+       ]
+      ],
+      [
+       [],
+       []
+      ]
+     ]
+    },
+    {
+     "op": "transpose",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        16,
+        32
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        16
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dequant",
+   "title": "int8 dequantize matmul",
+   "note": "cast and scale before the dot: quantized serving in miniature",
+   "source": [
+    "def int8_dequant_matmul(x, wq, scale):",
+    "    return x @ (wq.astype(jnp.bfloat16) * scale)"
+   ],
+   "jaxpr": [
+    "{ lambda ; a:bf16[64,128] b:i8[128,256] c:bf16[256]. let",
+    "    d:bf16[128,256] = convert_element_type[new_dtype=bfloat16 weak_type=False] b",
+    "    e:bf16[1,256] = broadcast_in_dim[",
+    "      broadcast_dimensions=(1,)",
+    "      shape=(1, 256)",
+    "      sharding=None",
+    "    ] c",
+    "    f:bf16[128,256] = mul d e",
+    "    g:bf16[64,256] = dot_general[",
+    "      dimension_numbers=(([1], [0]), ([], []))",
+    "      preferred_element_type=bfloat16",
+    "    ] a f",
+    "  in (g,) }"
+   ],
+   "stablehlo": [
+    "module @jit_int8_dequant_matmul attributes {mhlo.num_partitions = 1 : i32, mhlo.num_replicas = 1 : i32} {",
+    "  func.func public @main(%arg0: tensor<64x128xbf16>, %arg1: tensor<128x256xi8>, %arg2: tensor<256xbf16>) -> (tensor<64x256xbf16> {jax.result_info = \"\"}) {",
+    "    %0 = stablehlo.convert %arg1 : (tensor<128x256xi8>) -> tensor<128x256xbf16>",
+    "    %1 = stablehlo.broadcast_in_dim %arg2, dims = [1] : (tensor<256xbf16>) -> tensor<1x256xbf16>",
+    "    %2 = stablehlo.broadcast_in_dim %1, dims = [0, 1] : (tensor<1x256xbf16>) -> tensor<128x256xbf16>",
+    "    %3 = stablehlo.multiply %0, %2 : tensor<128x256xbf16>",
+    "    %4 = stablehlo.dot_general %arg0, %3, contracting_dims = [1] x [0], precision = [DEFAULT, DEFAULT] : (tensor<64x128xbf16>, tensor<128x256xbf16>) -> tensor<64x256xbf16>",
+    "    return %4 : tensor<64x256xbf16>",
+    "  }",
+    "}"
+   ],
+   "eqns": [
+    {
+     "op": "convert_element_type",
+     "inputs": [
+      {
+       "dtype": "int8",
+       "shape": [
+        128,
+        256
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        256
+       ]
+      }
+     ]
+    },
+    {
+     "op": "broadcast_in_dim",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        256
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        1,
+        256
+       ]
+      }
+     ]
+    },
+    {
+     "op": "mul",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        256
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        1,
+        256
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        256
+       ]
+      }
+     ]
+    },
+    {
+     "op": "dot_general",
+     "inputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        128
+       ]
+      },
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        128,
+        256
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "bfloat16",
+       "shape": [
+        64,
+        256
+       ]
+      }
+     ],
+     "dimension_numbers": [
+      [
+       [
+        1
+       ],
+       [
+        0
+       ]
+      ],
+      [
+       [],
+       []
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sharded",
+   "title": "sharded matmul (data parallel)",
+   "note": "under shard_map: the per-device program, no collective needed",
+   "source": [
+    "@partial(shard_map, mesh=mesh, in_specs=(P(\"x\", None), P(None, None)), out_specs=P(\"x\", None))",
+    "def sharded_matmul_psum(x, w):",
+    "    return x @ w"
+   ],
+   "jaxpr": [
+    "{ lambda ; a:f32[64,32] b:f32[32,16]. let",
+    "    c:f32[64,16] = shard_map[",
+    "      auto=frozenset()",
+    "      check_rep=True",
+    "      in_names=({0: ('x',)}, {})",
+    "      jaxpr={ lambda ; d:f32[8,32] e:f32[32,16]. let",
+    "          f:f32[32,16] = pbroadcast[axes=('x',) axis_index_groups=None] e",
+    "          g:f32[8,16] = dot_general[",
+    "            dimension_numbers=(([1], [0]), ([], []))",
+    "            preferred_element_type=float32",
+    "          ] d f",
+    "        in (g,) }",
+    "      mesh=Mesh('x': 8)",
+    "      out_names=({0: ('x',)},)",
+    "      rewrite=True",
+    "    ] a b",
+    "  in (c,) }"
+   ],
+   "stablehlo": [
+    "module @jit_sharded_matmul_psum attributes {mhlo.num_partitions = 8 : i32, mhlo.num_replicas = 1 : i32} {",
+    "  func.func public @main(%arg0: tensor<64x32xf32>, %arg1: tensor<32x16xf32>) -> (tensor<64x16xf32> {jax.result_info = \"\"}) {",
+    "    %0 = stablehlo.custom_call @Sharding(%arg0) {backend_config = \"\", mhlo.sharding = \"{devices=[8,1]<=[8]}\"} : (tensor<64x32xf32>) -> tensor<64x32xf32>",
+    "    %1 = stablehlo.custom_call @SPMDFullToShardShape(%0) {backend_config = \"\", mhlo.sharding = \"{manual}\"} : (tensor<64x32xf32>) -> tensor<8x32xf32>",
+    "    %2 = stablehlo.custom_call @Sharding(%arg1) {backend_config = \"\", mhlo.sharding = \"{replicated}\"} : (tensor<32x16xf32>) -> tensor<32x16xf32>",
+    "    %3 = stablehlo.custom_call @SPMDFullToShardShape(%2) {backend_config = \"\", mhlo.sharding = \"{manual}\"} : (tensor<32x16xf32>) -> tensor<32x16xf32>",
+    "    %4 = call @shmap_body(%1, %3) : (tensor<8x32xf32>, tensor<32x16xf32>) -> tensor<8x16xf32>",
+    "    %5 = stablehlo.custom_call @Sharding(%4) {backend_config = \"\", mhlo.sharding = \"{manual}\"} : (tensor<8x16xf32>) -> tensor<8x16xf32>",
+    "    %6 = stablehlo.custom_call @SPMDShardToFullShape(%5) {backend_config = \"\", mhlo.sharding = \"{devices=[8,1]<=[8]}\"} : (tensor<8x16xf32>) -> tensor<64x16xf32>",
+    "    return %6 : tensor<64x16xf32>",
+    "  }",
+    "  func.func private @shmap_body(%arg0: tensor<8x32xf32>, %arg1: tensor<32x16xf32>) -> (tensor<8x16xf32> {jax.result_info = \"[('x',), None]\"}) {",
+    "    %0 = stablehlo.dot_general %arg0, %arg1, contracting_dims = [1] x [0], precision = [DEFAULT, DEFAULT] : (tensor<8x32xf32>, tensor<32x16xf32>) -> tensor<8x16xf32>",
+    "    return %0 : tensor<8x16xf32>",
+    "  }",
+    "}"
+   ],
+   "eqns": [
+    {
+     "op": "shard_map",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        32
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        32,
+        16
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        16
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "psum",
+   "title": "contracted matmul + psum",
+   "note": "the contraction is sharded, so a psum appears: the collective as a primitive",
+   "source": [
+    "@partial(shard_map, mesh=mesh, in_specs=(P(None, \"x\"), P(\"x\", None)), out_specs=P(None, None))",
+    "def contracted_matmul_psum(x, w):",
+    "    return jax.lax.psum(x @ w, \"x\")"
+   ],
+   "jaxpr": [
+    "{ lambda ; a:f32[16,64] b:f32[64,16]. let",
+    "    c:f32[16,16] = shard_map[",
+    "      auto=frozenset()",
+    "      check_rep=True",
+    "      in_names=({1: ('x',)}, {0: ('x',)})",
+    "      jaxpr={ lambda ; d:f32[16,8] e:f32[8,16]. let",
+    "          f:f32[16,16] = dot_general[",
+    "            dimension_numbers=(([1], [0]), ([], []))",
+    "            preferred_element_type=float32",
+    "          ] d e",
+    "          g:f32[16,16] = psum2[axes=('x',) axis_index_groups=None] f",
+    "        in (g,) }",
+    "      mesh=Mesh('x': 8)",
+    "      out_names=({},)",
+    "      rewrite=True",
+    "    ] a b",
+    "  in (c,) }"
+   ],
+   "stablehlo": [
+    "module @jit_contracted_matmul_psum attributes {mhlo.num_partitions = 8 : i32, mhlo.num_replicas = 1 : i32} {",
+    "  func.func public @main(%arg0: tensor<16x64xf32>, %arg1: tensor<64x16xf32>) -> (tensor<16x16xf32> {jax.result_info = \"\"}) {",
+    "    %0 = stablehlo.custom_call @Sharding(%arg0) {backend_config = \"\", mhlo.sharding = \"{devices=[1,8]<=[8]}\"} : (tensor<16x64xf32>) -> tensor<16x64xf32>",
+    "    %1 = stablehlo.custom_call @SPMDFullToShardShape(%0) {backend_config = \"\", mhlo.sharding = \"{manual}\"} : (tensor<16x64xf32>) -> tensor<16x8xf32>",
+    "    %2 = stablehlo.custom_call @Sharding(%arg1) {backend_config = \"\", mhlo.sharding = \"{devices=[8,1]<=[8]}\"} : (tensor<64x16xf32>) -> tensor<64x16xf32>",
+    "    %3 = stablehlo.custom_call @SPMDFullToShardShape(%2) {backend_config = \"\", mhlo.sharding = \"{manual}\"} : (tensor<64x16xf32>) -> tensor<8x16xf32>",
+    "    %4 = call @shmap_body(%1, %3) : (tensor<16x8xf32>, tensor<8x16xf32>) -> tensor<16x16xf32>",
+    "    %5 = stablehlo.custom_call @Sharding(%4) {backend_config = \"\", mhlo.sharding = \"{manual}\"} : (tensor<16x16xf32>) -> tensor<16x16xf32>",
+    "    %6 = stablehlo.custom_call @SPMDShardToFullShape(%5) {backend_config = \"\", mhlo.sharding = \"{replicated}\"} : (tensor<16x16xf32>) -> tensor<16x16xf32>",
+    "    return %6 : tensor<16x16xf32>",
+    "  }",
+    "  func.func private @shmap_body(%arg0: tensor<16x8xf32>, %arg1: tensor<8x16xf32>) -> (tensor<16x16xf32> {jax.result_info = \"[None, None]\"}) {",
+    "    %0 = stablehlo.dot_general %arg0, %arg1, contracting_dims = [1] x [0], precision = [DEFAULT, DEFAULT] : (tensor<16x8xf32>, tensor<8x16xf32>) -> tensor<16x16xf32>",
+    "    %1 = \"stablehlo.all_reduce\"(%0) <{channel_handle = #stablehlo.channel_handle<handle = 1, type = 1>, replica_groups = dense<[[0, 1, 2, 3, 4, 5, 6, 7]]> : tensor<1x8xi64>, use_global_device_ids}> ({",
+    "    ^bb0(%arg2: tensor<f32>, %arg3: tensor<f32>):",
+    "      %2 = stablehlo.add %arg2, %arg3 : tensor<f32>",
+    "      stablehlo.return %2 : tensor<f32>",
+    "    }) : (tensor<16x16xf32>) -> tensor<16x16xf32>",
+    "    return %1 : tensor<16x16xf32>",
+    "  }",
+    "}"
+   ],
+   "eqns": [
+    {
+     "op": "shard_map",
+     "inputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        16,
+        64
+       ]
+      },
+      {
+       "dtype": "float32",
+       "shape": [
+        64,
+        16
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "dtype": "float32",
+       "shape": [
+        16,
+        16
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "dots": [
+  {
+   "program": "mlp",
+   "lhs": [
+    64,
+    128
+   ],
+   "rhs": [
+    128,
+    512
+   ],
+   "out": [
+    64,
+    512
+   ],
+   "dimension_numbers": [
+    [
+     [
+      1
+     ],
+     [
+      0
+     ]
+    ],
+    [
+     [],
+     []
+    ]
+   ]
+  },
+  {
+   "program": "mlp",
+   "lhs": [
+    64,
+    512
+   ],
+   "rhs": [
+    512,
+    128
+   ],
+   "out": [
+    64,
+    128
+   ],
+   "dimension_numbers": [
+    [
+     [
+      1
+     ],
+     [
+      0
+     ]
+    ],
+    [
+     [],
+     []
+    ]
+   ]
+  },
+  {
+   "program": "attention",
+   "lhs": [
+    128,
+    64
+   ],
+   "rhs": [
+    64,
+    128
+   ],
+   "out": [
+    128,
+    128
+   ],
+   "dimension_numbers": [
+    [
+     [
+      1
+     ],
+     [
+      0
+     ]
+    ],
+    [
+     [],
+     []
+    ]
+   ]
+  },
+  {
+   "program": "attention",
+   "lhs": [
+    128,
+    128
+   ],
+   "rhs": [
+    128,
+    64
+   ],
+   "out": [
+    128,
+    64
+   ],
+   "dimension_numbers": [
+    [
+     [
+      1
+     ],
+     [
+      0
+     ]
+    ],
+    [
+     [],
+     []
+    ]
+   ]
+  },
+  {
+   "program": "causal",
+   "lhs": [
+    128,
+    64
+   ],
+   "rhs": [
+    64,
+    128
+   ],
+   "out": [
+    128,
+    128
+   ],
+   "dimension_numbers": [
+    [
+     [
+      1
+     ],
+     [
+      0
+     ]
+    ],
+    [
+     [],
+     []
+    ]
+   ]
+  },
+  {
+   "program": "causal",
+   "lhs": [
+    128,
+    128
+   ],
+   "rhs": [
+    128,
+    64
+   ],
+   "out": [
+    128,
+    64
+   ],
+   "dimension_numbers": [
+    [
+     [
+      1
+     ],
+     [
+      0
+     ]
+    ],
+    [
+     [],
+     []
+    ]
+   ]
+  },
+  {
+   "program": "mha",
+   "lhs": [
+    2,
+    4,
+    64,
+    32
+   ],
+   "rhs": [
+    2,
+    4,
+    64,
+    32
+   ],
+   "out": [
+    2,
+    4,
+    64,
+    64
+   ],
+   "dimension_numbers": [
+    [
+     [
+      3
+     ],
+     [
+      3
+     ]
+    ],
+    [
+     [
+      0,
+      1
+     ],
+     [
+      0,
+      1
+     ]
+    ]
+   ]
+  },
+  {
+   "program": "mha",
+   "lhs": [
+    2,
+    4,
+    64,
+    64
+   ],
+   "rhs": [
+    2,
+    4,
+    64,
+    32
+   ],
+   "out": [
+    2,
+    4,
+    64,
+    32
+   ],
+   "dimension_numbers": [
+    [
+     [
+      3
+     ],
+     [
+      2
+     ]
+    ],
+    [
+     [
+      0,
+      1
+     ],
+     [
+      0,
+      1
+     ]
+    ]
+   ]
+  },
+  {
+   "program": "gqa",
+   "lhs": [
+    2,
+    4,
+    64,
+    32
+   ],
+   "rhs": [
+    2,
+    64,
+    32
+   ],
+   "out": [
+    2,
+    4,
+    64,
+    64
+   ],
+   "dimension_numbers": [
+    [
+     [
+      3
+     ],
+     [
+      2
+     ]
+    ],
+    [
+     [
+      0
+     ],
+     [
+      0
+     ]
+    ]
+   ]
+  },
+  {
+   "program": "remat",
+   "lhs": [
+    64,
+    512
+   ],
+   "rhs": [
+    512,
+    128
+   ],
+   "out": [
+    64,
+    128
+   ],
+   "dimension_numbers": [
+    [
+     [
+      1
+     ],
+     [
+      0
+     ]
+    ],
+    [
+     [],
+     []
+    ]
+   ]
+  },
+  {
+   "program": "moe",
+   "lhs": [
+    64,
+    32
+   ],
+   "rhs": [
+    64,
+    4
+   ],
+   "out": [
+    64,
+    32,
+    4
+   ],
+   "dimension_numbers": [
+    [
+     [],
+     []
+    ],
+    [
+     [
+      0
+     ],
+     [
+      0
+     ]
+    ]
+   ]
+  },
+  {
+   "program": "moe",
+   "lhs": [
+    4,
+    64,
+    32
+   ],
+   "rhs": [
+    4,
+    32,
+    32
+   ],
+   "out": [
+    4,
+    64,
+    32
+   ],
+   "dimension_numbers": [
+    [
+     [
+      2
+     ],
+     [
+      1
+     ]
+    ],
+    [
+     [
+      0
+     ],
+     [
+      0
+     ]
+    ]
+   ]
+  },
+  {
+   "program": "moe",
+   "lhs": [
+    64,
+    4
+   ],
+   "rhs": [
+    4,
+    64,
+    32
+   ],
+   "out": [
+    64,
+    32
+   ],
+   "dimension_numbers": [
+    [
+     [
+      1
+     ],
+     [
+      0
+     ]
+    ],
+    [
+     [
+      0
+     ],
+     [
+      1
+     ]
+    ]
+   ]
+  },
+  {
+   "program": "grads",
+   "lhs": [
+    32,
+    16
+   ],
+   "rhs": [
+    16,
+    32
+   ],
+   "out": [
+    32,
+    32
+   ],
+   "dimension_numbers": [
+    [
+     [
+      1
+     ],
+     [
+      0
+     ]
+    ],
+    [
+     [],
+     []
+    ]
+   ]
+  },
+  {
+   "program": "grads",
+   "lhs": [
+    32,
+    32
+   ],
+   "rhs": [
+    32,
+    16
+   ],
+   "out": [
+    32,
+    16
+   ],
+   "dimension_numbers": [
+    [
+     [
+      1
+     ],
+     [
+      0
+     ]
+    ],
+    [
+     [],
+     []
+    ]
+   ]
+  },
+  {
+   "program": "grads",
+   "lhs": [
+    32,
+    16
+   ],
+   "rhs": [
+    32,
+    32
+   ],
+   "out": [
+    16,
+    32
+   ],
+   "dimension_numbers": [
+    [
+     [
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    [
+     [],
+     []
+    ]
+   ]
+  },
+  {
+   "program": "grads",
+   "lhs": [
+    32,
+    16
+   ],
+   "rhs": [
+    32,
+    16
+   ],
+   "out": [
+    32,
+    32
+   ],
+   "dimension_numbers": [
+    [
+     [
+      1
+     ],
+     [
+      1
+     ]
+    ],
+    [
+     [],
+     []
+    ]
+   ]
+  },
+  {
+   "program": "grads",
+   "lhs": [
+    32,
+    32
+   ],
+   "rhs": [
+    32,
+    16
+   ],
+   "out": [
+    32,
+    16
+   ],
+   "dimension_numbers": [
+    [
+     [
+      0
+     ],
+     [
+      0
+     ]
+    ],
+    [
+     [],
+     []
+    ]
+   ]
+  },
+  {
+   "program": "grads",
+   "lhs": [
+    32,
+    32
+   ],
+   "rhs": [
+    16,
+    32
+   ],
+   "out": [
+    32,
+    16
+   ],
+   "dimension_numbers": [
+    [
+     [
+      1
+     ],
+     [
+      1
+     ]
+    ],
+    [
+     [],
+     []
+    ]
+   ]
+  },
+  {
+   "program": "dequant",
+   "lhs": [
+    64,
+    128
+   ],
+   "rhs": [
+    128,
+    256
+   ],
+   "out": [
+    64,
+    256
+   ],
+   "dimension_numbers": [
+    [
+     [
+      1
+     ],
+     [
+      0
+     ]
+    ],
+    [
+     [],
+     []
+    ]
+   ]
+  }
+ ]
+}
