@@ -1,0 +1,87 @@
+{
+ "sections": [
+  {
+   "h": "What tracing takes, exactly",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "Trace happens once, but what tracing captures from outside the function often catches people off guard. Close over a Python-level array, a weight matrix built outside the traced function, say, and JAX doesn't keep a live reference to it. It freezes the array's value into the jaxpr as a constant, carried alongside the traced computation as what the internals call a constvar. Call the function again with the same shapes and that constant is still the one baked in from the first trace, not read fresh from Python each time."
+    },
+    {
+     "kind": "p",
+     "text": "Python side effects run once at trace time, not once per call. A print statement inside a traced function fires while JAX is walking the function with symbolic tracers standing in for real arrays, and that walk happens exactly once per distinct shape and dtype signature. Every call after that runs the compiled, traced computation directly, and the Python body never executes again. If you're watching stdout to confirm a kernel ran on some later call, there's nothing to see: the print already happened, once, during the original trace."
+    },
+    {
+     "kind": "p",
+     "text": "Shapes and dtypes freeze into the jaxpr at trace time as well. Every traced value carries its exact shape and dtype into the recorded computation, so a new input shape doesn't reuse the trace you already have. It triggers a fresh trace and a fresh compile for that new signature, every time the signature changes: a function traced for one batch size retraces completely for another."
+    },
+    {
+     "kind": "p",
+     "text": "Data-dependent Python branching disappears into the traced path entirely. An ordinary `if` statement checks a traced value's Python truthiness, and tracing has to resolve that check to a concrete bool right then, so it picks one branch and the other branch never gets recorded at all. That's harmless when the condition is static and known ahead of time, the same value on every call. It's wrong when the condition depends on runtime data the trace can't reduce to a fixed answer: whichever branch got traced is the only one that will ever run, no matter what the actual value turns out to be later."
+    },
+    {
+     "kind": "p",
+     "text": "`lax.cond` exists for exactly that case. It lowers to a real conditional that the compiled program evaluates at runtime instead of at trace time, so both branches get recorded and the choice between them happens on every call, not once during tracing. The running example in this chapter never needed that, its branching was all static, but plenty of kernels do. Chapter 03 walks through what `lax.cond` looks like once it's lowered."
+    },
+    {
+     "kind": "callout",
+     "which": "museum",
+     "href": "/mistakes#dtype-accumulation-mismatch",
+     "text": "Walk through a real dtype-accumulation mismatch in the mistakes museum, traced down to where the fix lives."
+    }
+   ]
+  },
+  {
+   "h": "Go deeper",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "Everything above describes tracing from the outside: what freezes, what disappears, what gets recompiled. Seeing the mechanism from the inside is worth the extra hour, because a description of a tracer is not the same thing as watching one run. The three resources below take you from prose to source to a corpus large enough to trust the pattern instead of one running example."
+    },
+    {
+     "kind": "p",
+     "text": "The autodidax notebook builds a working tracer from scratch, implementing the same machinery this chapter has been describing in prose: tracers standing in for arrays, constants getting frozen into constvars, a jaxpr accumulating equation by equation. Reading about that process only gets you so far. Watching it happen, one traced call at a time, is what makes tracing stop feeling unexplainable."
+    },
+    {
+     "kind": "callout",
+     "which": "go deeper",
+     "href": "https://docs.jax.dev/en/latest/autodidax.html",
+     "text": "Build a tracer from scratch in one notebook, the fastest way to see tracing work instead of reading about it."
+    },
+    {
+     "kind": "p",
+     "text": "Once the mechanism is familiar, the jaxpr documentation is the reference worth keeping open. It defines the grammar this chapter has been using informally: constvars, invars, equations, the exact vocabulary a tracer emits. When a jaxpr dump looks unfamiliar later in the course, this page is what resolves it, not this chapter."
+    },
+    {
+     "kind": "callout",
+     "which": "go deeper",
+     "href": "https://docs.jax.dev/en/latest/jaxpr.html",
+     "text": "Read the jaxpr grammar itself, with constvars, invars, and equations defined precisely."
+    },
+    {
+     "kind": "p",
+     "text": "For scale, the corpus x-ray in the gym keeps seventeen real programs open at once, each with its traced output on screen. Skimming a handful of them is a fast way to check whether the rules from this chapter, frozen constants, vanished branches, shape-locked recompiles, hold up outside the one running example you've been tracing by hand. One running example proves the mechanism exists; seventeen prove it's a rule, not a coincidence of the example you happened to be given."
+    },
+    {
+     "kind": "callout",
+     "which": "instrument",
+     "href": "/gym#xray",
+     "text": "Open the corpus x-ray and see tracing output across seventeen real programs at once."
+    }
+   ]
+  },
+  {
+   "h": "Exercises",
+   "blocks": [
+    {
+     "kind": "exercise",
+     "text": "Close over a numpy array in a function, trace it, and find the array in the jaxpr's constvars. Then pass it as an argument instead and watch it move to invars."
+    },
+    {
+     "kind": "exercise",
+     "text": "Put a `print` inside a jitted function and call the function twice with the same shapes. Explain the single line of output using the words trace time and run time."
+    }
+   ]
+  }
+ ]
+}

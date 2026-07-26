@@ -1,0 +1,165 @@
+{
+ "sections": [
+  {
+   "h": "The type system",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "Every value in a StableHLO program carries an explicit type, and the notation makes that impossible to miss. `tensor<32x64xbf16>` reads left to right: dimensions first, then the element type, so a 32 by 64 matrix stored in bfloat16 shows up exactly that way in the dump you get out of JAX's lowering. There is no untyped register, no implicit widening. If a computation touches a value, the compiler already knows its shape and its dtype before a single operation runs."
+    },
+    {
+     "kind": "p",
+     "text": "Scalars do not get a separate type. A single number is a tensor with rank zero, written `tensor<f32>` or `tensor<i32>`, with no dimension list at all. That is a deliberate simplification: one rule, tensor plus dtype, covers both a 4096 by 4096 matmul operand and a loop counter. Booleans follow the same logic with their own element type, `i1`, a one-bit integer. A comparison op like `stablehlo.compare` returns `tensor<i1>` for a scalar predicate or `tensor<32xi1>` for a per-row mask, and that mask is exactly what feeds a `stablehlo.select` or a `stablehlo.if` condition."
+    },
+    {
+     "kind": "p",
+     "text": "This uniformity is the point of the whole opset. Where older HLO text mixed shape information into operation names, StableHLO pushes it entirely into the type. An add of two `tensor<8x128xbf16>` values type-checks the same way as an add of two `tensor<f32>` scalars, because both operands and the result are just tensors with a shape and a dtype attached. Reading a dump becomes a matter of reading types, not memorizing what each op implicitly assumes about its inputs."
+    },
+    {
+     "kind": "p",
+     "text": "The container structure is plain. A StableHLO program is a `module`, and a module holds one or more `func.func` definitions, each with a typed argument list and a typed return, mirroring the tensor notation used everywhere else. `jax.jit` traces your Python function once and lowers it to exactly this shape, a module wrapping a func whose body is a sequence of typed ops. Nothing about the module or func syntax is TPU specific; it is the same container StableHLO uses for CPU and GPU lowerings too."
+    },
+    {
+     "kind": "p",
+     "text": "You do not need a compiler background to use this. When a Pallas kernel throws a shape error, the fastest diagnosis is opening the StableHLO dump and reading the type on the operand that misbehaves, because the mismatch is stated directly in the text rather than buried in a stack trace. A `tensor<256x128xf32>` where you expected `tensor<256x128xbf16>` tells you exactly where a dtype conversion happened, or didn't, in the lowering."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://openxla.org/stablehlo/spec",
+     "text": "The spec lists every op in the opset with its exact type constraints, useful the first time a dump uses an op this section didn't cover."
+    }
+   ]
+  },
+  {
+   "h": "Control flow is regions",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "StableHLO has no goto and no basic-block jump the way LLVM IR does. Control flow shows up as regions, nested bodies attached to a single op, and the op decides which region runs and how results flow back out. That single design choice is why a `lax.scan` and a `lax.cond` in your JAX code become such literal, readable structures once they hit StableHLO. The loop or branch is not scattered across labels, it is a self-contained block sitting right where the op is called."
+    },
+    {
+     "kind": "p",
+     "text": "`lax.scan` lowers to `stablehlo.while`, and the carry you thread through your scan body becomes explicit loop state on the op itself, not a hidden closure. The `while` carries a tuple of operands into its body region on every iteration and receives an updated tuple back out, and a separate condition region decides whether to keep going. Nothing about the carry is implicit. If your scan carries a running sum and an index, both show up as named operands on `stablehlo.while`, updated by name each pass, so you can trace exactly which value changed on which iteration."
+    },
+    {
+     "kind": "cf",
+     "id": "scan",
+     "which": "stablehlo",
+     "lines": [
+      1,
+      48
+     ],
+     "caption": "lowered from lax.scan; notice the carry entering and leaving the while body as named operands, not a hidden closure."
+    },
+    {
+     "kind": "p",
+     "text": "`lax.cond` lowers to `stablehlo.if`, and both branches are present in the dump at once, as two separate regions attached to the same op, not as a single path chosen at trace time. The predicate, a `tensor<i1>`, selects which region actually executes; the other region still sits there in the text, fully typed, ready to run if the predicate flips. That is different from a Python if statement, which only ever traces one branch. StableHLO keeps both, because the compiler has to reason about the program for every possible input, not just the one you traced with."
+    },
+    {
+     "kind": "cf",
+     "id": "cond",
+     "which": "stablehlo",
+     "lines": [
+      1,
+      30
+     ],
+     "caption": "lowered from lax.cond; notice both branches present as separate regions, with the predicate selecting which one runs."
+    },
+    {
+     "kind": "p",
+     "text": "Reading these regions gets easier with practice, and the fastest way to build that muscle is staring at real dumps until the nesting stops feeling foreign and starts feeling like ordinary control flow again. The corpus is full of scans and conds that started life as plain Python loops and branches, and once you have traced a handful of them by hand, spotting the carry inside a while region or the predicate driving an if stops taking any real effort."
+    },
+    {
+     "kind": "callout",
+     "label": "lab",
+     "href": "/gym#xray",
+     "text": "GYM 04 corpus x-ray works through real StableHLO dumps, including while and if regions, line by line."
+    }
+   ]
+  },
+  {
+   "h": "custom_call, the escape hatch",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "StableHLO defines a closed opset: adds, compares, dots, reductions, control flow, a fixed vocabulary the compiler fully understands. Anything outside that vocabulary still has to travel through the program somehow, and the mechanism is `stablehlo.custom_call`. A custom call carries an opaque target name, a typed operand list, a typed result list, and a payload the surrounding compiler treats as a black box. StableHLO does not need to understand what runs inside; it only needs to know the types going in and the types coming out."
+    },
+    {
+     "kind": "p",
+     "text": "A Pallas kernel rides through this exact door. When you call `pallas_call`, JAX does not try to express your kernel body as StableHLO ops; it wraps the whole thing as a `custom_call` targeting `tpu_custom_call`, with the serialized Mosaic module attached as the payload. From the surrounding StableHLO program's point of view, your kernel is one opaque op with typed inputs and outputs, same as any other custom call. The grid, the block specs, the pipeline, none of it is visible at the StableHLO level. It only becomes visible one layer down, inside Mosaic."
+    },
+    {
+     "kind": "p",
+     "text": "You can see this directly in a real trace. The museum's VMEM overflow capture, from a kernel that blew its VMEM budget, shows `custom_call_target \"tpu_custom_call\"` right in the XLA op label, because that is literally what the compiler recorded when it lowered the `pallas_call`. Reading that label confirms the failure is happening inside a Mosaic-compiled kernel, not somewhere else in the surrounding StableHLO graph, which narrows the search before you even open the Mosaic dump."
+    },
+    {
+     "kind": "callout",
+     "label": "museum",
+     "href": "/mistakes#vmem-overflow",
+     "text": "The VMEM overflow entry shows the exact custom_call_target label this section describes, captured from a real failing kernel."
+    },
+    {
+     "kind": "p",
+     "text": "This is the seam the rest of the stack builds on. Everything past this point, how the Mosaic module inside that payload gets built, scheduled, and lowered to real TPU instructions, is a separate compiler with its own passes and its own failure modes. StableHLO's job ends at the custom call boundary, and Mosaic's job starts there, picking up the same typed operands and turning them into an actual pipelined kernel running on the MXU."
+    },
+    {
+     "kind": "callout",
+     "label": "instrument",
+     "href": "/l/mosaic",
+     "text": "Chapter 07 opens the Mosaic module that this custom_call payload actually carries, picking up right where this chapter's escape hatch leaves off."
+    }
+   ]
+  },
+  {
+   "h": "Why it is called Stable",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "The name is a claim about serialization, not about the opset never changing shape day to day. StableHLO modules serialize to a versioned bytecode format, and that format comes with an explicit compatibility guarantee: a module you save today keeps deserializing correctly for a documented window, and a module using slightly newer features still loads on documented older readers. That guarantee is the entire reason a mastery site can spend a chapter on the format at all, since dumps you capture now stay readable as your compiler version moves on."
+    },
+    {
+     "kind": "p",
+     "text": "The published policy sets that window at roughly five years backward and two years forward. A module serialized on one compiler version keeps deserializing correctly on readers up to about five years newer, and a module built with slightly ahead-of-its-time features still loads on readers up to about two years older. Those are not casual round numbers; they are the specific commitment the format makes, and it is what turns StableHLO from an internal compiler detail into something you can depend on for anything you plan to keep around."
+    },
+    {
+     "kind": "p",
+     "text": "That commitment is what lets a saved model outlive the framework version that produced it. A checkpoint exported with one JAX release, serialized as StableHLO, can be loaded and compiled by a different toolchain years later without a re-export, because the format itself carries the compatibility guarantee rather than leaving it to whichever framework happens to read the file. That is a deliberate trade against the alternative, where every framework upgrade risks breaking every artifact you saved with the previous one."
+    },
+    {
+     "kind": "p",
+     "text": "None of this is abstract once you start reading real dumps end to end. The type notation from the first section, the region structure from the second, and the custom_call boundary from the third all show up together in a single StableHLO module the moment you lower any nontrivial JAX program, and the versioning story here is what keeps that same module readable next year."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://openxla.org/stablehlo/compatibility",
+     "text": "The compatibility policy page spells out the exact backward and forward windows this section summarizes."
+    },
+    {
+     "kind": "callout",
+     "label": "instrument",
+     "href": "/s/ir",
+     "text": "Stage 2 walks the IR pipeline hands-on, module by module, using the same notation this chapter covers."
+    }
+   ]
+  },
+  {
+   "h": "Exercises",
+   "blocks": [
+    {
+     "kind": "exercise",
+     "text": "Lower `jax.lax.while_loop` yourself with a two-element carry and find the carry tuple threading through `stablehlo.while` in the dump. Compare its shape against the scan program in this guide."
+    },
+    {
+     "kind": "exercise",
+     "text": "Take any jitted function that calls a Pallas kernel and grep its lowered text for `custom_call`. Name the call target and say what payload rides inside it."
+    },
+    {
+     "kind": "exercise",
+     "text": "Compute the same function's dump at two different input shapes and diff them: which parts changed, and why does that follow from tracing?"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,116 @@
+{
+ "sections": [
+  {
+   "h": "The parts the diagram usually omits",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "Every diagram of a TPU core you have seen so far draws two blocks: the MXU doing matrix multiplies, the VPU doing elementwise work, both fed from VMEM. That picture is accurate as far as it goes, but it leaves out the part that turns a kernel into more than a fixed loop. Somewhere, something has to decide which block of a ragged batch to skip, which index a block spec should read next, whether a flag says stop early. None of that is vector work, and the MXU and VPU diagram never shows where it happens."
+    },
+    {
+     "kind": "p",
+     "text": "That somewhere is SMEM, scalar memory. It holds the scalars a kernel branches on: sequence lengths, loop bounds, block indices, boolean flags. Scalar prefetch, the mechanism that reads an index array before the pipeline needs it, lands its result in SMEM, not VMEM. A ragged attention kernel checking whether a row's real length is 41 percent of the padded max is reading SMEM to make that call. The multi-kilobyte tile sitting in vector memory is not what the branch decision looks at."
+    },
+    {
+     "kind": "p",
+     "text": "A scalar core runs alongside the vector units to make those decisions and act on them. It executes the kernel's control flow, the loops and branches your Pallas source compiles down to, and it issues the DMA descriptors that move the next block from HBM into VMEM. The MXU and VPU are compute engines. The scalar core is the one deciding what they compute next and fetching it, and it runs at the same time as the vector units, not in alternating turns."
+    },
+    {
+     "kind": "p",
+     "text": "One more unit belongs in the full picture, briefly: SparseCore. It exists specifically for embedding workloads, the wide, sparse lookups that recommendation and ranking models depend on, a shape a dense MXU is not built for. Nothing in this stack's kernels touches it, but its presence on the chip matters to what a completed picture of the machine means. Not every workload a TPU runs is a matmul, even though every kernel in this course happens to be one."
+    },
+    {
+     "kind": "p",
+     "text": "The last omitted detail is tiling by dtype, and it is the one you will meet as an error message before you ever meet it as a diagram. TPU register tiles change shape with data width: f32 tiles at `(8, 128)`, bf16 at `(16, 128)`, int8 at `(32, 128)`. Narrower types pack more elements into the same physical lane group, so the sublane dimension grows as the element shrinks. This is not a style rule Mosaic enforces. It is the register file's actual layout, and it is why a lattice error names 8 and 128 specifically: the tile an f32 array's shape has to be divisible by, not a round number someone chose."
+    },
+    {
+     "kind": "callout",
+     "label": "museum",
+     "href": "/mistakes#lattice-violation",
+     "text": "The museum entry on lattice violations shows the actual error text and the shapes that trigger it."
+    }
+   ]
+  },
+  {
+   "h": "The GPU, for contrast",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "Set the TPU aside for a moment and look at the machine most kernel authors learn on first: an H100-class GPU, by the numbers on its public spec sheet. These are approximate, since binning and clocks vary card to card: about 9.9e14 dense bf16 FLOP/s, about 3.35e12 bytes per second of HBM3 bandwidth. Divide one by the other and you get a ridge point near 295 flops per byte, the same roofline arithmetic that gave the TPU chapters their four numbers in the first place."
+    },
+    {
+     "kind": "p",
+     "text": "Line the ridge points up and the contrast turns concrete instead of vague. v5e sits near 240, v6e near 575, an H100-class part near 295. A kernel that is compute bound on a v6e at a given arithmetic intensity can be bandwidth bound on an H100-class GPU, because the GPU's ridge sits lower: its FLOP/s grew less relative to its bandwidth than v6e's did. The point is not which chip wins. It is that the same compute-bound-or-bandwidth-bound question gets a different answer depending which chip you asked it on."
+    },
+    {
+     "kind": "p",
+     "text": "The rest of the spec sheet describes a differently shaped machine, not just a faster one. An H100-class part has 132 streaming multiprocessors, each running threads in groups of 32 called warps. Shared memory, the GPU's equivalent of a software-managed scratchpad, is configurable up to about 228 KB per SM: small next to VMEM's roughly 128 MiB, but replicated 132 times instead of held once. Above that sits an L2 cache around 50 MB, a level of the memory hierarchy the TPU side of this course never had to name. Same job, keep compute fed from something close, solved with many small pools instead of one large one."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://docs.nvidia.com/cuda/cuda-c-programming-guide/",
+     "text": "The CUDA C Programming Guide lays out the SM, warp, and shared memory model this section compresses into three numbers."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://jax-ml.github.io/scaling-book/rooflines/",
+     "text": "The scaling book's roofline chapter is the source of the ridge-point arithmetic used to compare these chips."
+    }
+   ]
+  },
+  {
+   "h": "Two ways to hide latency",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "A TPU chip runs one big core, not thousands of small ones, and its grid executes sequentially: one step's compute has to be scheduled before its results are needed, while the next step's data is already moving in behind it. That is the software pipeline earlier chapters described. Latency gets hidden by overlapping DMA transfers with compute inside a scratchpad you can see and size, VMEM. Because the whole schedule reduces to a handful of constants, FLOP/s, bandwidth, ridge point, tile shape, you can reason about whether a kernel is compute bound or bandwidth bound before you ever run it."
+    },
+    {
+     "kind": "p",
+     "text": "A GPU hides latency a completely different way. Instead of one sequential pipeline, it keeps thousands of warps resident on its streaming multiprocessors at once. When one warp stalls waiting on memory, the hardware scheduler switches to another warp that is ready, with no software pipeline required to make that happen. This is why occupancy, how many warps stay resident, and register pressure, how many registers each thread claims and therefore how many warps fit, are the currencies that matter on a GPU the way tile shape and pipeline depth matter on a TPU."
+    },
+    {
+     "kind": "p",
+     "text": "Both machines still leave the same gap above them, worth naming plainly: neither scheduler rewrites your algorithm. A TPU pipelining DMAs and a GPU switching warps will both faithfully execute a naive attention kernel that materializes the full sequence-length by sequence-length score matrix, and both will pay for it in bandwidth. That is why flash attention, the algorithm that never materializes that matrix, exists as hand-written source on both machines rather than as something either compiler produces on its own. Hiding latency well and choosing what to compute are not the same job."
+    },
+    {
+     "kind": "callout",
+     "label": "lab",
+     "href": "/s/pallas",
+     "text": "Stage 1's pipeline exhibits, EX 02 and EX 07, walk through the DMA overlap this section describes step by step."
+    },
+    {
+     "kind": "callout",
+     "label": "instrument",
+     "href": "/s/machine",
+     "text": "Stage 0 covers the four constants this chapter's TPU-side arithmetic is built from, if you want to rebuild the roofline yourself."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://jax-ml.github.io/scaling-book/tpus/",
+     "text": "The scaling book's TPU chapter goes deeper on the single-core, sequential-grid design than this guide does."
+    }
+   ]
+  },
+  {
+   "h": "Exercises",
+   "blocks": [
+    {
+     "kind": "exercise",
+     "text": "Compute the ridge point for all three chips in this guide from their sheet numbers, then place a `(4096, 512)` bf16 row softmax on each roofline: memory-bound or compute-bound, chip by chip?"
+    },
+    {
+     "kind": "exercise",
+     "text": "From the tiling rules, list every legal f32 block shape for a `(70, 300)` array. The museum's lattice exhibit holds the answer's shape."
+    },
+    {
+     "kind": "exercise",
+     "text": "One paragraph: why can a TPU kernel's schedule be checked by arithmetic before running, while a GPU kernel's occupancy usually needs a profiler? Use the two latency-hiding models by name."
+    }
+   ]
+  }
+ ]
+}

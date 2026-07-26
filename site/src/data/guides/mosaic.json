@@ -1,0 +1,77 @@
+{
+ "sections": [
+  {
+   "h": "The tiling vocabulary, precisely",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "A vector register on a TPU holds a fixed grid: 8 sublanes by 128 lanes. That grid is physical, not a convention, and it is the reason every `vector<...>` type printed in a lowered module has the shape it does. Sublanes run down the register, lanes run across it, and every value in a compiled kernel gets tiled into that grid before any op touches it. This section names the rule precisely: what the tile is, how dtype changes it, and where it shows up when a kernel breaks."
+    },
+    {
+     "kind": "p",
+     "text": "Change the dtype and the tile changes with it. Register width in bytes stays fixed, so narrower elements pack more rows into the same 8x128 footprint. `f32` keeps the base tile at `(8, 128)`. `bf16` packs two elements per lane slot and doubles the sublane count to `(16, 128)`. `int8` packs four and lands at `(32, 128)`. Rows and lanes are not free parameters you choose. They are consequences of how many bytes each element takes."
+    },
+    {
+     "kind": "p",
+     "text": "Open a lowered module and this rule stops being abstract. Every `vector<...>` type carries a tile-shaped trailing dimension pair that matches whichever dtype produced it, and Mosaic checks that pairing on every op. Break it, say by bitcasting an `f32` value into an `int8` layout without adjusting the tile, and the compiler does not fail quietly. It refuses the rewrite and quotes the exact packing rule back at you in the error text."
+    },
+    {
+     "kind": "callout",
+     "label": "museum",
+     "href": "/mistakes#lattice-violation",
+     "text": "See the lattice-violation entry in the mistakes museum for the exact error text Mosaic prints when a bitcast breaks the tile-packing rule."
+    },
+    {
+     "kind": "p",
+     "text": "The captured module keeps both shapes side by side: the logical array shape you wrote in JAX, and the physical vector type Mosaic produced from it. Once you know the packing rule, that pairing stops looking arbitrary. A `bf16[128, 256]` operand does not lower into a register grid that matches its logical axes one for one. It lowers into a tile count built from `(16, 128)`. The 128-lane width itself is not incidental: it matches the 128x128 systolic array on v5e, the same MXU that consumes these tiles once they are packed."
+    }
+   ]
+  },
+  {
+   "h": "Reading layout decisions",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "Reading a module for its layout decisions is not about tracing every op in order. Three signatures carry most of the information you need, and once you know to look for them, a wall of MLIR turns into a short account of how the compiler actually intends to run your kernel. One signature sits around reductions, one sits on the grid attributes themselves, and one sits inside every operand's `BlockSpec`. Learn all three and the module stops reading like raw output and starts reading like a decision record."
+    },
+    {
+     "kind": "p",
+     "text": "A reduction drops a dimension logically, but the tiled representation underneath cannot drop it the same way: the hardware still holds a full register grid. Look for a `shape_cast` right before a `sum` or `max` reduction and a `broadcast` right after. Together they are `keepdims` made physical. The cast reshapes the input into the tile the reduction expects, and the broadcast puts a size-one dimension back so downstream ops see a shape that still lines up with sublanes and lanes. Skim past these two ops and you will miss that a reduction happened at all."
+    },
+    {
+     "kind": "p",
+     "text": "Two attributes on the grid tell you how the pipeline actually runs, not how you asked it to run. `dimension_semantics` marks each grid axis `parallel` or `arbitrary`, and `arbitrary` marks the axis Mosaic cannot reorder, usually because one iteration depends on state a previous one left in VMEM. `window_params` carries the block shape and index math for every operand, per grid step. Read the two together and you are reading the compiled schedule as data: which axes the pipeline can freely reorder, and which one it cannot, expressed as attributes rather than as prose in a design doc."
+    },
+    {
+     "kind": "callout",
+     "label": "lab",
+     "href": "/gym#mosaic",
+     "text": "Open GYM 05 to practice spotting these three signatures inside a real captured module."
+    },
+    {
+     "kind": "p",
+     "text": "The index map you write in a `BlockSpec` does not survive as a Python closure. It compiles into a transform function attached to each operand, one that takes grid indices and returns a memory offset for that block. When a kernel misbehaves at a block boundary, this is the function to trace. It is the compiled answer to which slice of HBM a given grid step reads, and a mismatch there usually explains the fault before you get anywhere near the compute ops. Read it alongside `window_params` and you have the full picture: what shape each block is, and where each grid step goes to fetch it."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://github.com/jax-ml/jax",
+     "text": "The Mosaic dialect source in the jax repository's jaxlib/mosaic directory shows how transform functions and window_params get built from a BlockSpec."
+    }
+   ]
+  },
+  {
+   "h": "Exercises",
+   "blocks": [
+    {
+     "kind": "exercise",
+     "text": "In GYM\u00b705's softmax kernel, find both `shape_cast` operations and name which `keepdims=True` in the source each one came from."
+    },
+    {
+     "kind": "exercise",
+     "text": "Change the softmax block in LAB\u00b71.4's debug cell to `(32, 512)` and diff the printed module against the original: which vector shapes changed and which did not?"
+    }
+   ]
+  }
+ ]
+}

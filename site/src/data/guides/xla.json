@@ -1,0 +1,207 @@
+{
+ "sections": [
+  {
+   "h": "Two dumps, two truths",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "Every Pallas or JAX kernel you write for TPU passes through XLA twice in ways that matter to you directly: once when it gets translated, and once when it gets decided. Both moments produce a dump you can read as plain text, but the two dumps answer different questions, and mixing them up is one of the fastest ways to draw the wrong conclusion about why a kernel runs slow."
+    },
+    {
+     "kind": "p",
+     "text": "`jax.jit(fn).lower(*args).as_text()` hands you StableHLO, the program almost exactly as you wrote it, translated into XLA's portable intermediate representation but not yet touched by any backend. Shapes are fixed, but nothing about how the TPU will actually run this has been decided. No fusion, no layout, no buffer assignment. It reads like source code with the syntax swapped, not like an execution plan."
+    },
+    {
+     "kind": "p",
+     "text": "`jax.jit(fn).compile(*args).as_text()` is the other call, and it hands you something the backend actually produced. Elementwise ops have merged into fusion ops. Tensors have picked a physical layout. Buffers have been assigned to specific memory. This dump is backend specific, since running the same function through a different backend produces a different structure, because the decisions inside it are compiler decisions made for one target. When you want to know why a kernel is slow, this is the only dump that can answer, because it is the only one reflecting what actually ran."
+    },
+    {
+     "kind": "p",
+     "text": "The mistake worth naming early is reading the lowered StableHLO and reasoning about performance from it. Nothing in that dump has been fused, tiled, or laid out yet, so a loop that looks expensive there might vanish into a single fusion once compiled, and a loop that looks cheap might turn into three separate passes over HBM. Performance questions belong to the compiled dump, always. The lowered dump answers a different question: did you write the program you meant to write, before the compiler gets a say in any of it."
+    },
+    {
+     "kind": "p",
+     "text": "In practice, every performance investigation should start the same way: call `.compile(*args).as_text()`, not `.lower(*args).as_text()`, and look for the shapes and fusion kinds that actually made it into the final program. The lowered dump still has its place, mostly for confirming that the jaxpr your Python traced to matches what you intended, before any compiler decision has had the chance to obscure it."
+    },
+    {
+     "kind": "p",
+     "text": "The size difference between the two dumps is itself a signal. A `.lower()` dump for a modest kernel might run a few dozen lines, mirroring your Python almost one to one. The `.compile()` dump for the same kernel can run many times longer, because every operand now carries a layout annotation, every fusion group is spelled out with its inputs and outputs, and buffer assignment adds allocation metadata that had no reason to exist before any backend decision was made."
+    },
+    {
+     "kind": "callout",
+     "label": "lab",
+     "href": "/s/ir",
+     "text": "Stage 2 walks both dumps side by side and marks exactly where each decision gets made."
+    }
+   ]
+  },
+  {
+   "h": "The fusion taxonomy",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "Fusion is XLA's main lever for cutting HBM traffic, and its taxonomy is what turns a compiled dump from a wall of unfamiliar names into an actual diagnosis. Every fusion op in the dump carries a kind, and that kind tells you which shape of computation the compiler decided could share a single pass over memory, without you having to infer it from the op names alone."
+    },
+    {
+     "kind": "p",
+     "text": "XLA groups computations under three fusion kinds. A loop fusion covers a chain of elementwise work, the add then multiply then cast pattern, merged into a single pass so nothing round-trips through HBM between steps. An input fusion is rooted at a reduction, with the operations that feed a sum or a max pulled inside the reduction itself, so the reduction reads its inputs once instead of reading a separately materialized intermediate. An output fusion feeds directly into a store, folding the last computation into the write instead of writing a temporary first."
+    },
+    {
+     "kind": "p",
+     "text": "Fusion has limits, and they follow from what a single pass over memory can express. Elementwise chains fuse cleanly because every output element depends only on the matching input elements. Reductions fuse the ops that feed them, but two independent reductions over the same tensor will not merge into one fusion, since each still needs its own pass. Anything that needs the whole tensor materialized before the next op can proceed, a transpose feeding a matmul with an incompatible layout, for instance, forces a boundary, and boundaries are exactly where extra fusion ops show up in the dump."
+    },
+    {
+     "kind": "p",
+     "text": "The clearest evidence of a fusion boundary is the naive attention kernel at sequence length 8192 on a v6e-1 chip. The compiled dump carries the full bf16[8192,8192] score matrix through three separate fusion ops: one to compute it, one to run softmax over it, one to consume it in the second matmul. That score matrix never had to exist in HBM if the kernel kept it in VMEM the whole time, and end to end the naive version costs 414.4 microseconds. The three fusion ops are the spill made visible, printed right there in the dump."
+    },
+    {
+     "kind": "p",
+     "text": "Reading fusion kinds is worth building into a habit deliberately: scan the compiled dump for `fusion` ops, read the kind attached to each, and ask whether the boundary between two fusions was necessary or just a missed opportunity. Sometimes it's necessary, a genuine dependency the compiler cannot see through. Sometimes it's a shape mismatch or a layout disagreement you could remove by restructuring the kernel, and the fusion boundary disappears along with the extra HBM pass it implied."
+    },
+    {
+     "kind": "callout",
+     "label": "lab",
+     "href": "/s/ir",
+     "text": "Stage 2 has a live example of this exact fusion boundary, worked from the raw HLO."
+    },
+    {
+     "kind": "callout",
+     "label": "bench",
+     "href": "/bench",
+     "text": "/bench carries the full attention numbers this receipt is drawn from, spill included."
+    }
+   ]
+  },
+  {
+   "h": "Layouts",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "Layout is the part of a compiled program that has nothing to do with what you computed and everything to do with how it sits in memory, and the compiled dump is the only place it's visible. Get comfortable reading layout annotations early, because a good share of the copies you'll end up chasing down for performance turn out to be layout disagreements rather than anything about the math itself."
+    },
+    {
+     "kind": "p",
+     "text": "Every tensor in the compiled dump carries a layout annotation like `{1,0}`, and it's worth learning to read on sight. The numbers list dimensions from fastest varying to slowest varying, minor to major. `{1,0}` on a rank-2 tensor means dimension 1, the columns, is minor and laid out contiguously in memory, while dimension 0, the rows, is major, stepping between rows. `{0,1}` flips that, making rows the contiguous dimension instead. The same logical shape can carry either layout, and the compiler picks based on what's cheapest for the ops sitting around it."
+    },
+    {
+     "kind": "p",
+     "text": "When a tensor's layout has to change between one op and the next, whether because two ops disagree on what's cheap or because a shape crosses a fusion boundary, XLA inserts a `copy` op to physically rearrange the data. Copies cost a full pass over the tensor, so a compiled dump full of copies is a compiled dump full of wasted HBM bandwidth. Scanning the dump for copy ops is a fast way to find where the compiler disagreed with itself, or where your code forced a rearrangement it never needed."
+    },
+    {
+     "kind": "p",
+     "text": "This is also why a transpose is sometimes free and sometimes not. If the op consuming the transposed tensor can read it with the new layout annotation, treating a different dimension as minor, the transpose costs nothing: it disappears at compile time into a layout choice. If the consumer needs a specific physical layout it can't bend on, a matmul feeding the MXU expects its operands in a fixed orientation, the transpose becomes a real copy. The op graph looks identical either way. Only the compiled dump tells you which case you're actually in."
+    },
+    {
+     "kind": "p",
+     "text": "Layout interacts directly with how a dtype gets tiled into registers on the chip. `f32` tiles as `(8,128)`, `bf16` as `(16,128)`, `int8` as `(32,128)`, and the minor-to-major ordering in the layout annotation decides which of a tensor's dimensions actually line up with that tile shape. Get the layout wrong relative to the tile and the compiler inserts a copy to fix it before the op that needs the aligned shape can run."
+    },
+    {
+     "kind": "callout",
+     "label": "instrument",
+     "href": "/gym#xray",
+     "text": "The corpus x-ray in GYM 04 lets you scan real compiled dumps for layout annotations and copy ops directly."
+    }
+   ]
+  },
+  {
+   "h": "Reading the memory report",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "When a Pallas kernel asks for more VMEM than the chip has, the compiler doesn't guess or silently truncate anything. It stops and prints a report, and that report turns out to be one of the most literal error messages anywhere in this stack. Reading it line by line turns a wall of unfamiliar numbers into a short, specific list of which allocations to shrink and by how much, instead of a guessing game."
+    },
+    {
+     "kind": "p",
+     "text": "Scoped allocations are listed by size, largest first, and each one is scoped, meaning it only needs to stay live for part of the kernel's execution rather than the whole thing. The compiler already tries to reuse space between allocations that are never live at the same time, so the total in the budget line ends up smaller than the sum of every allocation would suggest. When that reuse still isn't enough to fit the request, the overflow report below is what tells you."
+    },
+    {
+     "kind": "mistake",
+     "id": "vmem-overflow",
+     "caption": "the actual VMEM overflow report, printed as is, not paraphrased"
+    },
+    {
+     "kind": "p",
+     "text": "Two labels do most of the explaining here. A line reading `window allocation` is not a compiler abstraction, it's a `BlockSpec` turned into physical bytes, the block size given to the kernel's grid now reserved as an actual region of VMEM. Two window allocations of matching size sitting next to each other usually mean the double buffer is working as intended, one block being computed on while its neighbor streams in from HBM. A line marked `single buffered` means the opposite happened: the compiler found room for only one copy of that operand, so the load of the next block can't overlap with compute on the current one."
+    },
+    {
+     "kind": "p",
+     "text": "The last line is the verdict, and it's worth reading exactly as written: 128.00M requested against 127.94M available. VMEM on this chip tops out around 128 MiB, and the kernel asked for a small amount more than that ceiling. The compiler refuses the allocation rather than letting the kernel spill silently into HBM. That's the correct failure mode, since it surfaces at compile time rather than during a run that finishes but runs slow."
+    },
+    {
+     "kind": "p",
+     "text": "None of this requires guessing at hardware limits from memory. The chip's VMEM ceiling is fixed, and the report states it in the same units it uses for your request, so the fix is arithmetic: shrink the block spec on one operand until the requested line drops under the available line, then rerun and check whether the single-buffered line disappears too."
+    },
+    {
+     "kind": "callout",
+     "label": "museum",
+     "href": "/mistakes#vmem-overflow",
+     "text": "The full overflow report lives in the museum, along with the fix that got it back under budget."
+    }
+   ]
+  },
+  {
+   "h": "Dump flags, and the same compiler elsewhere",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "Everything up to this chapter has been about reading dumps XLA already decided to write. This last piece is about producing more of them on demand, and about knowing which decisions are XLA's own versus decisions it handed off to somebody else's compiler entirely, which matters once you start comparing behavior across chips."
+    },
+    {
+     "kind": "p",
+     "text": "Every pass XLA runs can be written to disk. Setting `XLA_FLAGS=--xla_dump_to=DIR` before your process starts writes out every intermediate stage, from the StableHLO XLA received through every optimization pass to the final compiled HLO, one file per stage, into `DIR`. For a kernel behaving strangely, this is the only way to see which specific pass changed something, rather than comparing just the two endpoints from `.lower()` and `.compile()`."
+    },
+    {
+     "kind": "p",
+     "text": "The dump from a real program is large, often hundreds of files per compilation, so `--xla_dump_hlo_pass_re` narrows it down to passes whose name matches a regular expression. Pointed at the fusion pass, it isolates exactly the step where your op graph collapsed into the fusion ops described earlier in this chapter, before and after, so you can watch one specific decision get made instead of reading through the entire pipeline."
+    },
+    {
+     "kind": "p",
+     "text": "The same compiler runs on GPU, and the source lives in the same open repository, but XLA:GPU is not a from-scratch compiler the way XLA:TPU is. For a large share of the work, it dispatches instead of compiling directly. Big matmuls go to cuBLAS. Attention and convolution go to cuDNN. Generated fusions increasingly go to Triton. Collectives go to NCCL. XLA:TPU, by contrast, compiles everything itself, down through Mosaic and into low-level TPU instructions, without handing any of it to a separate vendor library."
+    },
+    {
+     "kind": "p",
+     "text": "Every path through this stack ends in a box neither compiler opens itself. On TPU that box is LLO and libtpu. On GPU it's `ptxas` turning PTX into SASS, the actual instructions the streaming multiprocessors run. The difference worth knowing is that PTX is a documented, stable instruction set you can read one layer deeper than the equivalent point on TPU, where the instructions inside libtpu are not public."
+    },
+    {
+     "kind": "p",
+     "text": "Knowing where XLA stops and a vendor library starts changes how you debug a slow kernel. On GPU, a slowdown inside a matmul might be a cuBLAS kernel selection issue that XLA never chose, and no amount of staring at the HLO dump shows you what happened inside cuBLAS. On TPU, everything from the fusion decision down to the instruction stream is XLA's own compiler, so the dump is the whole story: there's no separate vendor pass between the compiled HLO and what runs on the chip, other than LLO and libtpu turning it into instructions."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://openxla.org/xla/architecture",
+     "text": "openxla.org/xla/architecture lays out how XLA:GPU and XLA:TPU diverge inside the same codebase."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://openxla.org/xla/operation_semantics",
+     "text": "operation_semantics documents exactly what each HLO op is defined to do, useful once you're reading dumps directly."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://docs.nvidia.com/cuda/parallel-thread-execution/",
+     "text": "The PTX ISA reference is the one layer of GPU internals that's actually public, unlike the inside of libtpu."
+    }
+   ]
+  },
+  {
+   "h": "Exercises",
+   "blocks": [
+    {
+     "kind": "exercise",
+     "text": "Dump the naive attention program with `XLA_FLAGS=--xla_dump_to` on a TPU runtime, count the fusion ops carrying the full score matrix, and check your count against the measured 3 on the bench."
+    },
+    {
+     "kind": "exercise",
+     "text": "In the museum's VMEM report, recompute the 128.00M requirement from the two window allocations, then state what block shape change makes the same kernel fit with room for double buffering."
+    },
+    {
+     "kind": "exercise",
+     "text": "Find a layout annotation in any optimized dump you have and explain the minor-to-major order it declares in one sentence."
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,120 @@
+{
+ "sections": [
+  {
+   "h": "The vocabulary, as ring movements",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "You already know the ring: chips wired so each one talks only to its two neighbors, moving shards with remote DMA instead of routing through a switch. This chapter puts names on the specific movements that ring supports. Five words cover nearly everything a distributed kernel does on a pod: all-gather, reduce-scatter, all-reduce, `collective_permute`, and all-to-all. Each is the same physical ring, with a different rule for what a chip forwards and what it keeps. Once you can picture the ring turning, these API names stop being jargon and start reading as a literal count of hops and payload."
+    },
+    {
+     "kind": "p",
+     "text": "All-gather is the simple case: every chip starts with one shard and ends with all of them. On an N-chip ring, that takes N-1 hops. Each chip receives a shard from one neighbor, keeps a copy, and forwards it to the next neighbor in the same step. After N-1 of those steps, every chip holds a full copy of every shard that started anywhere on the ring. Nothing gets combined along the way; the ring just circulates data until it has covered every chip."
+    },
+    {
+     "kind": "p",
+     "text": "Reduce-scatter runs on the same ring, but it carries partial sums instead of raw copies. Each chip starts holding a full-size buffer contributed by every participant, and at every hop it adds the incoming piece to its own running total for that piece. After N-1 hops, each chip ends up owning one reduced shard, the sum across all chips for that one slice, and nothing else. The traffic pattern is identical to all-gather. The only difference is that addition happens at every hop instead of a plain copy."
+    },
+    {
+     "kind": "p",
+     "text": "All-reduce is what you get when you chain the two: a reduce-scatter, so every chip ends with one correctly summed shard, followed by an all-gather of those reduced shards, so every chip ends with the full reduced result. It looks like a single operation from the caller's side, but the ring runs through both phases in sequence, and the cost formulas in the next section reflect that."
+    },
+    {
+     "kind": "p",
+     "text": "Two more names round out the vocabulary. `collective_permute` moves data exactly one hop, chip to a chosen neighbor, no accumulation and no further forwarding. All-to-all is the busy one: every chip sends a distinct piece to every other chip, not one shared payload circulating but N different messages per chip. On a bidirectional ring, all-to-all costs roughly a quarter of an all-gather; the scaling book works through why the geometry favors it that way."
+    },
+    {
+     "kind": "p",
+     "text": "None of these five names describe different hardware paths. They describe five different rules for the same ring: what a chip keeps at each hop, what it adds, and how many hops it takes before every chip is done. Learn the ring once and the vocabulary stops being five things to memorize separately; it becomes one mechanism read five different ways, which is exactly how the rest of this chapter treats it."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://jax-ml.github.io/scaling-book/sharding/",
+     "text": "The sharding chapter of the scaling book derives the all-to-all-versus-all-gather cost ratio on a ring from first principles."
+    }
+   ]
+  },
+  {
+   "h": "Cost formulas you can do in your head",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "The nice thing about ring collectives is that their cost is arithmetic you can do at your desk, not a number you have to go measure first. Every formula below reduces to the same shape: bytes moved, divided by how fast the link under you can move them, scaled by a factor that comes from the ring's geometry rather than from anything the compiler decides on its own. Once you have that shape, you can sanity-check a profiler trace before you even open it, and notice quickly when a run is spending time on something other than the ring itself."
+    },
+    {
+     "kind": "p",
+     "text": "For a ring all-gather across N chips, the time is about $(N-1)/N$ times the total bytes being gathered, divided by the per-direction link bandwidth. The $(N-1)/N$ factor is just \"how much of the data wasn't already local to you,\" which is why it shrinks toward 1 as N grows: with more chips, almost none of the final payload started where it ends up. On a unidirectional ring that's the whole story. Most TPU interconnects are bidirectional, meaning data can move both ways around the ring at once, which roughly halves the time versus sending everything in a single direction."
+    },
+    {
+     "kind": "p",
+     "text": "All-reduce costs about twice what a reduce-scatter alone costs, since it is built from a reduce-scatter followed by an all-gather of a payload the same size. If you already have the reduce-scatter number worked out for your chip count and byte count, double it and you have all-reduce, no separate formula to memorize. It's worth holding onto that relationship specifically, because all-reduce is the collective you will use most often, in gradient synchronization and in any place where every chip needs the same combined answer."
+    },
+    {
+     "kind": "p",
+     "text": "The numbers below are computed, not measured on hardware: 1 GiB all-gathered across 8 chips on v5e ICI links, at 4.5e10 bytes per second per direction. One direction: $(7/8) \\times 2^{30}\\text{ bytes} / 4.5\\text{e}10\\text{ B/s} \\approx 21$ ms. Bidirectional: roughly half that, about 10 ms. Those are the numbers a ring all-gather owes you before a single flop of compute happens alongside it, and they scale the way you'd expect: double the bytes and you double the time, double the chips and the $(N-1)/N$ factor barely moves once N is already large."
+    },
+    {
+     "kind": "p",
+     "text": "Treat every number above as a floor, not a runtime you should expect to see in a profile. A real kernel overlaps the ring's hops with compute that doesn't depend on the data still in flight, so the collective's cost gets hidden behind work the chip was going to do anyway rather than sitting on top of it. Getting that overlap right, choosing what compute to schedule against which hop, is the entire subject of stage 4, and it's the difference between a collective that shows up as dead time in a trace and one that barely shows up at all."
+    },
+    {
+     "kind": "callout",
+     "label": "lab",
+     "href": "/s/distributed",
+     "text": "Stage 4 walks through overlapping a ring collective with compute so the floor computed here stops being the number you actually pay."
+    }
+   ]
+  },
+  {
+   "h": "The collective is a kernel",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "Nothing about a collective is special hardware sitting outside the kernel you already know. It's the same async remote DMA plus semaphore pairing this chapter has been building toward, just run in a loop shaped like a ring. A chip issues a remote DMA that writes directly into a neighbor's buffer, then waits on a semaphore that neighbor signals once the write has landed. Repeat that N-1 times, with the right forwarding rule at each step, addition for reduce-scatter, plain copy for all-gather, and you have every collective this chapter named. There is no separate collective engine sitting beside the kernel."
+    },
+    {
+     "kind": "p",
+     "text": "Because the mechanism is only DMA and semaphores, a collective's schedule looks in a trace exactly like any other Pallas pipeline: a sequence of issued transfers with wait points between them, laid out to keep the chip doing useful work while data is still in flight. The site's ring exhibits make that literal, drawing flash's schedule with longer arrows than a naive one's, which is the visual difference between a hop that overlaps compute and one that stalls waiting on it. Once you can read that arrow length, you're reading the same picture a profiler would give you, just drawn by hand."
+    },
+    {
+     "kind": "p",
+     "text": "The labs that follow have you build all-gather from raw remote DMAs directly, with no collective call standing between you and the hops. Writing the loop yourself, issuing each transfer, placing each wait, choosing what each chip forwards, is the fastest way to see that \"collective\" is a name for a pattern of movement rather than a primitive the hardware treats differently from any other kernel. Once you've built one ring by hand, reduce-scatter and all-reduce read as the same loop with a different rule at each hop, not as new mechanisms to learn from scratch."
+    },
+    {
+     "kind": "p",
+     "text": "That's why this chapter treats the collective as a kernel rather than as a library call to trust and move past. Once you've reasoned about arrows and wait points for one ring, the same reading applies to every collective the rest of this course touches, gradient all-reduce, expert-parallel all-to-all, anything sharded across a pod. The mechanism underneath never changes: remote DMA to write, a semaphore to know it landed, and a ring shape that decides how many hops it takes."
+    },
+    {
+     "kind": "callout",
+     "label": "lab",
+     "href": "/s/distributed",
+     "text": "Stage 4's labs have you assemble an all-gather out of raw remote DMAs, the same primitives this chapter has been using."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://docs.jax.dev/en/latest/pallas/tpu/distributed.html",
+     "text": "The Pallas TPU distributed guide documents the remote-DMA and semaphore APIs these labs call directly."
+    }
+   ]
+  },
+  {
+   "h": "Exercises",
+   "blocks": [
+    {
+     "kind": "exercise",
+     "text": "Compute the bidirectional ring all-gather floor for 2 GiB over 16 chips on v5e links. Then state what fraction of that time a reduce-scatter of the same payload costs."
+    },
+    {
+     "kind": "exercise",
+     "text": "Draw (on paper) an 8-chip ring reduce-scatter and mark which chip holds the fully reduced shard 3 at the end. The answer depends on a convention: name it."
+    },
+    {
+     "kind": "exercise",
+     "text": "In EX\u00b704 on the distributed stage, watch one KV block's journey and write down which hop its transfer hides under. That overlap is the entire economics of stage 4."
+    }
+   ]
+  }
+ ]
+}

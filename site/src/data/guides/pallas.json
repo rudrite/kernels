@@ -1,0 +1,409 @@
+{
+ "sections": [
+  {
+   "h": "BlockSpecs, precisely",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "You already know that a BlockSpec pairs a block_shape with an index_map that changes as the grid advances. What the mental model skips is exactly how those two combine into an address. The index map does not return an offset in elements. It returns a block coordinate: which numbered block along that axis, not which row or column. Pallas then multiplies each returned coordinate by the matching entry in block_shape to get the element offset into the ref. Grid step (2, 0) paired with block shape (128, 512) reads starting at element (256, 0), because 2 times 128 is 256."
+    },
+    {
+     "kind": "p",
+     "text": "This is the detail that trips people up the first time they write an index map by hand. It feels natural to write the arithmetic yourself, to return (256, 0) directly, since that is the offset you actually want. Do that and every block after the first one lands in the wrong place, because Pallas multiplies again on top of an offset you already computed. The index map's job is to count blocks, not elements. Let the framework do the multiplication it is already going to do."
+    },
+    {
+     "kind": "p",
+     "text": "Sometimes you want an entire array staged in VMEM rather than a sliced piece across the grid, a weight matrix every step needs in full, for instance. Write an index map that returns zeros regardless of the grid coordinate, a constant (0, 0) on every step. Set the block shape to match the full array shape on that axis. The compiler then stops walking that axis in blocks: it stages the array once and every grid step reads the same VMEM copy. It is the same offset mechanism as a blocked spec, just with a constant index map instead of one that tracks the grid coordinate."
+    },
+    {
+     "kind": "p",
+     "text": "Nothing stops you from mixing the two within a single BlockSpec. A weight matrix might be blocked along its output-feature axis, where each grid step really does need a different slice, while its input-feature axis stays whole, because every step needs the full contraction dimension to do a matmul at all. The index map returns a real coordinate on one axis and a constant zero on the other, in the same tuple."
+    },
+    {
+     "kind": "p",
+     "text": "The block shape itself is not free-form. TPU vector registers store data in a tile fixed by dtype: (8, 128) for f32, (16, 128) for bf16, (32, 128) for int8. The last two dimensions of any block shape must be a whole multiple of that tile, or must equal the full array dimension on that axis exactly when you are not blocking it further. There is no third option. A block that sits between those two cases, smaller than the full axis but not a multiple of the tile, does not compile."
+    },
+    {
+     "kind": "p",
+     "text": "The rule exists because the compiler lays vector registers out in that exact tile shape underneath every block you ask for. A block that does not respect the tile has no consistent way to map onto real registers, and there is no fallback layout for the compiler to fall back to instead: it rejects the shape outright, at compile time, rather than guess at a layout that might be wrong."
+    },
+    {
+     "kind": "p",
+     "text": "Three failures in this area show up often enough that the museum tracks each by name: a mismatch between the rank the index map returns and the rank of the block shape, a mismatch between the number of arguments the index map accepts and the number of grid axes, and a block shape that breaks the divisibility rule outright. All three are caught at compile time, not at run time, which is the one piece of good news: none of them corrupts data silently, they just stop the kernel from lowering at all."
+    },
+    {
+     "kind": "callout",
+     "label": "museum",
+     "href": "/mistakes#blockspec-index-rank",
+     "text": "See the failure where an index map's return rank does not match the block shape's rank."
+    },
+    {
+     "kind": "callout",
+     "label": "museum",
+     "href": "/mistakes#grid-index-map-rank",
+     "text": "See the failure where an index map takes a different number of arguments than the grid has axes."
+    },
+    {
+     "kind": "callout",
+     "label": "museum",
+     "href": "/mistakes#lattice-violation",
+     "text": "See a block shape that breaks the divisibility rule against its dtype's register tile."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://docs.jax.dev/en/latest/pallas/tpu/details.html",
+     "text": "Read the full BlockSpec and memory-space reference for TPU."
+    }
+   ]
+  },
+  {
+   "h": "Memory spaces and scratch",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "A block staged into VMEM is the default, and the one you have already been using: the compiler copies the block described by your BlockSpec into on-chip vector memory before your kernel body runs. Two other memory spaces exist for cases a plain block does not cover, and scratch memory sits alongside all three as workspace that belongs to none of your kernel's actual arguments."
+    },
+    {
+     "kind": "p",
+     "text": "SMEM, scalar memory, holds small scalar values: a sequence length, a flag, an index used to pick a dynamic slice later in the kernel. Pass these as SMEM refs instead of VMEM refs and the compiler keeps them out of the vector datapath entirely, which is where a single integer does not belong in the first place; it never needed an (8, 128) tile to sit in. Reading a scalar out of SMEM inside the kernel body costs nothing like reading a full vector block, because there is no tile to assemble and no lane structure to respect."
+    },
+    {
+     "kind": "p",
+     "text": "ANY tells the compiler not to place the ref at all: it is a promise that you will move the data yourself with a manual DMA, the subject of the section after next. You reach for ANY when the access pattern the kernel needs cannot be expressed as a BlockSpec grid walk, only as an explicit copy issued from inside the kernel body. Declaring a ref ANY is also how you tell the compiler that the automatic pipeline should not even try to stage it, which matters because staging it automatically is exactly what you are about to do by hand instead."
+    },
+    {
+     "kind": "p",
+     "text": "Scratch memory is different from all three: it is not tied to any of the kernel's inputs or outputs. You request it through scratch_shapes, and it lives for the duration of the whole kernel invocation, persisting across grid steps rather than being re-allocated on each one. The pattern worth knowing by name is the f32 accumulator. Allocate scratch in f32 even when the kernel's actual output ref is bf16, accumulate every partial sum into that f32 scratch across the grid's reduction axis, and cast down to bf16 only once, on the final write."
+    },
+    {
+     "kind": "p",
+     "text": "The reason is ordinary floating point behavior, not a Pallas quirk. Accumulate directly in bf16 instead and every partial sum rounds to bf16 precision before the next one is added, and that rounding error compounds with every step of the reduction. A long enough reduction axis turns a rounding error too small to notice on step one into a visible error by the last step. Keeping the running total in f32 and only rounding down once removes every one of those intermediate rounding events, leaving exactly one."
+    },
+    {
+     "kind": "code",
+     "lang": "python",
+     "text": "def matmul_scratch_kernel(a_ref, b_ref, o_ref, acc_ref):\n    k = pl.program_id(2)\n    @pl.when(k == 0)\n    def _():\n        acc_ref[...] = jnp.zeros_like(acc_ref)\n    acc_ref[...] += jnp.dot(a_ref[...], b_ref[...], preferred_element_type=jnp.float32)\n    @pl.when(k == pl.num_programs(2) - 1)\n    def _():\n        o_ref[...] = acc_ref[...].astype(o_ref.dtype)\n\ndef matmul_scratch(a, b, bm=128, bn=128, bk=128):\n    m, k = a.shape\n    _, n = b.shape\n    return pl.pallas_call(\n        matmul_scratch_kernel,\n        grid=(m // bm, n // bn, k // bk),\n        in_specs=[pl.BlockSpec((bm, bk), lambda i, j, kk: (i, kk)),\n                  pl.BlockSpec((bk, bn), lambda i, j, kk: (kk, j))],\n        out_specs=pl.BlockSpec((bm, bn), lambda i, j, kk: (i, j)),\n        out_shape=jax.ShapeDtypeStruct((m, n), a.dtype),\n        scratch_shapes=[pltpu.VMEM((bm, bn), jnp.float32)],\n        interpret=True,\n    )(a, b)",
+     "caption": "Verified in interpret mode, jax 0.4.38. Notice the scratch ref stays f32 for the whole reduction while the output ref is declared bf16."
+    },
+    {
+     "kind": "p",
+     "text": "The same SMEM mechanism is what makes a ragged batch kernel possible. Instead of padding every sequence in a batch to a common length and spending compute on the padding, the kernel reads each sequence's real length from SMEM and uses it to bound the work inside the kernel body, the same scalar-in-SMEM idea, just driving a loop bound instead of a mask. Measured on a ragged batch shaped 8x4096 where sequences average 41% of the padded length, that approach runs in 397.6 microseconds against 788.8 microseconds for the padded XLA baseline: 1.98x faster, on v6e-1."
+    },
+    {
+     "kind": "callout",
+     "label": "bench",
+     "href": "/bench",
+     "text": "See the ragged batch kernel's full timing against padded XLA."
+    }
+   ]
+  },
+  {
+   "h": "The grid contract and dimension_semantics",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "By default every axis of the grid runs sequentially: the pipeline you already know, one step overlapped with the next, in a fixed order chosen so that each step's output is ready before the step that needs it starts. dimension_semantics lets you tell the compiler when that ordering constraint does not actually hold for a given axis, and when it does, one axis at a time."
+    },
+    {
+     "kind": "p",
+     "text": "Mark an axis \"parallel\" when no grid step on that axis depends on the result of another: output tiles of a matmul indexed by row and column, say, where tile (1, 2) does not need tile (0, 0) to have finished first. Telling the compiler an axis is parallel gives it room to reorder steps, overlap them more aggressively, or split the axis across cores, none of which is safe to do on an axis where order actually matters."
+    },
+    {
+     "kind": "p",
+     "text": "Mark an axis \"arbitrary\" when order matters, the clearest example being a K axis you are accumulating over. Step 3 adds to whatever step 2 already wrote, so the compiler cannot reorder or split that axis freely, and calling it \"arbitrary\" is how you tell it so. Get this backwards, mark an accumulation axis \"parallel\" by mistake, and the compiler is free to run steps in an order where a later partial sum is read before an earlier one has been added to it, which produces a wrong answer rather than a compile error, since nothing about the shapes or types is invalid."
+    },
+    {
+     "kind": "p",
+     "text": "A 4096 cubed matmul makes the cost of getting this right, and wrong, concrete. The first schedule, before any dimension_semantics tuning, ran 1.65x behind XLA's own compiled matmul on v6e-1: a schedule that compiled and ran correctly, just slowly, because the compiler had no information about which axes it could exploit. Marking the M and N axes \"parallel\" and the K axis \"arbitrary\", and retuning the block shape to (2048, 1024, 512), closed nearly all of that gap: 384.6 microseconds against XLA's 353.0 microseconds, 1.09x behind."
+    },
+    {
+     "kind": "p",
+     "text": "XLA still wins this one, and it is worth saying so plainly rather than rounding it up to a win. What changed between the two attempts is the size of the loss, from a schedule the compiler could not exploit at all to one within about nine percent of a kernel XLA has had years to tune. Getting from 1.65x behind to 1.09x behind is most of the available improvement, and it came entirely from telling the compiler which axes it was free to reorder and which one it was not, plus a block shape retuned to match."
+    },
+    {
+     "kind": "p",
+     "text": "The block shape retune and the dimension_semantics annotation are not independent choices either. A block shape chosen for a schedule the compiler cannot parallelize hides how much headroom actually exists in that schedule; only once the parallel axes are marked does a wider or narrower block on those same axes change the overlap behavior in a way worth measuring at all. Tune the block shape first and you are measuring the wrong variable."
+    },
+    {
+     "kind": "callout",
+     "label": "lab",
+     "href": "/s/pallas",
+     "text": "Step through this same matmul's schedule, before and after the retune, in the pipeline exhibits EX 02 and EX 07."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://docs.jax.dev/en/latest/pallas/tpu/pipelining.html",
+     "text": "Read how the pipeline and dimension_semantics interact in the TPU pipelining reference."
+    }
+   ]
+  },
+  {
+   "h": "Dynamic slices and edge masks",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "pl.ds(start, size) slices a ref dynamically from inside the kernel body, at a start position computed at run time rather than fixed when the kernel is traced. Call it on a ref and you read only that chunk into a value, not the whole block. The compiler does not need to know the start position ahead of time, only that the size stays fixed and the memory space supports it, which is what separates it from ordinary Python slicing: a Python slice needs its bounds known when the kernel is traced, and pl.ds is exactly the escape hatch for when they are not."
+    },
+    {
+     "kind": "p",
+     "text": "That start position often comes from the same place a scalar comes from anywhere else in a kernel: an SMEM ref holding a value read earlier in the kernel body, a per-sequence length or a computed row offset. Combine the two ideas and a kernel can walk a ragged sequence by reading its true length out of SMEM once, then using pl.ds with that length to read only the valid rows, never touching the padded tail at all inside the loop that matters."
+    },
+    {
+     "kind": "p",
+     "text": "This matters most at the edges of the grid itself, not just inside a single dynamic read. A grid built for a block size that does not evenly divide the array leaves a partial block on the last step: the block is still shaped for the full block size, but only part of it holds real data, and the rest holds whatever was left over from stale VMEM on a previous step. The fix is a mask, and it starts with an iota, generating a per-lane index inside the block and comparing it against the array's true bound to decide which lanes are real and which are leftover."
+    },
+    {
+     "kind": "p",
+     "text": "Multiply the loaded values by that mask before you use them, or select against a padding value, and the partial block behaves correctly no matter how far past the true bound the physical block extends. Do the masking after a reduction has already mixed real and stale values together, rather than before, and the mask no longer has anything valid left to select between: the damage is already folded into the sum. Get the comparison direction wrong, or compare the iota against the block's size instead of the array's true size, and the kernel reads or writes past the array's real edge without raising an error to tell you so."
+    },
+    {
+     "kind": "p",
+     "text": "None of this masking machinery is needed when the array happens to divide evenly by the block size, which is exactly the common path section one's divisibility rule already covers. The mask matters specifically for the boundary case: an array whose last dimension does not divide cleanly by the block, where the grid still has to walk in fixed-size steps, and the very last step is the one that runs past the edge."
+    },
+    {
+     "kind": "p",
+     "text": "pl.ds works on any ref, not only the array carrying the main algebra of the kernel. It applies just as well to a VMEM block the pipeline staged, to scratch memory you allocated yourself, or to a start position computed from a value you read out of SMEM a few lines earlier. The pattern is the same regardless of which memory space the ref sits in; only the cost of the read or write it performs changes."
+    },
+    {
+     "kind": "code",
+     "lang": "python",
+     "text": "def sum_ragged_kernel(x_ref, o_ref, *, n_valid, rows):\n    i = pl.program_id(0)\n    x = x_ref[...]\n    idx = i * rows + jax.lax.broadcasted_iota(jnp.int32, x.shape, 0)\n    x = jnp.where(idx < n_valid, x, 0.0)\n    @pl.when(i == 0)\n    def _():\n        o_ref[...] = jnp.zeros_like(o_ref)\n    o_ref[...] += jnp.sum(x, axis=0, keepdims=True)",
+     "caption": "Verified in interpret mode, jax 0.4.38. Notice the iota is compared against the array's true size, not the block size."
+    },
+    {
+     "kind": "callout",
+     "label": "museum",
+     "href": "/mistakes#wrong-rank-indexing",
+     "text": "See a mask built with an index of the wrong rank, one dimension short of what the block actually needs."
+    }
+   ]
+  },
+  {
+   "h": "Scalar prefetch: schedules that read data",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "Every BlockSpec so far has an index map that depends only on the grid coordinate: something the compiler can evaluate before it ever sees real data. PrefetchScalarGridSpec breaks that constraint. It copies scalar arrays into SMEM before the pipeline starts running, and makes those SMEM values available to the index map itself, so which block gets loaded on step 5 can depend on what a specific input value actually is, not just on which step number 5 happens to be."
+    },
+    {
+     "kind": "p",
+     "text": "That ordering is the whole reason this works rather than deadlocking on itself. An index map that reads a value out of a ref the pipeline has not staged yet would have nothing to read; PrefetchScalarGridSpec solves that by moving the scalar arrays into SMEM before the pipeline's normal staging even begins, as a separate step that happens first. By the time step 0 of the main pipeline runs, every scalar the schedule depends on is already sitting in SMEM, not still in flight, so the index map's read of it is never racing the copy that produced it."
+    },
+    {
+     "kind": "p",
+     "text": "That is the mechanism, not a special case bolted on top of it. It is exactly what splash attention and ragged paged attention use to route each query to the right block of keys and values, where the routing decision is data (which page a token belongs to, how long a sequence really runs) rather than a static grid pattern known ahead of time. A fixed grid walk has no way to express \"load whichever block this particular query needs\"; a data-dependent index map is the only way to say that at all."
+    },
+    {
+     "kind": "p",
+     "text": "The scalar arrays involved stay small on purpose. Page tables, sequence lengths, and block indices are the kind of thing that fits in SMEM cheaply; the actual keys and values, the large data the routing decision points at, still move through the ordinary VMEM pipeline once the index map has decided which block of them to fetch. Scalar prefetch decides where to look. It is not a replacement for the pipeline that does the looking."
+    },
+    {
+     "kind": "p",
+     "text": "The tradeoff is set-up complexity against schedule flexibility. An ordinary BlockSpec's index map is pure and needs no extra wiring around it, while PrefetchScalarGridSpec needs the scalar arrays carved out as a separate argument group before the grid spec is even built. That extra step is exactly what buys back the ability to route on data instead of on a fixed pattern known ahead of time."
+    },
+    {
+     "kind": "p",
+     "text": "None of this is free at the framework level, either. The prefetch step runs before the main pipeline begins, so scalar arrays large enough to matter still cost some setup time before the first block of the real computation starts. The pattern earns its keep specifically when the alternative is a schedule that cannot be expressed at all, not when the alternative is a marginally simpler static index map that would have worked just as well."
+    },
+    {
+     "kind": "code",
+     "lang": "python",
+     "text": "def permute_kernel(perm_ref, x_ref, o_ref):\n    o_ref[...] = x_ref[...]\n\ndef permute_blocks(x, perm, bm=64):\n    m, d = x.shape\n    grid_spec = pltpu.PrefetchScalarGridSpec(\n        num_scalar_prefetch=1,\n        grid=(m // bm,),\n        in_specs=[pl.BlockSpec((bm, d), lambda i, perm: (perm[i], 0))],\n        out_specs=pl.BlockSpec((bm, d), lambda i, perm: (i, 0)),\n    )\n    return pl.pallas_call(\n        permute_kernel,\n        grid_spec=grid_spec,\n        out_shape=jax.ShapeDtypeStruct(x.shape, x.dtype),\n        interpret=True,\n    )(perm, x)",
+     "caption": "Verified in interpret mode, jax 0.4.38. Notice the index map function takes the prefetched scalar ref as an extra argument, not just the grid coordinates."
+    },
+    {
+     "kind": "callout",
+     "label": "lab",
+     "href": "/s/kernels",
+     "text": "Walk the splash attention kernel step by step and watch this same prefetch mechanism route queries to key and value pages."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://docs.jax.dev/en/latest/pallas/tpu/sparse.html",
+     "text": "Read the sparse and ragged attention reference this mechanism is built for."
+    }
+   ]
+  },
+  {
+   "h": "Manual DMA and semaphores",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "Everything the automatic pipeline gives you for free, staging a block into VMEM before your kernel body needs it, waiting for the copy, rotating buffers so the next block arrives while the current one is still in use, is itself built from three primitives you can call directly: an ANY-space ref that has not been staged anywhere, pltpu.make_async_copy to issue the transfer, and a semaphore, requested from scratch_shapes, that the copy signals when it completes."
+    },
+    {
+     "kind": "p",
+     "text": "You reach for this by hand when the access pattern cannot be expressed by the automatic pipeline at all: an irregular gather across a ref the BlockSpec grammar has no vocabulary for, rather than a walk over a fixed grid where each step's block is a simple function of the grid coordinate. If your access pattern already fits the BlockSpec grammar, the automatic pipeline is doing the same overlap you would build by hand, with less code and less room for a mistake, so manual DMA is a fallback for what the grammar cannot say, not a default choice."
+    },
+    {
+     "kind": "p",
+     "text": "Issue the copy, do other work, then wait on the semaphore right before you actually need the data. The window between issue and wait is exactly where the transfer overlaps with useful compute, the same overlap the automatic pipeline was already giving you, just under manual control now. Wait too early, right after issuing the copy instead of after doing the other work, and you have written a synchronous copy with extra steps: correct, but with none of the overlap you built this for."
+    },
+    {
+     "kind": "p",
+     "text": "This is not a separate mechanism from the one chapter 09 covers for multi-chip communication. A remote DMA that moves data to a neighboring chip over the ICI link is the same make_async_copy and semaphore pair, aimed at a different destination: one chip's HBM instead of one part of the same chip's memory hierarchy. Learn the local version here, and the distributed version is the same three primitives with one more argument telling it where to go."
+    },
+    {
+     "kind": "p",
+     "text": "Skip the wait entirely, or wait on the wrong semaphore, and the kernel reads whatever happened to already be sitting in that memory before the copy finished landing: not a compile error, since the shapes and types all still check out, but a value that is wrong in a way that depends on timing rather than on logic. That is the price of moving a guarantee the automatic pipeline gave you for free, that a block is fully staged before your kernel body touches it, onto your own bookkeeping instead."
+    },
+    {
+     "kind": "p",
+     "text": "None of this is worth reaching for casually. Every manual DMA is one more place a kernel can be correct in interpret mode and still misbehave on real hardware, because interpret mode has no memory spaces in which to get the timing wrong. Reserve it for the access patterns that genuinely have no BlockSpec expression, and let the automatic pipeline handle everything else."
+    },
+    {
+     "kind": "code",
+     "lang": "python",
+     "text": "def dma_kernel(x_hbm_ref, o_ref, scratch_ref, sem):\n    copy = pltpu.make_async_copy(x_hbm_ref, scratch_ref, sem)\n    copy.start()\n    copy.wait()\n    o_ref[...] = scratch_ref[...] * 2\n\ndef double_via_dma(x):\n    return pl.pallas_call(\n        dma_kernel,\n        in_specs=[pl.BlockSpec(memory_space=MS.ANY)],\n        out_specs=pl.BlockSpec(x.shape, lambda: (0, 0)),\n        out_shape=jax.ShapeDtypeStruct(x.shape, x.dtype),\n        scratch_shapes=[pltpu.VMEM(x.shape, x.dtype), pltpu.SemaphoreType.DMA],\n        interpret=True,\n    )(x)",
+     "caption": "Verified in interpret mode, jax 0.4.38. Notice the semaphore comes from scratch_shapes and the wait sits right before the data is read, not right after the copy is issued."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://docs.jax.dev/en/latest/pallas/tpu/distributed.html",
+     "text": "Read how this same copy and semaphore pair extends to remote DMA across chips."
+    }
+   ]
+  },
+  {
+   "h": "Aliasing, and the debugging toolkit",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "input_output_aliases tells the compiler that an output can reuse an input's buffer instead of allocating a new one. Pass the argument index pairs, and the kernel writes its result into memory the caller already owned: an in-place update rather than a fresh allocation. This is donation, the same idea jax.jit uses at a coarser grain, declared explicitly here at the kernel level, which matters whenever the array involved is large enough that a second allocation is the cost you actually want to avoid, not the compute itself."
+    },
+    {
+     "kind": "code",
+     "lang": "python",
+     "text": "def scale_rows_kernel(x_ref, s_ref, o_ref):\n    o_ref[...] = x_ref[...] * s_ref[0]\n\ndef scale_rows_inplace(x, s, rows=64):\n    n, d = x.shape\n    return pl.pallas_call(\n        scale_rows_kernel,\n        grid=(n // rows,),\n        in_specs=[pl.BlockSpec((rows, d), lambda i: (i, 0)),\n                  pl.BlockSpec(memory_space=MS.SMEM)],\n        out_specs=pl.BlockSpec((rows, d), lambda i: (i, 0)),\n        out_shape=jax.ShapeDtypeStruct(x.shape, x.dtype),\n        input_output_aliases={0: 0},\n        interpret=True,\n    )(x, s)",
+     "caption": "Verified in interpret mode, jax 0.4.38. Notice the aliased input and output share one buffer, so writing to the output ref is writing into the caller's original array."
+    },
+    {
+     "kind": "p",
+     "text": "Aliasing changes what happens to a buffer, not what your kernel logic looks like, which is exactly why it deserves a debugging toolkit alongside it. A mistake in the aliasing declaration corrupts an input silently, since the caller's original array is now the same memory the kernel is writing into, and nothing about the kernel's own output looks wrong when that happens."
+    },
+    {
+     "kind": "p",
+     "text": "interpret=True runs the kernel's logic as ordinary JAX, anywhere, without a TPU. That makes it the fast path for checking that your indexing and math are correct, since you get a normal Python traceback instead of a compiler error buried under a lowering pass. It also means it ignores memory spaces entirely: VMEM, SMEM, and ANY all collapse into whatever plain JAX would do, so interpret mode cannot catch a lattice violation or a VMEM overflow. Both are properties of a memory layout the interpreter never builds in the first place, because there is no VMEM to overflow when the code underneath is just running as JAX."
+    },
+    {
+     "kind": "callout",
+     "label": "museum",
+     "href": "/mistakes#vmem-overflow",
+     "text": "See a kernel whose blocks do not fit in VMEM, a failure interpret mode cannot reproduce."
+    },
+    {
+     "kind": "callout",
+     "label": "museum",
+     "href": "/mistakes#lattice-violation",
+     "text": "See the same divisibility failure from section one, now in the context of what interpret mode misses."
+    },
+    {
+     "kind": "p",
+     "text": "debug=True catches what interpret mode cannot, because it runs the real lowering path instead of skipping it. It prints the kernel's jaxpr and the Mosaic module the compiler derives from it, the actual lowered representation, at the point where a lattice violation or a VMEM overflow would surface as a compile error rather than silently passing. Reading that printed module is slower going than reading a Python traceback, but it is the only place a memory-space failure actually shows up, since interpret mode never produces one to read."
+    },
+    {
+     "kind": "code",
+     "lang": "python",
+     "text": "# what Pallas built, printed at lowering time (no run needed)\njax.jit(f).lower(*args)   # on a TPU runtime, debug=True prints here\n\n# on a machine with no TPU, cross-lower for the tpu platform; the\n# Mosaic passes ship in jaxlib, so this works anywhere\nimport jax.export\njax.export.export(jax.jit(f), platforms=[\"tpu\"])(*args)",
+     "caption": "Verified with debug=True, jax 0.4.38. Notice the printed Mosaic module appears before the compiler decides whether the kernel is legal."
+    },
+    {
+     "kind": "p",
+     "text": "Between the two flags, the workflow is straightforward: run interpret=True first, while you are still checking that the kernel computes the right values at all, then drop it and turn on debug=True once you are chasing a compile-time failure that only shows up in the real memory layout. Neither flag replaces the other, because they are answering different questions: one asks whether the algebra is right, the other asks whether the schedule and the memory layout it produces are legal at all."
+    },
+    {
+     "kind": "p",
+     "text": "That split is worth keeping in mind whenever a kernel passes under interpret=True and then fails to lower on real hardware. The instinct is to suspect the algebra again, since that is what you just finished checking, but a failure that only appears once memory spaces are real almost always belongs to the second question, not the first: a block that does not fit in VMEM, or a shape that violates the tile rule from section one, neither of which interpret mode was ever in a position to see."
+    },
+    {
+     "kind": "callout",
+     "label": "museum",
+     "href": "/mistakes",
+     "text": "Browse the full error index before you hit these failures yourself."
+    }
+   ]
+  },
+  {
+   "h": "One language, three backends",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "Everything in this chapter lowers through Mosaic on TPU, the compiler pass that turns the algebra plus the schedule into the vector-register operations and DMAs a v5e or v6e chip actually runs. The same Pallas frontend, the same refs, the same grid and BlockSpec grammar, also targets GPU, through two different backends: a Triton backend, and Mosaic GPU, which is warp-specialized for H100-class hardware."
+    },
+    {
+     "kind": "p",
+     "text": "What transfers across all three backends is the part of the mental model that was actually about the algorithm, not about any one chip. The split between what runs as algebra inside the kernel body and what the schedule, the grid, the blocking, controls outside it: that split is a way of thinking about a kernel, and it holds regardless of where the kernel eventually runs. The ref-and-block abstraction itself transfers too, and so does interpret=True, since checking that a kernel computes the right values never depended on which chip it would later run on."
+    },
+    {
+     "kind": "p",
+     "text": "What does not transfer is the execution model underneath, and the difference is worth naming precisely rather than waving at. TPU runs the grid as a sequential software pipeline, one step overlapped with the next, because that is how a single large core with a big VMEM wants to be fed: few large steps, each one doing a lot of work, staged carefully so the next step's data is ready before the current one finishes. A GPU is built from thousands of smaller cores, so the same schedule maps instead onto thousands of concurrently scheduled blocks, a different shape of parallelism entirely rather than a faster version of the same one."
+    },
+    {
+     "kind": "p",
+     "text": "VMEM has no direct GPU equivalent either. The closest structure is shared memory, allocated and managed differently: smaller per unit of compute, and shared among the threads running on one GPU core rather than serving a single large TPU core the way VMEM does. The automatic pipelining Mosaic builds for you on TPU becomes, on Mosaic GPU, warp choreography you specify yourself: which groups of threads load, which compute, and when they hand off to each other, a decision the TPU backend makes for you by walking the grid in the order you already know."
+    },
+    {
+     "kind": "p",
+     "text": "A warp is a fixed-size group of threads that execute the same instruction together, the unit Mosaic GPU's specialization schedules around. TPU has no equivalent unit at all, because a TPU core was never built out of many small threads in the first place; it is one large core reading and writing a big VMEM, not a crowd of small ones coordinating over shared memory."
+    },
+    {
+     "kind": "p",
+     "text": "None of this means starting over on GPU. It means the algorithm and the correctness story you built in Pallas on TPU were never chip-specific to begin with. The scheduling code is what changes, and knowing exactly which part that is, the part this chapter has spent eight sections on, is what makes moving between backends a matter of rewriting a schedule rather than relearning what a kernel even is."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://docs.jax.dev/en/latest/pallas/gpu/index.html",
+     "text": "Read the Pallas GPU backend documentation."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://triton-lang.org/main/index.html",
+     "text": "Read the Triton documentation behind one of the two GPU backends."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://github.com/google-deepmind/tokamax",
+     "text": "See Tokamax, a library of Pallas kernels spanning both backends."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://github.com/jax-ml/jax",
+     "text": "Read the JAX source, where Pallas itself lives."
+    }
+   ]
+  },
+  {
+   "h": "Exercises",
+   "blocks": [
+    {
+     "kind": "exercise",
+     "text": "Take the scratch-accumulator matmul from this guide and change the scratch dtype to `bfloat16`. In interpret mode, measure the max error against `jnp.dot` at `K = 2048` for both versions, then explain the difference in one sentence about rounding events."
+    },
+    {
+     "kind": "exercise",
+     "text": "Before running anything: for a `(512, 512)` array with block shape `(128, 256)` and index map `lambda i, j: (j, i)`, write down which element offsets grid step `(1, 0)` reads. Then verify with a kernel that writes `pl.program_id` values into its output."
+    },
+    {
+     "kind": "exercise",
+     "text": "Break the lattice on purpose: pick a block shape of `(12, 100)` for an f32 array and read the compile error against the museum's lattice exhibit. Name the two numbers the message quotes and where each comes from."
+    },
+    {
+     "kind": "exercise",
+     "text": "The ragged kernel on the bench ran 1.98x faster at a mean length fraction of 0.414. Predict the speedup at a fraction of 0.25 before computing it, then say which overhead keeps the measured number below the ideal 1/fraction."
+    },
+    {
+     "kind": "exercise",
+     "text": "Print the Mosaic module for the scalar-prefetch permute kernel with `debug=True`. Find your index map compiled into a transform function and confirm the prefetched scalars arrive as arguments before any ref."
+    }
+   ]
+  }
+ ]
+}

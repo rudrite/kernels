@@ -1,0 +1,170 @@
+{
+ "sections": [
+  {
+   "h": "The anatomy",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "Trace a JAX function and what comes back is a ClosedJaxpr, not a bare jaxpr. A jaxpr's equations reference variables, and some of those variables are not arguments at all. They are values the traced function closed over, arrays or constants pulled in from outside the function body. A ClosedJaxpr bundles the jaxpr together with those captured values, called consts, so the whole thing can be evaluated, printed, or handed to a transform without any live Python closure behind it. When you print a traced function in a REPL, the ClosedJaxpr is what prints."
+    },
+    {
+     "kind": "p",
+     "text": "The jaxpr itself has a small, fixed grammar. `invars` are the function's arguments, the variables a caller binds when it applies the jaxpr. `constvars` name the slots for closed-over values, matched positionally against the consts list on the ClosedJaxpr. Then come the equations, one per primitive the trace recorded, and finally `outvars`, the variables the jaxpr returns. Every equation binds a fresh variable on its left side and never rebinds it, which is what people mean by static single assignment form. Once a variable is bound in a jaxpr, it stays that value for the rest of the jaxpr's body."
+    },
+    {
+     "kind": "p",
+     "text": "Each equation also carries params in square brackets, the primitive's static configuration, the part that is not itself a traced value. A `dot_general` equation's params hold its dimension numbers. A reduction's params hold the axes it reduces over. These are not extra arguments smuggled in; they are compile-time settings the primitive needs in order to run, fixed at trace time and baked into the equation rather than threaded through as a variable. Reading a jaxpr means reading both parts, the variables flowing through and the params sitting beside each equation."
+    },
+    {
+     "kind": "p",
+     "text": "The distinction between `invars` and `constvars` also tells you something about the function itself. Values in `invars` are whatever you called the function with, different on every trace. Values behind `constvars` are the ones fixed by the Python closure at trace time, most often weights or shapes baked in before tracing started. Two ClosedJaxprs with the same equations can carry completely different consts, which is why the consts list travels with the jaxpr rather than living separately from it."
+    },
+    {
+     "kind": "gallery",
+     "id": "plain"
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://docs.jax.dev/en/latest/jaxpr.html",
+     "text": "The JAX docs lay out the jaxpr grammar formally, with the exact fields ClosedJaxpr, invars, constvars, and outvars carry."
+    }
+   ]
+  },
+  {
+   "h": "Transforms are jaxpr rewrites",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "The gallery function for this chapter is small on purpose: `dense(x, w, b) = tanh(x @ w + b)`, traced at `x` shaped `(32, 64)`, `w` shaped `(64, 64)`, and `b` shaped `(64,)`. Every variant below starts from that same traced jaxpr and asks what one specific transform does to it. The answer is never a rewrite of the Python source; JAX doesn't re-run your function through some separate path for `grad` versus `vmap`. It rewrites the jaxpr the first trace produced, which is why comparing the jaxprs side by side tells you exactly what each transform does."
+    },
+    {
+     "kind": "p",
+     "text": "Call `jax.grad` on `dense` and the forward jaxpr does not disappear, it grows a second half. Reverse-mode autodiff appends the backward pass as more equations in the same jaxpr: `transpose` equations undo the layout `dot_general` needed, `mul` and `sub` equations reconstruct the tanh derivative, `1 - tanh(x)^2`, sitting right around the original `tanh` equation, and `add_any` equations accumulate cotangents wherever a value fed more than one downstream use. This isn't a separate function running alongside the original. It's the same jaxpr grammar, just with more equations in it."
+    },
+    {
+     "kind": "gallery",
+     "id": "grad"
+    },
+    {
+     "kind": "p",
+     "text": "Call `jax.vmap` instead and the jaxpr looks almost identical to the original trace. Every shape in the traced program gains a leading batch dimension of 8, matching the axis you mapped over, while the equation list itself stays unchanged: `dot_general` is still `dot_general`, `tanh` is still `tanh`. `vmap` doesn't introduce a loop or a new primitive to walk over the batch. It adds one dimension to every operand and lets the existing primitives handle it, and that stability in the op set is intentional, not incidental."
+    },
+    {
+     "kind": "gallery",
+     "id": "vmap"
+    },
+    {
+     "kind": "p",
+     "text": "`jax.lax.scan` changes the picture more directly: the jaxpr now has one `scan` equation, and the loop body lives as a nested jaxpr inside that equation's params rather than as a flat sequence of equations. The carry, whatever state threads from one iteration to the next, is wired through the `scan` equation's inputs and outputs explicitly. Reading a scanned jaxpr means reading the outer equation for how the carry enters and leaves, then reading the inner jaxpr, which follows the same grammar as any other, for what a single step actually does."
+    },
+    {
+     "kind": "gallery",
+     "id": "scan"
+    },
+    {
+     "kind": "p",
+     "text": "`jax.remat` shows up only once you also take a gradient. Inside the grad trace, the recomputed forward pass sits as a nested jaxpr marked by a `remat2` primitive, marking exactly the region that gets recomputed on the backward pass instead of stored from the forward pass. It nests the same way a scan body nests: the params hold a jaxpr instead of a shape or an axis list, and reading it means stepping into that nested block like any other."
+    },
+    {
+     "kind": "gallery",
+     "id": "remat"
+    },
+    {
+     "kind": "p",
+     "text": "`jax.shard_map` rewrites the jaxpr around per-shard shapes rather than global ones: every array in the traced program is sized as it exists on one shard, not as the full logical array. `pbroadcast` equations appear where a value needs to reach every shard, but in this traced program no collective communication primitive shows up at all, because `dense` doesn't need one. Every shard can compute its own tanh, matmul, and add independently, and the jaxpr tells you that directly, before you would ever profile it."
+    },
+    {
+     "kind": "callout",
+     "label": "instrument",
+     "href": "/gym#xray",
+     "text": "GYM 04's corpus x-ray runs these same transforms against real traced programs so you can see grad, vmap, and scan rewrites at scale, not just on one small function."
+    }
+   ]
+  },
+  {
+   "h": "Reading nested jaxprs",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "Some primitives don't just carry numbers or axes in their params. They carry entire jaxprs. `lax.cond` carries its branches this way, one nested jaxpr per branch, each a complete function from the same inputs to the same output shape, and the primitive picks which one actually runs at execution time. `lax.scan` carries its loop body the same way, a single nested jaxpr applied once per iteration with the carry threaded in and out. In both cases, the params in square brackets that held a shape or a dtype for a simpler primitive now hold something built from the full grammar of the first section."
+    },
+    {
+     "kind": "p",
+     "text": "Printed output shows this nesting through indentation. A `scan` or `cond` equation appears at the outer level like any other, and beneath it, indented, sits the body it carries: its own `invars`, its own equations, its own `outvars`. Read that inner block exactly the way you read the outer one, because it is built from the same grammar, variables bound once, params in brackets, an `outvars` line at the end. The only thing that changes as you go deeper is how far it sits indented on the page. Nothing about how to read it changes."
+    },
+    {
+     "kind": "cf",
+     "id": "scan",
+     "which": "jaxpr"
+    },
+    {
+     "kind": "p",
+     "text": "This matters past the classroom example, because kernel jaxprs nest the same way. A pipelined Pallas kernel has a grid, and the grid's per-step body is exactly the kind of nested jaxpr that `scan` and `cond` produce here, an inner function with its own bindings that gets run once per step by the compiler. If you can read the scan example in this chapter, you can read that kernel jaxpr too, because it's the identical grammar one level deeper. Getting comfortable with nesting now is what keeps the kernel material legible later, instead of reading as a wall of unfamiliar syntax."
+    },
+    {
+     "kind": "callout",
+     "label": "instrument",
+     "href": "/gym#mosaic",
+     "text": "GYM 05's mosaic x-ray shows real kernel jaxprs nested the same way, so you can practice reading them a level deeper."
+    }
+   ]
+  },
+  {
+   "h": "Params, and the drills",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "Params are where a primitive keeps whatever isn't itself a traced value, the configuration that has to be fixed before the primitive can run rather than computed while it runs. `dot_general`'s params hold `dimension_numbers`, the exact statement of which axes contract against which and which axes broadcast, the information that turns two arrays into a matmul, a batched matmul, or a plain contraction, depending on what's in there. A reduction like `sum` or `max` holds `axes` in its params, the list of dimensions being collapsed. A type conversion holds `new_dtype`, the target type values get cast into. None of these are variables flowing through the jaxpr; they are settings the equation carries alongside it."
+    },
+    {
+     "kind": "p",
+     "text": "Reading params fluently is less about memorizing a table and more about repetition against real jaxprs, enough of them that `dimension_numbers` or `axes` stops requiring a lookup. That's what the drills are for: decoder exercises where you predict what an equation does from its params alone, oracle checks that confirm or correct the guess, and spot-the-decision exercises that isolate exactly which param changed the behavior. None of it is complicated once you've done it a dozen times. The difficulty is entirely in not having done it yet."
+    },
+    {
+     "kind": "p",
+     "text": "The same primitives keep showing up once you move into kernel material. A Pallas kernel body still lowers through `dot_general`, still carries `dimension_numbers`, still reduces along explicit `axes`. Nothing about the grammar changes there, only the shapes and the register tiling underneath it. That's the payoff of getting fluent with params here: by the time you're staring at a kernel jaxpr with a grid and a block spec wrapped around it, the params inside are already familiar, and what's new is only the pipelining around them."
+    },
+    {
+     "kind": "callout",
+     "label": "lab",
+     "href": "/gym#drills",
+     "text": "The GYM drills, decoder, oracle, spot-the-decision, drill exactly this: predicting an equation's behavior from its params."
+    },
+    {
+     "kind": "callout",
+     "label": "instrument",
+     "href": "/gym#xray",
+     "text": "GYM 04's corpus x-ray lets you page through params across many real traced programs instead of one example at a time."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://docs.jax.dev/en/latest/autodidax.html",
+     "text": "Autodidax builds a small JAX from scratch and shows exactly how tracing produces the invars, equations, and params you've been reading."
+    }
+   ]
+  },
+  {
+   "h": "Exercises",
+   "blocks": [
+    {
+     "kind": "exercise",
+     "text": "Before opening the vmap gallery entry: predict how many equations `dense` gains under `jax.vmap` and what happens to each shape. Then check. The answer to the first question is the lesson."
+    },
+    {
+     "kind": "exercise",
+     "text": "Trace any three-line function of your own with `jax.make_jaxpr`, close over one array from outside the function, and point at where it surfaces: invars or constvars?"
+    },
+    {
+     "kind": "exercise",
+     "text": "In the grad gallery entry, find the equations computing the tanh derivative and name the variable holding the incoming cotangent. The `mul` and `sub` pattern around `tanh` is the fingerprint."
+    },
+    {
+     "kind": "exercise",
+     "text": "Run the gym's dot_general decoder until a streak of 5, then come back and read the `dimension_numbers` param on the gallery's matmul equation without the drill's help."
+    }
+   ]
+  }
+ ]
+}
