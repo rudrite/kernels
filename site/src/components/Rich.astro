@@ -10,10 +10,12 @@ import { GLOSSARY } from '../lib/glossary'
 
 interface Props {
   text: string
-  /** Set false on surfaces that should stay quiet (labels, captions). */
+  /** Set false on surfaces that should stay quiet (labels, captions, links). */
   terms?: boolean
+  /** The current chapter href; terms taught on this very page stay plain. */
+  self?: string
 }
-const { text, terms = true } = Astro.props
+const { text, terms = true, self } = Astro.props
 
 const escaped = text
   .replaceAll('&', '&amp;')
@@ -29,7 +31,8 @@ let working = escaped.replace(/\$[^$]+\$|`[^`]+`/g, (m) => {
 })
 
 if (terms) {
-  const patterns = GLOSSARY.flatMap((g) => [g.t, ...(g.alt ?? [])].map((p) => ({ p, g })))
+  const patterns = GLOSSARY.filter((g) => g.href !== self)
+    .flatMap((g) => [g.t, ...(g.alt ?? [])].map((p) => ({ p, g })))
     .sort((a, b) => b.p.length - a.p.length)
   const canon = new Map(patterns.map(({ p, g }) => [p, g]))
   const re = new RegExp(

@@ -65,7 +65,7 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
     <div class="wrap">
       <p class="mono-label kicker">the path · chapter {String(idx + 1).padStart(2, '0')} of 15 · part i, the descent</p>
       <h1>{doc.title}</h1>
-      <p class="lede"><Rich text={doc.lede} /></p>
+      <p class="lede"><Rich text={doc.lede} self={`/l/${doc.id}`} /></p>
     </div>
   </section>
 
@@ -90,7 +90,7 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
             <SectionHead id={slug(sec.h)} eyebrow="the layer" title={sec.h.charAt(0).toUpperCase() + sec.h.slice(1)} />
             {sec.ps.map((p) => (
               <p class="theory">
-                <Rich text={p} />
+                <Rich text={p} self={`/l/${doc.id}`} />
               </p>
             ))}
             {sec.code && (
@@ -129,7 +129,7 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
             {sec.blocks.map((b) => {
               if (b.kind === 'p') return (
                 <p class="theory">
-                  <Rich text={b.text!} />
+                  <Rich text={b.text!} self={`/l/${doc.id}`} />
                 </p>
               )
               if (b.kind === 'code') return (
@@ -184,7 +184,7 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
               if (b.kind === 'exercise') return (
                 <div class="exercise">
                   <span class="mono-label ex-tag">exercise</span>
-                  <span class="ex-text"><Rich text={b.text!} /></span>
+                  <span class="ex-text"><Rich text={b.text!} self={`/l/${doc.id}`} /></span>
                 </div>
               )
               if (b.kind === 'callout') return (
@@ -192,11 +192,11 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
                   <span class="mono-label">{b.label}</span>
                   {b.href ? (
                     <a href={b.href} target={b.href.startsWith('http') ? '_blank' : undefined} rel={b.href.startsWith('http') ? 'noopener' : undefined}>
-                      <Rich text={b.text!} />
+                      <Rich text={b.text!} terms={false} />
                       {b.href.startsWith('http') && ' ↗'}
                     </a>
                   ) : (
-                    <span class="crossref-text"><Rich text={b.text!} /></span>
+                    <span class="crossref-text"><Rich text={b.text!} terms={false} /></span>
                   )}
                 </aside>
               )
