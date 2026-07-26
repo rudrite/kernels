@@ -30,7 +30,6 @@ import { matmulTrace } from '../../exhibits/matmul'
 import { flashTrace, ringTrace, causalSkipTrace } from '../../exhibits/flash'
 import type { TraceDoc } from '../../exhibits/types'
 import { STAGES } from '../../data/track'
-import { depthFor } from '../../lib/depth'
 import { CHECKLISTS } from '../../data/checklists'
 import { walk as matmulWalk } from '../../data/walks/matmul'
 import { walk as softmaxWalk } from '../../data/walks/softmax'
@@ -42,7 +41,6 @@ export function getStaticPaths() {
 }
 
 const { stage } = Astro.props
-const depth = depthFor(`s:${stage.id}`)
 
 const tracesByStage: Record<string, { designator: string; trace: TraceDoc }[]> = {
   pallas: [
@@ -89,10 +87,10 @@ const toc = [...chapterToc, ...fixedToc]
 ---
 
 <Base title={`Stage ${stage.num}: ${stage.title} — Rudrite Kernels`} description={stage.goal}>
-  <section class={`chapter-head ${depth.cls} ${depth.dark ? 'depth-dark' : ''}`}>
+  <section class="chapter-head">
     <div class="wrap">
-      <p class="mono-label kicker">the path · chapter {String(10 + stage.num).padStart(2, '0')} of 15 · part ii, the track · this stage lives at this depth of the stack</p>
-      <TitleBlock stage={stage} variant={depth.dark ? 'dark' : undefined} />
+      <p class="mono-label kicker">the path · chapter {String(10 + stage.num).padStart(2, '0')} of 15 · part ii, the track</p>
+      <TitleBlock stage={stage} />
       <p class="goal">{stage.goal}</p>
     </div>
   </section>
@@ -325,13 +323,10 @@ const toc = [...chapterToc, ...fixedToc]
   @media (max-width: 1240px) { .layout { grid-template-columns: 12.5rem minmax(0, 1fr); } .right { display: none; } }
   @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .side { position: static; display: none; } }
 
-  .chapter-head { padding-block: 2rem 2.25rem; border-bottom: 1px solid var(--rule-soft); }
-  .chapter-head.depth-dark { border-bottom-color: var(--panel-rule); }
+  .chapter-head { padding-block: 2rem 2.25rem; background: var(--paper-high); border-bottom: 1px solid var(--rule); }
   .chapter-head .kicker { color: var(--copper-deep); margin-bottom: 0.875rem; }
-  .chapter-head.depth-dark .kicker { color: var(--copper); }
   .block { margin-top: 3rem; }
   .chapter-head .goal { margin-top: 1.25rem; font-size: 1.25rem; line-height: 1.55; max-width: 62ch; }
-  .chapter-head.depth-dark .goal { color: var(--panel-ink); }
   .howto { display: flex; align-items: baseline; gap: 1.25rem; flex-wrap: wrap; border-block: 1px solid var(--rule-soft); padding-block: 0.75rem; margin-top: 1.75rem; }
   .howto ol { display: flex; gap: 1.5rem; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; counter-reset: step; font-family: var(--mono); font-size: 0.75rem; color: var(--ink-mute); }
   .howto li { counter-increment: step; }

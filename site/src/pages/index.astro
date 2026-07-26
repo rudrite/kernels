@@ -70,7 +70,7 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
       <h1>Learn to make TPUs fast.</h1>
       <p class="lede">
         This page is the stack. Scroll and you descend it: four layers of compiler land on paper, the
-        gap, then the dark where kernels live. Each layer is a chapter with assigned mastery work;
+        gap, then the shaded depths where kernels live. Each layer is a chapter with assigned mastery work;
         the stages are pinned where they belong; your progress rides on every entry.
       </p>
       <div class="cta-row">
@@ -254,10 +254,10 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
     background: repeating-linear-gradient(-45deg, #d2d4cc, #d2d4cc 6px, #c8cac2 6px, #c8cac2 7px);
   }
   .depth-5, .depth-6, .depth-7, .depth-8 { color: var(--panel-ink); border-top-color: var(--panel-rule); }
-  .depth-5 { background: #23262b; }
-  .depth-6 { background: #1b1e22; }
-  .depth-7 { background: #15171b; }
-  .depth-8 { background: #101215; }
+  .depth-5 { background: #3a3f46; }
+  .depth-6 { background: #33383f; }
+  .depth-7 { background: #2d3138; }
+  .depth-8 { background: #272b32; }
 
   .band-depth { display: flex; flex-direction: column; gap: 0.375rem; font-family: var(--mono); }
   .bd-ch { font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--copper-deep); }
@@ -276,7 +276,7 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
 
   .band-stages { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.875rem; }
   .stage-chip { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--mono); font-size: 0.75rem; border: 1px solid var(--ink-mute); border-radius: 2px; padding: 0.375rem 0.625rem; text-decoration: none; background: var(--paper-high); color: var(--ink); }
-  .depth-5 .stage-chip, .depth-6 .stage-chip, .depth-7 .stage-chip, .depth-8 .stage-chip { background: #1a1d21; border-color: #4a525a; color: var(--panel-ink); }
+  .depth-5 .stage-chip, .depth-6 .stage-chip, .depth-7 .stage-chip, .depth-8 .stage-chip { background: #22262c; border-color: #5a626b; color: var(--panel-ink); }
   .stage-chip:hover { border-color: var(--copper-deep); color: var(--copper-deep); }
   .chip-num { font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--copper-deep); font-weight: 500; }
   .depth-5 .chip-num, .depth-8 .chip-num { color: var(--copper); }
@@ -289,14 +289,11 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
   .depth-gap .band-motif { color: var(--copper-deep); }
 
   /* the workshop: the dark floor beneath the stack */
-  .workshop { background: #101215; color: var(--panel-ink); padding-block: 3rem 3.5rem; }
-  .workshop :global(.shead .eyebrow) { color: var(--panel-mute); }
-  .workshop :global(.shead .eyebrow::after) { background: var(--panel-rule); }
-  .workshop :global(.shead h2) { color: var(--panel-ink); }
-  .ws-lede { color: var(--panel-mute); max-width: 60ch; margin-bottom: 1.5rem; }
+  .workshop { background: var(--paper-high); border-top: 1px solid var(--rule); padding-block: 3rem 3.5rem; }
+  .ws-lede { color: var(--ink-mute); max-width: 60ch; margin-bottom: 1.5rem; }
   .instr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
   @media (max-width: 900px) { .instr-grid { grid-template-columns: 1fr; } }
-  .instr-card { text-decoration: none; border-color: #2f343a; }
+  .instr-card { text-decoration: none; }
   .instr-card .body { padding: 0.875rem; display: flex; flex-direction: column; gap: 0.375rem; }
   .instr-card .it { color: var(--panel-ink); font-size: 0.875rem; }
   .instr-card .ik { color: var(--panel-mute); font-size: 0.75rem; }
@@ -304,8 +301,8 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
 
   .receipts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2.5rem; align-items: start; margin-top: 2.5rem; }
   @media (max-width: 1000px) { .receipts { grid-template-columns: 1fr; } }
-  .ws-head { display: block; margin-bottom: 0.625rem; color: var(--copper); }
-  .ws-prose p { font-family: var(--serif); font-size: 1rem; line-height: 1.65; color: var(--panel-ink); }
+  .ws-head { display: block; margin-bottom: 0.625rem; color: var(--copper-deep); }
+  .ws-prose p { font-family: var(--serif); font-size: 1rem; line-height: 1.65; color: var(--ink); }
   .bench-teaser table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
   .bench-teaser th { text-align: left; font-weight: 500; font-size: 0.6875rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--panel-mute); padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--panel-rule); }
   .bench-teaser td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--panel-rule); }

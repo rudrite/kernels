@@ -8,7 +8,6 @@ import ReadingRails from '../../components/ReadingRails.astro'
 import PathPager from '../../components/PathPager.astro'
 import MasteryWork from '../../components/MasteryWork.astro'
 import { LAYERS, STAGES } from '../../data/track'
-import { depthFor } from '../../lib/depth'
 import { LAYER_DOCS, layerDoc } from '../../data/layers'
 import irData from '../../data/ir-attention.json'
 
@@ -20,7 +19,6 @@ const { doc } = Astro.props
 const order = LAYERS.map((l) => l.id)
 const idx = order.indexOf(doc.id)
 const drillStage = doc.drills ? STAGES.find((s) => s.id === doc.drills!.stage) : undefined
-const depth = depthFor(`l:${doc.id}`)
 
 const irText = (which: 'source' | 'jaxpr' | 'stablehlo', lines?: [number, number]) => {
   const all = irData[which] as string[]
@@ -32,9 +30,9 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
 ---
 
 <Base title={`${doc.title} — the stack, layer by layer — Rudrite Kernels`} description={doc.lede}>
-  <section class={`chapter-head ${depth.cls} ${depth.dark ? 'depth-dark' : ''}`}>
+  <section class="chapter-head">
     <div class="wrap">
-      <p class="mono-label kicker">the path · chapter {String(idx + 1).padStart(2, '0')} of 15 · part i, the descent · this layer's own depth</p>
+      <p class="mono-label kicker">the path · chapter {String(idx + 1).padStart(2, '0')} of 15 · part i, the descent</p>
       <h1>{doc.title}</h1>
       <p class="lede"><Rich text={doc.lede} /></p>
     </div>
@@ -126,13 +124,10 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
   @media (max-width: 1240px) { .layout { grid-template-columns: 12.5rem minmax(0, 1fr); } .right { display: none; } }
   @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .side { display: none; } }
 
-  .chapter-head { padding-block: 2rem 2.25rem; border-bottom: 1px solid var(--rule-soft); }
-  .chapter-head.depth-dark { border-bottom-color: var(--panel-rule); }
+  .chapter-head { padding-block: 2rem 2.25rem; background: var(--paper-high); border-bottom: 1px solid var(--rule); }
   .chapter-head .kicker { color: var(--copper-deep); margin-bottom: 0.875rem; }
-  .chapter-head.depth-dark .kicker { color: var(--copper); }
   .chapter-head h1 { font-size: clamp(1.875rem, 4.5vw, 2.75rem); font-weight: 600; letter-spacing: -0.01em; }
   .chapter-head .lede { margin-top: 0.75rem; font-size: 1.1875rem; color: var(--ink-mute); max-width: 62ch; }
-  .chapter-head.depth-dark .lede { color: var(--panel-mute); }
   .block { margin-top: 2.5rem; }
   .block > h2 { margin-bottom: 0.875rem; }
   .theory { margin-bottom: 1em; }
