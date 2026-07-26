@@ -108,6 +108,35 @@
    ]
   },
   {
+   "h": "XProf, the whole instrument",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "XProf is the profiler for the whole XLA stack: a capture library wired into jax, plus a viewer that renders what it caught. You reach it two ways. Programmatically, `jax.profiler.trace` writes a capture you can parse in code, which is how this course uses it. Interactively, the TensorBoard profile plugin (now the standalone xprof project) opens the same capture as a set of tools, each built to answer one kind of question."
+    },
+    {
+     "kind": "p",
+     "text": "Know the tools by the question each answers. The overview page answers where the step went: device compute, input pipeline, or host. The trace viewer is the timeline itself, every op on every plane against time: overlap and bubbles live here, and GYM\u00b708 is a reading of exactly this pane's data. The op profile is the league table: time by op and category, which five ops actually matter. The memory tools answer OOM forensics: allocation over time, and which buffer owns the peak. The graph viewer is the compiled HLO, clickable. Newer builds add a roofline view that places each op against the machine's ceiling automatically, which is stage 0's discipline as a built-in pane."
+    },
+    {
+     "kind": "p",
+     "text": "The routing table, by symptom: a slow step starts at the overview page. Low MXU utilization goes to the op profile, then the trace viewer to find the bubbles between compute. An OOM goes to the memory viewer. An op you cannot explain goes to the graph viewer, and if it is a custom call, to this course's museum of reasons the models cannot see inside it. Multi-chip timing questions go to the pod tools, which is gate 04 country."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://docs.jax.dev/en/latest/profiling.html",
+     "text": "The official jax profiling guide: TensorBoard setup, live capture, and the trace viewer."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://github.com/openxla/xprof",
+     "text": "The xprof project itself: the viewer's source, and the protos this course parses directly."
+    }
+   ]
+  },
+  {
    "h": "Reading the machine's own account",
    "blocks": [
     {
@@ -123,6 +152,10 @@
     {
      "kind": "p",
      "text": "The working loop has four beats, and the order is the discipline. Predict the number from constants first, the way stage 0 drills. Profile to get the machine's account. **Attribute the gap op by op**: an unattributed gap is a guess wearing a number. Then change exactly one thing and measure again. Every optimization story this site tells, from the `dimension_semantics` retune to the byte-confirm, is this loop run honestly."
+    },
+    {
+     "kind": "diagram",
+     "id": "profile-loop"
     },
     {
      "kind": "callout",
@@ -148,6 +181,10 @@
     {
      "kind": "p",
      "text": "The third account settled it. The device timeline put 217.6 \u00b5s of hardware time on the two ops that carry the score matrix, and time converts to bytes through bandwidth. Not nameplate bandwidth: no real stream hits the datasheet ceiling. A pure 1 GB copy measured this chip at 1287.5 GB/s, 80.5% of nameplate, and at that achieved rate 217.6 \u00b5s is 280.2 MB. The estimate said 276.8. Agreement within 1.2%, and the cost model's 155.2 turned out to be an artifact: it cannot see inside custom calls."
+    },
+    {
+     "kind": "diagram",
+     "id": "three-accounts"
     },
     {
      "kind": "p",
@@ -193,6 +230,48 @@
      "label": "instrument",
      "href": "/gym#timeline",
      "text": "Hover every op in GYM\u00b708 until each one explains itself back to you."
+    }
+   ]
+  },
+  {
+   "h": "How a capture works",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "There is no magic in a capture, and knowing its shape strips the tool of mystery. Host-side, the runtime records python and dispatch events; device-side, the TPU reports timed op events and counter samples. Everything lands in one container, the `XSpace`: planes for each device and host, lines within a plane for each stream, and timed events on each line carrying metadata (the op's name, its HLO text) and stats. That is the whole format. GYM\u00b708 came from about forty lines of reading it."
+    },
+    {
+     "kind": "diagram",
+     "id": "xspace-anatomy"
+    },
+    {
+     "kind": "p",
+     "text": "Capture discipline, learned here the measured way: compile outside the window, or the trace is mostly compilation. Trace steady state, enough iterations to swamp noise, and keep the window small, since host-side tracing has real overhead. One file lands per host. And parse programmatically when you want numbers rather than pictures: the viewer and your script read the same bytes."
+    },
+    {
+     "kind": "callout",
+     "label": "instrument",
+     "href": "/gym#timeline",
+     "text": "GYM\u00b708: the parsed device plane of a real capture, op by op."
+    }
+   ]
+  },
+  {
+   "h": "Reading it like an operator",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "Six habits turn a wall of events into a diagnosis. Name the envelope first: the `jit_<fn>` event is wall time per call, and every other number is judged against it. Subtract the compute sum from the envelope: the difference is your unhidden transfer time, named exactly. League-table the ops: the top five carry the step, and the rest is noise until proven otherwise."
+    },
+    {
+     "kind": "p",
+     "text": "Then the subtler three. Check counts against iterations: an op at \u00d740 for 20 iterations is a pair, usually an async start and its span, and pairs are how you spot overlap. Treat custom calls as first-class suspects: they are opaque to every cost model, and the biggest finding this course made on hardware was a custom call nobody wrote. Close with the roofline: convert the big ops' times to bytes and flops through measured rates, place them against the ridge, and say memory-bound or compute-bound with a number attached. At that point the profile is not a picture anymore; it is an argument."
+    },
+    {
+     "kind": "callout",
+     "label": "bench",
+     "href": "/bench",
+     "text": "Rows M-018 through M-023: one full argument of this shape, run to a 1.2% close."
     }
    ]
   },

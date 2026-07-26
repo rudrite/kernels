@@ -182,3 +182,34 @@ The GPU-specific drills, if a wing ever earns its place:
   deeper than TPU allows); SASS behind closed ptxas is the true box
 - Error vocabulary: register pressure and occupancy via ptxas -v and
   Nsight Compute; GPUs run badly where TPUs refuse to compile
+
+
+## The mastery matrix (2026-07-27)
+
+The sure-shot path check: every subject has teaching, drilling, doing,
+and a measured proof. Chapter numbers, gym stations, labs, and gates:
+
+- jaxpr: ch02 guide + transform gallery · GYM 02/03/06 + the corpus ·
+  LAB 2.1 · 276 source-pinned eqns in the corpus
+- StableHLO: ch03 guide + control-flow corpus · GYM 01/04 · LAB 2.1 ·
+  the custom_call bridge taught with the museum receipt
+- XLA and optimized HLO: ch04 guide · GYM 03/07 · LAB 2.2 · gate 02
+  closed at 1.2% with the fusion x-ray as the exhibit
+- Pallas: ch06 flagship guide (all features, verified snippets) ·
+  EX 02/07/09 + walks · LAB 1.1 to 1.4 + power day · gates 01 and 03
+  passed on measured retunes and pinned differentials
+- Mosaic: ch07 guide + boundary drawn exactly · GYM 05 · LAB 1.4's
+  debug cell · the captured module corpus
+- The machines + XProf: ch08 guide at ten sections (architecture both
+  chips, capture, the three accounts, pane mastery, operator habits) ·
+  EX 01/06 + GYM 08 · LAB 0.1 and LAB 2.3 · gates 00 and 02
+- Kernels: stage 3 chapter + flash/causal/splash walks · EX 03/08 ·
+  LAB 3.1 to 3.4 · gate 03 passed, power rows as the wins
+- ICI and distributed: ch09 guide · EX 04/10/11 · LAB 4.1/4.2 verified
+  off-chip · gate 04 awaits a multi-chip slice
+- The capstone: reader-owned gate with the three criteria, runnable
+  starting points, and the venues; tracked through mastery items
+
+Known open edges, honestly: gate 04 hardware; no gym drill for the
+distributed vocabulary yet (the stage instruments carry it); second
+passes on guides as jax versions move.

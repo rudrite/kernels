@@ -100,9 +100,10 @@ export const MASTERY: Record<string, WorkItem[]> = {
     { id: 'canyou', label: 'tick every can-you item honestly', auto: { type: 'checklist', stage: 'distributed', total: 7 } },
   ],
   's:capstone': [
-    { id: 'read', label: 'read the chapter; pick the gap and write the derivation first' },
-    { id: 'build', label: 'forward and backward, differential-tested, benchmarked against floor and ceiling' },
-    { id: 'upstream', label: 'send it upstream; link the review from the site' },
+    { id: 'read', label: 'read the chapter; pick your kernel from the gap and write the derivation first' },
+    { id: 'suite', label: 'differential suite green: forward and grads, precision pinned, bars stated', href: '#gate' },
+    { id: 'beat', label: 'beats XLA at your target shapes, benchmarked with provenance', href: '#gate' },
+    { id: 'upstream', label: 'the PR is public: review thread linked, feedback worked', href: '#gate' },
     { id: 'canyou', label: 'tick every can-you item honestly', auto: { type: 'checklist', stage: 'capstone', total: 7 } },
   ],
 }

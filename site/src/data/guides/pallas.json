@@ -389,7 +389,7 @@
     {
      "kind": "callout",
      "label": "go deeper",
-     "href": "https://github.com/google-deepmind/tokamax",
+     "href": "https://github.com/openxla/tokamax",
      "text": "See Tokamax, a library of Pallas kernels spanning both backends."
     },
     {

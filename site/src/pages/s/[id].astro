@@ -29,7 +29,7 @@ import labsData from '../../data/labs.generated.json'
 import { matmulTrace } from '../../exhibits/matmul'
 import { flashTrace, ringTrace, causalSkipTrace } from '../../exhibits/flash'
 import type { TraceDoc } from '../../exhibits/types'
-import { STAGES } from '../../data/track'
+import { CAPSTONE, STAGES } from '../../data/track'
 import { CHECKLISTS } from '../../data/checklists'
 import { walk as matmulWalk } from '../../data/walks/matmul'
 import { walk as softmaxWalk } from '../../data/walks/softmax'
@@ -266,10 +266,51 @@ const toc = [...chapterToc, ...fixedToc]
         )
       }
 
-      <section class="block">
-        <SectionHead id="gate" eyebrow="pass or fail, in public" title="The gate" />
-        <GateStamp stage={stage} />
-      </section>
+      {
+        stage.gate ? (
+          <section class="block">
+            <SectionHead id="gate" eyebrow="pass or fail, in public" title="The gate" />
+            <GateStamp stage={stage} />
+          </section>
+        ) : (
+          <section class="block">
+            <SectionHead id="gate" eyebrow="the finale is yours" title="Your gate" />
+            <p class="theory yg-lede">{CAPSTONE.lede}</p>
+
+            <div class="yg-criteria">
+              {CAPSTONE.criteria.map((cr, i) => (
+                <div class="yg-row">
+                  <span class="mono-label yg-num">{String(i + 1).padStart(2, '0')}</span>
+                  <div class="yg-body">
+                    <h3 class="yg-c">{cr.c}</h3>
+                    <p class="yg-how">{cr.how}</p>
+                    <a class="yg-link" href={cr.href} target={cr.href.startsWith('http') ? '_blank' : undefined} rel={cr.href.startsWith('http') ? 'noopener' : undefined}>{cr.link}</a>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <h3 class="yg-subhead">Three starting points, runnable today</h3>
+            <div class="yg-cands">
+              {CAPSTONE.candidates.map((cd) => (
+                <div class="yg-card">
+                  <h4>{cd.t}</h4>
+                  <p class="yg-why">{cd.why}</p>
+                  <p class="yg-start">{cd.start}</p>
+                  <a class="yg-link" href={cd.href} target={cd.href.startsWith('http') ? '_blank' : undefined} rel={cd.href.startsWith('http') ? 'noopener' : undefined}>{cd.link}</a>
+                </div>
+              ))}
+            </div>
+
+            <div class="yg-venues">
+              <span class="mono-label">where it ships</span>
+              {CAPSTONE.venues.map((v) => (
+                <p class="yg-venue"><a href={v.href} target="_blank" rel="noopener">{v.t} ↗</a> · {v.note}</p>
+              ))}
+            </div>
+          </section>
+        )
+      }
 
       <PathPager chapterKey={`s:${stage.id}`} />
     </article>
@@ -285,7 +326,7 @@ const toc = [...chapterToc, ...fixedToc]
           <span class="rail-head">stage</span>
           <div class="card">
             <div class="row"><span class="k">schedule</span><span>{stage.weeks}</span></div>
-            <div class="row"><span class="k">gate</span><span>{stage.gate.state}</span></div>
+            <div class="row"><span class="k">gate</span><span>{stage.gate ? stage.gate.state : 'yours'}</span></div>
             <div class="row"><span class="k">hardware</span><span>Colab TPU</span></div>
           </div>
         </div>
@@ -346,4 +387,24 @@ const toc = [...chapterToc, ...fixedToc]
   .ex-stack { display: flex; flex-direction: column; gap: 1.25rem; }
   .canyou-panel { padding-top: 0.5rem; }
 
+
+  .yg-lede { max-width: 68ch; }
+  .yg-criteria { margin-top: 1.25rem; border: 1px solid var(--rule); background: var(--paper-high); }
+  .yg-row { display: flex; gap: 1rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--rule-soft); }
+  .yg-row:last-child { border-bottom: none; }
+  .yg-num { color: var(--copper-deep); padding-top: 0.2rem; }
+  .yg-c { font-family: var(--mono); font-size: 0.9375rem; font-weight: 500; }
+  .yg-how { margin-top: 0.375rem; font-size: 0.9375rem; color: var(--ink-mute); max-width: 64ch; line-height: 1.6; }
+  .yg-link { display: inline-block; margin-top: 0.5rem; font-family: var(--mono); font-size: 0.8125rem; color: var(--copper-deep); text-decoration: none; }
+  .yg-link:hover { text-decoration: underline; }
+  .yg-subhead { margin-top: 2rem; font-family: var(--mono); font-size: 0.9375rem; font-weight: 500; letter-spacing: 0.02em; }
+  .yg-cands { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; margin-top: 0.875rem; }
+  .yg-card { border: 1px solid var(--rule); background: var(--paper-high); padding: 1rem 1.125rem; display: flex; flex-direction: column; }
+  .yg-card h4 { font-family: var(--mono); font-size: 0.875rem; font-weight: 500; }
+  .yg-why { margin-top: 0.5rem; font-size: 0.875rem; color: var(--ink-mute); line-height: 1.55; flex: 1; }
+  .yg-start { margin-top: 0.5rem; font-size: 0.8125rem; color: var(--ink); line-height: 1.55; }
+  .yg-venues { margin-top: 2rem; border-top: 1px solid var(--rule); padding-top: 1rem; }
+  .yg-venue { margin-top: 0.5rem; font-size: 0.875rem; color: var(--ink-mute); }
+  .yg-venue a { font-family: var(--mono); color: var(--copper-deep); text-decoration: none; }
+  .yg-venue a:hover { text-decoration: underline; }
 </style>

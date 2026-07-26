@@ -9,8 +9,9 @@ import irData from '../data/ir-attention.json'
 import chips from '../data/chips.json'
 import results from '../../../bench/results.json'
 
-const gatesTotal = STAGES.length
-const gatesPassed = STAGES.filter((s) => s.gate.state === 'passed').length
+const gated = STAGES.filter((s) => s.gate)
+const gatesTotal = gated.length
+const gatesPassed = gated.filter((s) => s.gate!.state === 'passed').length
 const heroTrace = flashTrace(4)
 const v5e = chips.chips.find((c) => c.id === 'v5e')!
 
@@ -126,7 +127,7 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
                   <div class="band-stages">
                     {pinned.map((s) => (
                       <a class="stage-chip" href={`/s/${s.id}`} data-chapter-key={`s:${s.id}`}>
-                        <span class="led" data-state={s.gate.state === 'queued' ? undefined : s.gate.state} />
+                        <span class="led" data-state={!s.gate || s.gate.state === 'queued' ? undefined : s.gate.state} />
                         <span class="chip-num">ch {pad(10 + s.num)}</span>
                         <span class="chip-title">{s.title}</span>
                         <span class="chip-frac meas" data-work-frac={`s:${s.id}`}></span>

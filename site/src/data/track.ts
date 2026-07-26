@@ -43,7 +43,8 @@ export interface Stage {
   readings: Reading[]
   work: WorkBlock[]
   labs: Lab[]
-  gate: Gate
+  /** The site's published gate; the capstone has none because its gate is the reader's. */
+  gate?: Gate
 }
 
 const COLAB = 'https://colab.research.google.com/github/rudrite/kernels/blob/main/'
@@ -425,17 +426,62 @@ export const STAGES: Stage[] = [
       },
     ],
     labs: [],
-    gate: {
-      state: 'queued',
-      criteria: [
-        'Correct under the differential suite',
-        'Beats XLA decisively at target shapes, within striking distance of the hand-tuned ceiling',
-        'The upstream submission exists in public',
-      ],
-      measured: [null, null, null],
-    },
   },
 ]
+
+/** The capstone's bar belongs to the reader, so it ships as instructions
+ *  with runnable starting points instead of a site-measured gate. */
+export const CAPSTONE = {
+  lede:
+    'Every gate above was measured by this site and published. This one is yours: the site cannot run it, and that is the point. Three criteria, each with the exact method this course already proved out, and three starting points you can open and run today.',
+  criteria: [
+    {
+      c: 'Correct under the differential suite',
+      how: 'The gate-close methodology, exactly: f32 pipelines with matmul precision pinned against tight bars, bf16 reported as relative error against an f32 reference, edge cases enumerated. Copy the harness from the gate-close lab.',
+      href: COLAB + 'labs/gate-close.ipynb',
+      link: 'open the differential harness in Colab ↗',
+    },
+    {
+      c: 'Beats XLA decisively at your target shapes',
+      how: 'The power-day bar: the compiler is the baseline, not naive code; every number carries chip, dtype, shapes, and method; the hand-tuned ceiling (Tokamax) is named and measured against.',
+      href: COLAB + 'labs/pallas-power.ipynb',
+      link: 'open the benchmark harness in Colab ↗',
+    },
+    {
+      c: 'The submission exists in public',
+      how: 'A PR to Tokamax or the JAX Pallas ops directory. Upstream review is the one referee that cannot be gamed, and what review changes about your kernel is part of the learning.',
+      href: 'https://github.com/openxla/tokamax',
+      link: 'Tokamax, the natural venue ↗',
+    },
+  ],
+  candidates: [
+    {
+      t: 'Ragged attention, hardened',
+      why: 'The power bench already shows the toy version beating padded XLA by 1.98x, and the profiler proved the compiler pattern-matches only vanilla attention: data-dependent variants are exactly where recognition stops.',
+      start: 'Start from the ragged kernel in the power notebook; harden it with splash-style block masks and a backward pass.',
+      href: COLAB + 'labs/pallas-power.ipynb',
+      link: 'the ragged kernel, runnable now ↗',
+    },
+    {
+      t: 'Block-mask attention (splash-lite)',
+      why: 'Windowed attention ran 4.87x past XLA masked at seq 16k on this bench. General block masks are the production version, and the Splash walk annotates the real machinery line by line.',
+      start: 'Start from the windowed kernel and the Splash walk; generalize the loop bounds to an arbitrary block mask fed by scalar prefetch.',
+      href: '/s/kernels#walks',
+      link: 'the Splash walk, annotated',
+    },
+    {
+      t: 'A fused quantized decode kernel that wins',
+      why: 'The int8 fight ended 0.95x: the compiler kept that one. Finding the shape and quantization scheme where the fused kernel wins, and proving it with provenance, is a capstone with a built-in adversary.',
+      start: 'Start from the dequant kernel in the power notebook; sweep shapes and schemes until the win is decisive or the negative result is airtight.',
+      href: '/bench',
+      link: 'the current record to beat',
+    },
+  ],
+  venues: [
+    { t: 'Tokamax', href: 'https://github.com/openxla/tokamax', note: 'custom accelerator kernels for TPU and GPU, built on Pallas; read its contribution surface before you write a line' },
+    { t: 'JAX Pallas ops', href: 'https://github.com/jax-ml/jax/tree/main/jax/experimental/pallas/ops/tpu', note: 'the in-tree kernel directory; smaller surface, same referee' },
+  ],
+}
 
 export interface Layer {
   id: string

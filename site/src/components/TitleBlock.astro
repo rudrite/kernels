@@ -6,7 +6,7 @@ interface Props {
   stage: Stage
 }
 const { stage } = Astro.props
-const gateLabel = { queued: 'QUEUED', active: 'OPEN', passed: 'PASSED', failed: 'FAILED' }[stage.gate.state]
+const gateLabel = stage.gate ? { queued: 'QUEUED', active: 'OPEN', passed: 'PASSED', failed: 'FAILED' }[stage.gate.state] : 'YOURS'
 ---
 
 <div class="tb" role="group" aria-label={`Stage ${stage.num}: ${stage.title}`}>
@@ -24,7 +24,7 @@ const gateLabel = { queued: 'QUEUED', active: 'OPEN', passed: 'PASSED', failed: 
   </div>
   <div class="cell">
     <span class="k">gate</span>
-    <span class="v gate"><span class="led" data-state={stage.gate.state === 'queued' ? undefined : stage.gate.state}></span>{gateLabel}</span>
+    <span class="v gate"><span class="led" data-state={!stage.gate || stage.gate.state === 'queued' ? undefined : stage.gate.state}></span>{gateLabel}</span>
   </div>
 </div>
 
