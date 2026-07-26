@@ -278,7 +278,7 @@ export default function DotDecoder() {
         .setup { display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem; flex-wrap: wrap; padding-bottom: 0.75rem; border-bottom: 1px solid ${PANEL_RULE}; }
         .shapes { display: flex; flex-direction: column; gap: 0.3rem; margin: 0; min-width: 0; }
         .shapes > div { display: flex; gap: 0.6rem; align-items: baseline; }
-        .shapes dt { flex: 0 0 auto; font-size: 0.625rem; letter-spacing: 0.08em; text-transform: uppercase; color: ${PANEL_MUTE}; }
+        .shapes dt { flex: 0 0 auto; font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: ${PANEL_MUTE}; }
         .shapes dd { margin: 0; font-size: 0.8125rem; color: ${PANEL_INK}; white-space: nowrap; }
         .shapes .dn dd { white-space: pre; }
 
@@ -286,7 +286,7 @@ export default function DotDecoder() {
         .meta .streak { color: ${COPPER}; font-size: 0.75rem; }
 
         .prompt { display: flex; gap: 0.75rem; align-items: baseline; margin: 0.75rem 0 0.625rem; font-size: 0.8125rem; color: ${PANEL_INK}; }
-        .prompt .step { font-size: 0.625rem; letter-spacing: 0.08em; color: ${PANEL_MUTE}; }
+        .prompt .step { font-size: 0.6875rem; letter-spacing: 0.08em; color: ${PANEL_MUTE}; }
 
         .choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 0.5rem; }
         .choice { background: transparent; color: ${PANEL_INK}; border: 1px solid ${PANEL_RULE}; border-radius: 2px; font-family: inherit; font-size: 0.8125rem; padding: 0.5rem 0.625rem; text-align: left; cursor: pointer; }

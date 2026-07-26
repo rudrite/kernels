@@ -173,7 +173,7 @@ export default function Roofline() {
         .roofline { overflow-x: auto; }
         .roofline svg { width: 100%; min-width: 560px; height: auto; display: block; }
         .roofline .readout { display: flex; gap: 1.75rem; flex-wrap: wrap; padding-top: 0.75rem; margin: 0; }
-        .roofline dt { font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase; color: ${PANEL_MUTE}; }
+        .roofline dt { font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; color: ${PANEL_MUTE}; }
         .roofline dd { margin: 0.15rem 0 0; font-size: 0.8125rem; color: ${PANEL_INK}; }
         .roofline dd.copper { color: ${COPPER}; }
         .roofline dd.steel { color: ${STEEL}; }

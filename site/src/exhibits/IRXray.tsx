@@ -66,7 +66,7 @@ export default function IRXray() {
         .xray { font-family: 'IBM Plex Mono', monospace; }
         .xray .cols { display: grid; grid-template-columns: minmax(180px, 0.7fr) 1fr 1.3fr; gap: 1px; background: ${PANEL_RULE}; }
         .xray .col { background: #101215; min-width: 0; }
-        .xray .col-head { font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase; color: ${PANEL_MUTE}; padding: 0.5rem 0.75rem; border-bottom: 1px solid ${PANEL_RULE}; }
+        .xray .col-head { font-size: 0.6875rem; letter-spacing: 0.12em; text-transform: uppercase; color: ${PANEL_MUTE}; padding: 0.5rem 0.75rem; border-bottom: 1px solid ${PANEL_RULE}; }
         .xray pre { margin: 0; padding: 0.5rem 0; overflow-x: auto; }
         .xray .ln { display: block; width: 100%; text-align: left; background: transparent; border: none; border-left: 3px solid transparent; color: ${PANEL_MUTE}; font: inherit; font-size: 0.6875rem; line-height: 1.6; padding: 0 0.75rem; white-space: pre; cursor: default; }
         .xray .ln.mapped { color: ${PANEL_INK}; cursor: pointer; }

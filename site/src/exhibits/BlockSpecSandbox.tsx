@@ -233,7 +233,7 @@ export default function BlockSpecSandbox() {
         .bss .gridnote { margin: 0.4rem 0 0; font-size: 0.75rem; color: ${PANEL_MUTE}; }
 
         .bss .readout { display: flex; gap: 1.75rem; flex-wrap: wrap; padding-top: 0.875rem; margin: 0; }
-        .bss dt { font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase; color: ${PANEL_MUTE}; }
+        .bss dt { font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; color: ${PANEL_MUTE}; }
         .bss dd { margin: 0.15rem 0 0; font-size: 0.8125rem; color: ${PANEL_INK}; }
         .bss dd.pass { color: ${PASS}; }
         .bss dd.fail { color: ${FAIL}; }

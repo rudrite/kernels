@@ -231,7 +231,7 @@ export default function ShapeOracle() {
 
         .setup { display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem; flex-wrap: wrap; padding-bottom: 0.75rem; border-bottom: 1px solid ${PANEL_RULE}; }
         .op { display: flex; gap: 0.6rem; align-items: baseline; }
-        .op .k { font-size: 0.625rem; letter-spacing: 0.08em; text-transform: uppercase; color: ${PANEL_MUTE}; }
+        .op .k { font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: ${PANEL_MUTE}; }
         .op .v { font-size: 0.9375rem; color: ${COPPER}; }
 
         .inputs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem; }
