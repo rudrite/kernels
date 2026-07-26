@@ -11,11 +11,12 @@ Architecture: exhibits play traces. A trace is a JSON-serializable list of frame
 
 ## E2E completion pass
 
-- [ ] Labs pipeline: `labs/stage-0/lab-0.1-rooflines.ipynb` (real, runnable, tagged cells), `scripts/extract-labs.mjs` (ipynb → generated JSON, gitignored, runs before astro build), notebook cells rendered on stage pages, LabCard honest states (Colab link activates when repo is public)
-- [ ] IR x-ray (EX·05, Stage 2): real jaxpr + StableHLO generated with jax 0.4.38 (cpu; both IRs backend-independent), hover-synced three-column view; optimized HLO deliberately left as the stage's TPU lab exercise
-- [ ] Trace generator unit tests (vitest): frame counts, slot alternation, transport swap invariant between flash and ring
-- [ ] OG images in title-block style for all 8 pages + meta tags
-- [ ] Deploy rig: GitHub Pages workflow (test + build + firewall gate), CNAME kernels.rudrite.com; remote/push left manual pending the open-source release check
-- [ ] Loop: build → screenshots read → fix → commit per concern
+- [x] Labs pipeline: lab-0.1 authored, executed on cpu to verify, badge added; extract-labs runs before every build; cells render on stage pages with lane coloring
+- [x] IR x-ray (EX·05, Stage 2): real dumps (jax 0.4.38), hover/focus sync verified in browser (rowsum group lights 8 jaxpr + 5 StableHLO lines)
+- [x] Trace generator unit tests: 6 passing (vitest)
+- [x] OG images (8, chromium-rendered from the title-block template) + meta tags
+- [x] Deploy rig: CI workflow (test + build + firewall) green on GitHub; production = Cloudflare Pages per deploy/README.md, same pattern as research
+- [x] Repo public at github.com/rudrite/kernels (user authorized mid-build: teaching material only, engine stays private); Colab deep link + badge active
+- [x] Loop ran: every surface screenshot-read before its commit
 
 Out of scope (later): predict-then-reveal, paste-back compare.
