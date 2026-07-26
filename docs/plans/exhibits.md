@@ -9,4 +9,13 @@ Architecture: exhibits play traces. A trace is a JSON-serializable list of frame
 - [x] Iteration C: reuse proof. One generator, `remote` flag swaps HBM DMA for ICI transport (dashed edges, dashed tiles); renderer unchanged between flash and ring, as designed.
 - [x] Iteration D: audit. All 8 routes 200; console 0 errors 0 warnings; mobile fixed after screenshot read (min-width + own scroller, SVGs no longer shrink to illegibility); firewall clean over files, dist, history.
 
-Out of scope (later): IR x-ray, predict-then-reveal, paste-back compare, notebook extraction pipeline, deploy.
+## E2E completion pass
+
+- [ ] Labs pipeline: `labs/stage-0/lab-0.1-rooflines.ipynb` (real, runnable, tagged cells), `scripts/extract-labs.mjs` (ipynb → generated JSON, gitignored, runs before astro build), notebook cells rendered on stage pages, LabCard honest states (Colab link activates when repo is public)
+- [ ] IR x-ray (EX·05, Stage 2): real jaxpr + StableHLO generated with jax 0.4.38 (cpu; both IRs backend-independent), hover-synced three-column view; optimized HLO deliberately left as the stage's TPU lab exercise
+- [ ] Trace generator unit tests (vitest): frame counts, slot alternation, transport swap invariant between flash and ring
+- [ ] OG images in title-block style for all 8 pages + meta tags
+- [ ] Deploy rig: GitHub Pages workflow (test + build + firewall gate), CNAME kernels.rudrite.com; remote/push left manual pending the open-source release check
+- [ ] Loop: build → screenshots read → fix → commit per concern
+
+Out of scope (later): predict-then-reveal, paste-back compare.

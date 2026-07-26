@@ -13,6 +13,10 @@ interface Props {
   description: string
 }
 const { title, description } = Astro.props
+
+const path = Astro.url.pathname
+const ogSlug = path === '/' ? 'home' : path === '/bench' ? 'bench' : path.startsWith('/s/') ? path.split('/')[2]! : 'home'
+const ogImage = new URL(`/og/${ogSlug}.png`, Astro.site)
 ---
 
 <!doctype html>
@@ -24,6 +28,11 @@ const { title, description } = Astro.props
     <meta name="description" content={description} />
     <link rel="icon" href="/mark.svg" type="image/svg+xml" />
     <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
     <header class="site-header">
