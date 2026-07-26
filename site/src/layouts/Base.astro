@@ -37,7 +37,10 @@ const ogImage = new URL(`/og/${ogSlug}.png`, Astro.site)
   <body>
     <header class="site-header">
       <div class="wrap bar">
-        <a href="/" class="home-link" aria-label="Rudrite Kernels home"><Lockup size={22} /></a>
+        <a href="/" class="home-link" aria-label="Rudrite Kernels home">
+          <span class="lk-desktop"><Lockup size={26} tagline /></span>
+          <span class="lk-mobile"><Lockup size={20} /></span>
+        </a>
         <nav aria-label="Site">
           <a href="/" class="mono-label">Track</a>
           <a href="/bench" class="mono-label">Bench</a>
@@ -59,6 +62,11 @@ const ogImage = new URL(`/og/${ogSlug}.png`, Astro.site)
   .site-header { border-bottom: 1px solid var(--rule); background: var(--paper-high); }
   .bar { display: flex; align-items: center; justify-content: space-between; padding-block: 0.875rem; }
   .home-link { text-decoration: none; }
+  .lk-mobile { display: none; }
+  @media (max-width: 700px) {
+    .lk-desktop { display: none; }
+    .lk-mobile { display: inline; }
+  }
   nav { display: flex; gap: 1.5rem; }
   nav a { text-decoration: none; color: var(--ink-mute); }
   nav a:hover { color: var(--copper-deep); }
