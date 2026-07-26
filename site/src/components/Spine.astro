@@ -17,7 +17,7 @@ const { currentLayer } = Astro.props
         const pinned = stagesForLayer(layer.id)
         const here = layer.id === currentLayer
         return (
-          <li class={here ? 'here' : ''} data-kind={layer.kind}>
+          <li class={`spine-tick ${here ? 'here' : ''}`} data-kind={layer.kind} data-chapter-key={`l:${layer.id}`}>
             <span class="tick" aria-hidden="true" />
             <span class="name">{layer.label}</span>
             {pinned.map((s) => (

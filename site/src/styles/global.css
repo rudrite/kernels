@@ -183,3 +183,20 @@ main {
 .rail ul a { display: block; padding-block: 0.25rem; color: var(--ink); text-decoration: none; }
 .rail ul a:hover { color: var(--copper-deep); }
 .rail ul a::before { content: '\203A  '; color: var(--copper-deep); }
+
+/* personal progress decorations */
+[data-chapter-key] { position: relative; }
+[data-chapter-key].p-done .onum { color: var(--pass); }
+[data-chapter-key].p-done::after {
+  content: '\2713';
+  font-family: var(--mono); font-size: 0.6875rem; color: var(--pass);
+  margin-left: 0.5rem;
+}
+.spine-tick.p-done .name::after { content: ' \2713'; color: var(--pass); font-size: 0.625rem; }
+.lab-toggle {
+  background: transparent; border: 1px solid var(--panel-rule); border-radius: 2px;
+  color: var(--panel-mute); font-family: var(--mono); font-size: 0.6875rem;
+  padding: 0.25rem 0.55rem; cursor: pointer;
+}
+.lab-toggle:hover { border-color: var(--copper); color: var(--copper); }
+.lab-toggle.done { border-color: var(--pass); color: var(--pass); }

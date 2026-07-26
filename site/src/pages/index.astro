@@ -64,15 +64,15 @@ const OUTCOMES = [
         published pass or fail.
       </p>
       <div class="cta-row">
-        <a class="cta primary" href="/l/source">start the path → chapter 1</a>
+        <a class="cta primary" href="/l/source" data-continue><span data-continue-label>start the path → chapter 1</span></a>
         <a class="cta" href="https://github.com/rudrite/kernels" rel="noopener">the repo</a>
       </div>
       <p class="stat-line" aria-label="Track status">
         <span class="meas">{gatesPassed}/{gatesTotal}</span> gates passed ·
-        <span class="meas">13</span> runnable labs · <span class="meas">8</span> instruments · currently at
-        <a href={`/s/${STAGES.find((s) => s.gate.state === 'active')?.id ?? STAGES[0]!.id}`}
-          >stage {STAGES.find((s) => s.gate.state === 'active')?.num ?? 0}</a>
+        <span class="meas">13</span> runnable labs · your progress
+        <span class="meas" data-path-progress>0/15</span> chapters
       </p>
+      <div class="your-bar" aria-hidden="true"><i data-path-progress-bar></i></div>
     </div>
     <div class="hero-instrument">
       <Exhibit
@@ -113,7 +113,7 @@ const OUTCOMES = [
           {
             LAYERS.map((l, i) => (
               <li>
-                <a href={`/l/${l.id}`}>
+                <a href={`/l/${l.id}`} data-chapter-key={`l:${l.id}`}>
                   <span class="onum">{String(i + 1).padStart(2, '0')}</span>
                   <span class="otitle">{l.label}</span>
                   <span class="oweeks">~20 min</span>
@@ -129,7 +129,7 @@ const OUTCOMES = [
           {
             STAGES.map((s, i) => (
               <li>
-                <a href={`/s/${s.id}`}>
+                <a href={`/s/${s.id}`} data-chapter-key={`s:${s.id}`}>
                   <span class="led" data-state={s.gate.state === 'queued' ? undefined : s.gate.state} />
                   <span class="onum">{String(LAYERS.length + i + 1).padStart(2, '0')}</span>
                   <span class="otitle">{s.title}</span>
@@ -213,6 +213,8 @@ const OUTCOMES = [
   .cta.primary { border-color: var(--copper-deep); color: var(--copper-deep); }
   .stat-line { margin-top: 1.5rem; font-family: var(--mono); font-size: 0.8125rem; color: var(--ink-mute); }
   .stat-line a { color: var(--copper-deep); }
+  .your-bar { height: 2px; background: var(--rule-soft); margin-top: 0.5rem; max-width: 24rem; }
+  .your-bar i { display: block; height: 100%; width: 0; background: var(--pass); }
 
   .block { padding-block: 2.5rem 0.5rem; }
   .sec-lede { color: var(--ink-mute); margin-bottom: 1.5rem; }

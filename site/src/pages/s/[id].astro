@@ -282,9 +282,16 @@ const toc = [...chapterToc, ...fixedToc]
           <span class="rail-head">stage</span>
           <div class="card">
             <div class="row"><span class="k">schedule</span><span>{stage.weeks}</span></div>
-            <div class="row"><span class="k">labs</span><span>{stage.labs.length}</span></div>
             <div class="row"><span class="k">gate</span><span>{stage.gate.state}</span></div>
             <div class="row"><span class="k">hardware</span><span>Colab TPU</span></div>
+          </div>
+        </div>
+        <div>
+          <span class="rail-head">your progress</span>
+          <div class="card">
+            <div class="row"><span class="k">labs run</span><span data-sp-labs={stage.labs.map((l) => l.designator).join(',')}>0/{stage.labs.length}</span></div>
+            {checklist.length > 0 && <div class="row"><span class="k">can-you</span><span data-sp-checklist={stage.id} data-total={checklist.length}>0/{checklist.length}</span></div>}
+            {stage.id === 'ir' && <div class="row"><span class="k">gym streak</span><span data-sp-streak="gym.dot.streak">0</span></div>}
           </div>
         </div>
         <div>

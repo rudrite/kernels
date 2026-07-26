@@ -14,6 +14,7 @@ const { lab } = Astro.props
     <div class="top">
       <span class="designator">{lab.designator}</span>
       <span class="meta">{lab.time} · {lab.hardware}</span>
+      <button type="button" class="lab-toggle" data-lab-toggle={lab.designator}>mark as run</button>
     </div>
     <h3>{lab.title}</h3>
   </div>

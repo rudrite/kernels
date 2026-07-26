@@ -1,0 +1,104 @@
+---
+// The learner's progress model, entirely in the browser: chapters visited,
+// labs marked run, checklists, drill streaks. This script decorates any
+// element carrying the data attributes below; pages opt in by rendering them.
+// No accounts, no network: localStorage only, and the site reads fine
+// without JS (the decorations simply stay absent).
+import { LAYERS, STAGES } from '../data/track'
+
+const PATH = [
+  ...LAYERS.map((l) => ({ key: `l:${l.id}`, href: `/l/${l.id}`, label: l.label })),
+  ...STAGES.map((s) => ({ key: `s:${s.id}`, href: `/s/${s.id}`, label: `stage ${s.num} · ${s.title}` })),
+]
+---
+
+<script is:inline define:vars={{ PATH }}>
+  const store = {
+    get(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key)
+        return raw ? JSON.parse(raw) : fallback
+      } catch {
+        return fallback
+      }
+    },
+    set(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value))
+      } catch {
+        /* storage full or blocked: progress is a convenience, not a requirement */
+      }
+    },
+  }
+
+  // 1. mark the current chapter visited
+  const m = location.pathname.match(/^\/(l|s)\/([a-z-]+)$/)
+  const visited = store.get('path.visited', {})
+  if (m) {
+    const key = `${m[1]}:${m[2]}`
+    if (!visited[key]) {
+      visited[key] = new Date().toISOString().slice(0, 10)
+      store.set('path.visited', visited)
+    }
+  }
+
+  // 2. decorate chapter rows and spine entries
+  for (const el of document.querySelectorAll('[data-chapter-key]')) {
+    if (visited[el.getAttribute('data-chapter-key')]) el.classList.add('p-done')
+  }
+
+  // 3. overall path progress
+  const doneCount = PATH.filter((c) => visited[c.key]).length
+  for (const el of document.querySelectorAll('[data-path-progress]')) {
+    el.textContent = `${doneCount}/${PATH.length}`
+  }
+  for (const el of document.querySelectorAll('[data-path-progress-bar]')) {
+    el.style.width = `${Math.round((doneCount / PATH.length) * 100)}%`
+  }
+
+  // 4. continue where you left off
+  const nextChapter = PATH.find((c) => !visited[c.key]) ?? PATH[0]
+  for (const el of document.querySelectorAll('[data-continue]')) {
+    el.setAttribute('href', nextChapter.href)
+    const label = el.querySelector('[data-continue-label]')
+    if (label) label.textContent = doneCount === 0 ? `start the path → ${nextChapter.label}` : `continue → ${nextChapter.label}`
+  }
+
+  // 5. lab run toggles
+  const labs = store.get('labs.done', {})
+  const paintLab = (btn) => {
+    const id = btn.getAttribute('data-lab-toggle')
+    const done = Boolean(labs[id])
+    btn.classList.toggle('done', done)
+    btn.textContent = done ? 'ran it ✓' : 'mark as run'
+  }
+  for (const btn of document.querySelectorAll('[data-lab-toggle]')) {
+    paintLab(btn)
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-lab-toggle')
+      labs[id] = !labs[id]
+      store.set('labs.done', labs)
+      paintLab(btn)
+      fillStageCards()
+    })
+  }
+
+  // 6. per-stage progress card
+  const fillStageCards = () => {
+    for (const el of document.querySelectorAll('[data-sp-checklist]')) {
+      const id = el.getAttribute('data-sp-checklist')
+      const list = store.get(`checklist.${id}`, [])
+      const total = Number(el.getAttribute('data-total') || 0)
+      el.textContent = `${Array.isArray(list) ? list.filter(Boolean).length : 0}/${total}`
+    }
+    for (const el of document.querySelectorAll('[data-sp-labs]')) {
+      const ids = (el.getAttribute('data-sp-labs') || '').split(',').filter(Boolean)
+      el.textContent = `${ids.filter((id) => labs[id]).length}/${ids.length}`
+    }
+    for (const el of document.querySelectorAll('[data-sp-streak]')) {
+      const streak = store.get(el.getAttribute('data-sp-streak'), 0)
+      el.textContent = String(typeof streak === 'number' ? streak : 0)
+    }
+  }
+  fillStageCards()
+</script>
