@@ -1,131 +1,255 @@
 ---
 import Base from '../layouts/Base.astro'
 import StackMap from '../components/StackMap.astro'
+import SectionHead from '../components/SectionHead.astro'
+import Exhibit from '../components/Exhibit.astro'
+import Choreographer from '../exhibits/Choreographer'
+import { flashTrace } from '../exhibits/flash'
 import { LAYERS, STAGES } from '../data/track'
+import results from '../../../bench/results.json'
 
 const gatesTotal = STAGES.length
 const gatesPassed = STAGES.filter((s) => s.gate.state === 'passed').length
+const heroTrace = flashTrace(4)
+
+interface BenchRow {
+  id: string
+  kernel: string
+  metric: string
+  value: string
+  chip: string
+}
+const benchTeaser = (results as BenchRow[]).slice(0, 3)
+
+const INSTRUMENTS = [
+  { d: 'EX·01', t: 'the roofline playground', href: '/s/machine#instruments', k: 'drag shapes across the ridge' },
+  { d: 'EX·02', t: 'tiled matmul, double-buffered', href: '/s/pallas#instruments', k: 'watch the pipeline hide the DMA' },
+  { d: 'EX·05', t: 'the IR x-ray', href: '/s/ir#instruments', k: 'one program, three layers, hover-synced' },
+  { d: 'EX·03', t: 'streaming attention', href: '/s/kernels#instruments', k: 'the score matrix that never exists' },
+  { d: 'EX·08', t: 'causal skip', href: '/s/kernels#instruments', k: 'masked blocks are never loaded' },
+  { d: 'EX·04', t: 'ring attention', href: '/s/distributed#instruments', k: 'same schedule, longer arrows' },
+]
+
+const OUTCOMES = [
+  {
+    n: '01',
+    h: 'Read any IR on sight',
+    p: 'jaxpr, StableHLO, optimized HLO: you narrate unfamiliar dumps, decode any dot_general, and spot the decisions the framework made for you.',
+  },
+  {
+    n: '02',
+    h: 'Write kernels that beat XLA',
+    p: 'From rooflines to BlockSpecs to a flash attention you derived yourself, differential-tested and benchmarked against the hand-tuned ceiling.',
+  },
+  {
+    n: '03',
+    h: 'Treat the cluster as one kernel',
+    p: 'Collectives rebuilt from remote DMAs, communication hidden behind compute, and ring attention composed from theorems you proved once.',
+  },
+]
 ---
 
 <Base
   title="Rudrite Kernels — learn to make TPUs fast"
-  description="A fourteen-week, lab-driven track through the TPU kernel stack: the machine, Pallas, the IRs, the famous kernels, distributed kernels. Taught in public, every checkpoint measured on real hardware."
+  description="One path, fifteen chapters: the TPU kernel stack taught with live instruments, runnable labs, and gates measured on real hardware, pass or fail in public."
 >
   <section class="wrap hero">
-    <p class="mono-label kicker">a public curriculum · fourteen weeks · six gates</p>
-    <h1>Learn to make TPUs fast.</h1>
-    <p class="lede prose">
-      A lab-driven track through the TPU kernel stack: the machine itself, Pallas, the IRs, the kernels
-      everyone depends on, and the distributed kernels that hide communication behind compute. Theory on
-      paper, labs in Colab, and every stage ends at a gate measured on real hardware, published pass or fail.
-    </p>
-    <p class="stat-line" aria-label="Track status">
-      <span class="meas">{gatesPassed}/{gatesTotal}</span> gates passed · currently at
-      <a href={`/s/${STAGES.find((s) => s.gate.state === 'active')?.id ?? STAGES[0]!.id}`}
-        >stage {STAGES.find((s) => s.gate.state === 'active')?.num ?? 0}</a>
-    </p>
-    <div class="cta-row">
-      <a class="cta primary" href="/l/source">start the path → chapter 1 · JAX / PyTorch</a>
+    <div class="hero-copy">
+      <p class="mono-label kicker">a public curriculum · one path · fifteen chapters</p>
+      <h1>Learn to make TPUs fast.</h1>
+      <p class="lede">
+        The TPU kernel stack, taught from first principles: the machine, Pallas, the IRs, the kernels
+        everyone depends on, and the distributed kernels that hide communication behind compute. Live
+        instruments on every chapter, labs that run in Colab, and gates measured on real hardware,
+        published pass or fail.
+      </p>
+      <div class="cta-row">
+        <a class="cta primary" href="/l/source">start the path → chapter 1</a>
+        <a class="cta" href="https://github.com/rudrite/kernels" rel="noopener">the repo</a>
+      </div>
+      <p class="stat-line" aria-label="Track status">
+        <span class="meas">{gatesPassed}/{gatesTotal}</span> gates passed ·
+        <span class="meas">13</span> runnable labs · <span class="meas">8</span> instruments · currently at
+        <a href={`/s/${STAGES.find((s) => s.gate.state === 'active')?.id ?? STAGES[0]!.id}`}
+          >stage {STAGES.find((s) => s.gate.state === 'active')?.num ?? 0}</a>
+      </p>
+    </div>
+    <div class="hero-instrument">
+      <Exhibit
+        designator="EX·03"
+        title="streaming attention · a chapter 13 instrument, live"
+        provenance="scrub it: the carried (m, l, acc) state rescales exactly; the score matrix never exists"
+      >
+        <Choreographer trace={heroTrace} initialFrame={2} client:load />
+      </Exhibit>
     </div>
   </section>
 
-  <section class="wrap map-section" aria-labelledby="map-head">
-    <h2 id="map-head" class="mono-label sec">the map is the stack</h2>
+  <section class="wrap block">
+    <SectionHead id="outcomes" eyebrow="what the path produces" title="Fluency, not familiarity" />
+    <div class="outcomes">
+      {
+        OUTCOMES.map((o) => (
+          <div class="outcome">
+            <span class="onum meas">{o.n}</span>
+            <h3>{o.h}</h3>
+            <p>{o.p}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="wrap block" aria-labelledby="path">
+    <SectionHead id="path" eyebrow="one route, in order" title="The path" />
     <p class="prose sec-lede">
-      Every stage lives at the layer of the stack it teaches. The track descends from your source code to
-      the silicon, then crosses chips.
+      Part one descends the stack, one short chapter per layer, so nothing later is mysterious. Part two
+      is the track: six stages of labs and gates. Every chapter assumes only the ones before it.
+    </p>
+    <div class="path-cols">
+      <div>
+        <h3 class="mono-label part">part i · the descent</h3>
+        <ol class="order">
+          {
+            LAYERS.map((l, i) => (
+              <li>
+                <a href={`/l/${l.id}`}>
+                  <span class="onum">{String(i + 1).padStart(2, '0')}</span>
+                  <span class="otitle">{l.label}</span>
+                  <span class="oweeks">~20 min</span>
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+      <div>
+        <h3 class="mono-label part">part ii · the track</h3>
+        <ol class="order">
+          {
+            STAGES.map((s, i) => (
+              <li>
+                <a href={`/s/${s.id}`}>
+                  <span class="led" data-state={s.gate.state === 'queued' ? undefined : s.gate.state} />
+                  <span class="onum">{String(LAYERS.length + i + 1).padStart(2, '0')}</span>
+                  <span class="otitle">{s.title}</span>
+                  <span class="oweeks">{s.weeks}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap block" aria-labelledby="map-head">
+    <SectionHead id="map-head" eyebrow="where each chapter lives" title="The map is the stack" />
+    <p class="prose sec-lede">
+      Every stage sits at the layer of the stack it teaches. The gap between XLA and Pallas is drawn as
+      what it is: empty, until you learn to cross it.
     </p>
     <StackMap />
   </section>
 
-  <section class="wrap order-section" aria-labelledby="order-head">
-    <h2 id="order-head" class="mono-label sec">the path · one route, fifteen chapters</h2>
-    <p class="prose sec-lede">
-      Part one descends the stack, one short chapter per layer, so nothing later is mysterious. Part two
-      is the track itself: six stages of labs and gates. Follow it in order; every chapter assumes only
-      the ones before it.
-    </p>
-    <h3 class="mono-label part">part i · the descent</h3>
-    <ol class="order">
+  <section class="wrap block" aria-labelledby="instr">
+    <SectionHead id="instr" eyebrow="manipulable, never decorative" title="The instruments" />
+    <div class="instr-grid">
       {
-        LAYERS.map((l, i) => (
-          <li>
-            <a href={`/l/${l.id}`}>
-              <span class="onum">{String(i + 1).padStart(2, '0')}</span>
-              <span class="otitle">{l.label}</span>
-              <span class="oweeks">~20 min</span>
-            </a>
-          </li>
+        INSTRUMENTS.map((x) => (
+          <a class="panel instr-card" href={x.href}>
+            <div class="body">
+              <span class="designator">{x.d}</span>
+              <span class="it">{x.t}</span>
+              <span class="ik">{x.k}</span>
+            </div>
+          </a>
         ))
       }
-    </ol>
-    <h3 class="mono-label part">part ii · the track</h3>
-    <ol class="order">
-      {
-        STAGES.map((s, i) => (
-          <li>
-            <a href={`/s/${s.id}`}>
-              <span class="led" data-state={s.gate.state === 'queued' ? undefined : s.gate.state} />
-              <span class="onum">{String(LAYERS.length + i + 1).padStart(2, '0')}</span>
-              <span class="otitle">{s.title}</span>
-              <span class="oweeks">{s.weeks}</span>
-            </a>
-          </li>
-        ))
-      }
-    </ol>
+    </div>
   </section>
 
-  <section class="wrap how" aria-label="How the track works">
-    <div class="panel how-card">
-      <div class="body">
-        <span class="designator">READ</span>
-        <p>Theory on paper. Derivations come before code, references after your own attempt. Always.</p>
+  <section class="wrap block" aria-labelledby="receipts">
+    <SectionHead id="receipts" eyebrow="taught in public" title="Every number, with receipts" />
+    <div class="receipts">
+      <div class="prose">
+        <p>
+          Gates pass only on real hardware, and failures stay published. Nothing quantitative appears on
+          this site outside an instrument, and every value states what it is: a roofline prediction, an
+          off-chip verification, or a measured run with chip, dtype, shapes, and date attached.
+        </p>
+        <div class="how-cards">
+          <div class="panel how-card"><div class="body"><span class="designator">READ</span><p>Theory on paper. Derivations before code, references after your own attempt.</p></div></div>
+          <div class="panel how-card"><div class="body"><span class="designator">RUN</span><p>Every lab is a notebook in the repo. Open it in Colab, keep your copy.</p></div></div>
+          <div class="panel how-card"><div class="body"><span class="designator">GATE</span><p>A criterion, a measured number, a verdict. In public.</p></div></div>
+        </div>
       </div>
-    </div>
-    <div class="panel how-card">
-      <div class="body">
-        <span class="designator">RUN</span>
-        <p>Every lab is a notebook in this repo. Open it in Colab, run it on a real TPU, keep your copy.</p>
-      </div>
-    </div>
-    <div class="panel how-card">
-      <div class="body">
-        <span class="designator">GATE</span>
-        <p>Stages end at gates: a criterion, a measured number, a verdict. Failures stay published.</p>
+      <div class="panel bench-teaser">
+        <table>
+          <thead><tr><th>kernel</th><th>metric</th><th>value</th><th>chip</th></tr></thead>
+          <tbody>
+            {
+              benchTeaser.map((r) => (
+                <tr><td>{r.kernel}</td><td>{r.metric}</td><td class="val">{r.value}</td><td>{r.chip}</td></tr>
+              ))
+            }
+          </tbody>
+        </table>
+        <div class="provenance"><a href="/bench">the full bench →</a></div>
       </div>
     </div>
   </section>
 </Base>
 
 <style>
-  .hero { padding-block: clamp(3rem, 8vw, 5.5rem) 3rem; }
+  .hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 3rem; align-items: center; padding-block: clamp(2.5rem, 6vw, 4.5rem) 2rem; }
+  @media (max-width: 1100px) { .hero { grid-template-columns: 1fr; } }
   .kicker { display: block; margin-bottom: 1.25rem; color: var(--copper-deep); }
-  h1 { font-size: clamp(2.25rem, 6vw, 3.75rem); line-height: 1.05; font-weight: 600; letter-spacing: -0.01em; max-width: 18ch; }
-  .lede { margin-top: 1.5rem; font-size: 1.1875rem; }
-  .stat-line { margin-top: 1.5rem; font-family: var(--mono); font-size: 0.8125rem; color: var(--ink-mute); }
-  .stat-line a { color: var(--copper-deep); }
-
+  h1 { font-size: clamp(2.25rem, 5vw, 3.5rem); line-height: 1.05; font-weight: 600; letter-spacing: -0.01em; }
+  .lede { margin-top: 1.25rem; font-size: 1.125rem; max-width: 46ch; }
   .cta-row { display: flex; gap: 1rem; margin-top: 1.75rem; flex-wrap: wrap; }
   .cta { font-family: var(--mono); font-size: 0.8125rem; text-decoration: none; border: 1px solid var(--ink-mute); padding: 0.625rem 1rem; border-radius: 2px; color: var(--ink); background: var(--paper-high); }
   .cta:hover { border-color: var(--copper-deep); color: var(--copper-deep); }
   .cta.primary { border-color: var(--copper-deep); color: var(--copper-deep); }
+  .stat-line { margin-top: 1.5rem; font-family: var(--mono); font-size: 0.8125rem; color: var(--ink-mute); }
+  .stat-line a { color: var(--copper-deep); }
 
-  .order-section { padding-block: 2.5rem 0; }
-  .part { margin: 1.5rem 0 0.5rem; color: var(--copper-deep); }
-  .order { list-style: none; padding: 0; border-top: 1px solid var(--rule); }
-  .order a { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 0.25rem; border-bottom: 1px solid var(--rule-soft); text-decoration: none; font-family: var(--mono); font-size: 0.875rem; }
-  .order a:hover { background: var(--paper-high); color: var(--copper-deep); }
-  .onum { color: var(--copper-deep); font-weight: 500; width: 2rem; }
-  .otitle { flex: 1; }
-  .oweeks { color: var(--ink-mute); font-size: 0.75rem; }
-
-  .map-section { padding-block: 2rem 1rem; }
-  .sec { display: block; margin-bottom: 0.75rem; }
+  .block { padding-block: 2.5rem 0.5rem; }
   .sec-lede { color: var(--ink-mute); margin-bottom: 1.5rem; }
 
-  .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; padding-block: 3rem 1rem; }
-  .how-card .body { padding: 1rem; display: flex; flex-direction: column; gap: 0.625rem; }
-  .how-card p { font-family: var(--serif); font-size: 0.9375rem; line-height: 1.55; color: var(--panel-ink); }
-  @media (max-width: 780px) { .how { grid-template-columns: 1fr; } }
+  .outcomes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+  @media (max-width: 900px) { .outcomes { grid-template-columns: 1fr; } }
+  .outcome .onum { display: block; font-size: 1.5rem; color: var(--copper-deep); }
+  .outcome h3 { font-family: var(--serif); font-weight: 600; font-size: 1.1875rem; margin: 0.5rem 0; }
+  .outcome p { font-size: 0.9375rem; line-height: 1.6; color: var(--ink-mute); }
+
+  .path-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+  @media (max-width: 900px) { .path-cols { grid-template-columns: 1fr; } }
+  .part { margin: 0 0 0.5rem; color: var(--copper-deep); }
+  .order { list-style: none; padding: 0; border-top: 1px solid var(--rule); }
+  .order a { display: flex; align-items: center; gap: 0.875rem; padding: 0.6rem 0.25rem; border-bottom: 1px solid var(--rule-soft); text-decoration: none; font-family: var(--mono); font-size: 0.8125rem; }
+  .order a:hover { background: var(--paper-high); color: var(--copper-deep); }
+  .onum { color: var(--copper-deep); font-weight: 500; width: 1.75rem; }
+  .otitle { flex: 1; }
+  .oweeks { color: var(--ink-mute); font-size: 0.6875rem; }
+
+  .instr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  @media (max-width: 900px) { .instr-grid { grid-template-columns: 1fr; } }
+  .instr-card { text-decoration: none; }
+  .instr-card .body { padding: 0.875rem; display: flex; flex-direction: column; gap: 0.375rem; }
+  .instr-card .it { color: var(--panel-ink); font-size: 0.875rem; }
+  .instr-card .ik { color: var(--panel-mute); font-size: 0.75rem; }
+  .instr-card:hover .it { color: var(--copper); }
+
+  .receipts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2.5rem; align-items: start; }
+  @media (max-width: 1000px) { .receipts { grid-template-columns: 1fr; } }
+  .how-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-top: 1.25rem; }
+  @media (max-width: 700px) { .how-cards { grid-template-columns: 1fr; } }
+  .how-card .body { padding: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .how-card p { font-family: var(--serif); font-size: 0.8125rem; line-height: 1.5; color: var(--panel-ink); }
+  .bench-teaser table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+  .bench-teaser th { text-align: left; font-weight: 500; font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--panel-mute); padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--panel-rule); }
+  .bench-teaser td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--panel-rule); }
+  .bench-teaser .val { color: var(--copper); }
+  .bench-teaser .provenance a { color: var(--copper); text-decoration: none; }
 </style>

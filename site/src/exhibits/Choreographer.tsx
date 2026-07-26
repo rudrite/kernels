@@ -18,10 +18,12 @@ const GAP = 8
 
 interface Props {
   trace: TraceDoc
+  /** Frame to open on; lets embeddings start mid-schedule. Never autoplays. */
+  initialFrame?: number
 }
 
-export default function Choreographer({ trace }: Props) {
-  const [i, setI] = useState(0)
+export default function Choreographer({ trace, initialFrame = 0 }: Props) {
+  const [i, setI] = useState(Math.min(initialFrame, trace.frames.length - 1))
   const [playing, setPlaying] = useState(false)
   const reduced = useRef(false)
 
