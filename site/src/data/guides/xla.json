@@ -69,6 +69,12 @@
      "label": "bench",
      "href": "/bench",
      "text": "/bench carries the full attention numbers this receipt is drawn from, spill included."
+    },
+    {
+     "kind": "callout",
+     "label": "instrument",
+     "href": "/gym#fusion",
+     "text": "GYM\u00b707 holds all three captured programs open before and after the compiler, fusion ops lit and the spill underlined."
     }
    ]
   },

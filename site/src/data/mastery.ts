@@ -41,6 +41,7 @@ export const MASTERY: Record<string, WorkItem[]> = {
     { id: 'read', label: 'read the chapter: fusion and its exact limit' },
     { id: 'spot', label: 'spot the decision: streak of 3', href: '/gym#drills', auto: { type: 'streak', key: 'gym.spot.streak', goal: 3 } },
     { id: 'guide', label: 'the full guide: every section read, exercises worked', href: '#exercises' },
+    { id: 'fusion', label: 'fusion x-ray: find the spill in the attention plan', href: '/gym#fusion' },
   ],
   'l:gap': [
     { id: 'read', label: 'read the chapter: the two modes, and why the crossing is on foot' },

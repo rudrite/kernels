@@ -8,6 +8,7 @@ import SpotDecision from '../exhibits/SpotDecision'
 import CorpusXray from '../exhibits/CorpusXray'
 import MosaicXray from '../exhibits/MosaicXray'
 import TransformDrill from '../exhibits/TransformDrill'
+import FusionXray from '../exhibits/FusionXray'
 import opCards from '../data/op-cards.json'
 
 const cards = Object.entries(opCards as Record<string, string>)
@@ -85,6 +86,24 @@ const CATEGORIES = ['all', 'compute', 'reduction', 'shape', 'control', 'distribu
           </p>
           <Exhibit designator="GYM·04" title="the corpus x-ray" provenance="17 programs, 236 sync groups, all derived by the mapping script · nothing hand-drawn">
             <CorpusXray client:visible />
+          </Exhibit>
+        </div>
+      </div>
+    </section>
+
+    <section class="wband" id="fusion">
+      <div class="wrap wgrid">
+        <span class="wtag">before /<br />after</span>
+        <div>
+          <h2 class="wh2">The compiler's decisions, side by side</h2>
+          <p class="wlede narrow">
+            Chapter 04's two-dumps rule, made physical: the StableHLO XLA received on the left, the
+            optimized HLO it decided on the right, captured on a real TPU. Fusion ops light up in
+            copper, and the lines still carrying each program's big intermediate are underlined:
+            in the attention program that is the spill, sitting in the compiler's own plan.
+          </p>
+          <Exhibit designator="GYM·07" title="the fusion x-ray" provenance="three programs captured by labs/capture-hlo.ipynb on v6e-1 · dumps verbatim, runtime paths scrubbed">
+            <FusionXray client:visible />
           </Exhibit>
         </div>
       </div>
