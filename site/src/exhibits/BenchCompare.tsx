@@ -139,7 +139,14 @@ export default function BenchCompare() {
         rows={6}
       />
 
-      {parsed === null && <p className="hint">waiting for a results blob</p>}
+      {parsed === null && (
+        <p className="hint">
+          waiting for a results blob ·{' '}
+          <button type="button" className="try" onClick={() => setText(PLACEHOLDER)}>
+            try the example
+          </button>
+        </p>
+      )}
       {parsed !== null && !parsed.ok && <p className="error">{parsed.error}</p>}
 
       {parsed !== null && parsed.ok && (
@@ -198,15 +205,16 @@ export default function BenchCompare() {
 
       <style>{`
         .benchcompare { font-family: 'IBM Plex Mono', monospace; padding: 0.875rem; }
-        .benchcompare .paste-label { display: block; font-size: 0.6875rem; letter-spacing: 0.06em; color: ${PANEL_MUTE}; margin-bottom: 0.4rem; }
+        .benchcompare .paste-label { display: block; font-size: 0.75rem; letter-spacing: 0.06em; color: ${PANEL_MUTE}; margin-bottom: 0.4rem; }
         .benchcompare textarea {
           width: 100%; box-sizing: border-box; resize: vertical;
           background: transparent; color: ${PANEL_INK}; border: 1px solid ${PANEL_RULE};
-          border-radius: 2px; font-family: inherit; font-size: 0.75rem; line-height: 1.5;
+          border-radius: 2px; font-family: inherit; font-size: 0.8125rem; line-height: 1.6; padding: 0.625rem 0.75rem;
           padding: 0.5rem 0.625rem;
         }
-        .benchcompare textarea::placeholder { color: ${PANEL_MUTE}; opacity: 0.7; }
-        .benchcompare .hint { font-size: 0.75rem; color: ${PANEL_MUTE}; margin-top: 0.625rem; }
+        .benchcompare textarea::placeholder { color: #7e868d; opacity: 1; }
+        .benchcompare .hint { font-size: 0.8125rem; color: #b9bec3; margin-top: 0.625rem; }
+        .benchcompare .try { background: transparent; border: none; padding: 0; color: #c88a70; font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
         .benchcompare .error { font-size: 0.75rem; color: ${FAIL}; margin-top: 0.625rem; }
         .benchcompare .meta { display: flex; gap: 1.25rem; font-size: 0.75rem; color: ${PANEL_MUTE}; margin-top: 0.75rem; }
         .benchcompare .tablewrap { overflow-x: auto; margin-top: 0.625rem; }
