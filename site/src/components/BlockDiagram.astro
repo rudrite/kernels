@@ -1,0 +1,72 @@
+---
+// Server-rendered SVG block diagrams in the site's grammar: copper is
+// compute, steel is memory, dashed is control or absence. Specs live in
+// data/diagrams.ts; every label carries a real number and the caption
+// states its provenance. No hydration, no motion: a diagram is a figure.
+import type { DiagramSpec, DiagramEl } from '../data/diagrams'
+
+interface Props {
+  spec: DiagramSpec
+}
+const { spec } = Astro.props
+
+const TONE = {
+  copper: { fill: 'rgba(200, 138, 112, 0.10)', stroke: '#c88a70', text: '#e0b39e' },
+  steel: { fill: 'rgba(127, 152, 171, 0.10)', stroke: '#7f98ab', text: '#a9bccb' },
+  ink: { fill: '#16181c', stroke: '#2c3138', text: '#d6d9dc' },
+  mute: { fill: 'transparent', stroke: '#3a4046', text: '#9aa1a8' },
+} as const
+
+const lines = (s?: string) => (s ? s.split('\n') : [])
+---
+
+<svg viewBox={`0 0 ${spec.w} ${spec.h}`} role="img" aria-label={spec.alt} class="bdiag">
+  <defs>
+    <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0,0.5 L7.5,4 L0,7.5" fill="none" stroke="#9aa1a8" stroke-width="1.2" />
+    </marker>
+  </defs>
+  {
+    spec.els.map((el: DiagramEl) => {
+      if (el.k === 'box') {
+        const tone = TONE[el.tone ?? 'ink']
+        const subs = lines(el.s)
+        const cy = el.y + el.h / 2 - (subs.length * 11) / 2
+        return (
+          <g>
+            <rect x={el.x} y={el.y} width={el.w} height={el.h} rx="2" fill={tone.fill} stroke={tone.stroke} stroke-width="1" stroke-dasharray={el.dash ? '4 3' : undefined} />
+            <text x={el.x + el.w / 2} y={cy + 1} text-anchor="middle" fill={tone.text} font-size="12.5" font-weight="500">{el.t}</text>
+            {subs.map((s, i) => (
+              <text x={el.x + el.w / 2} y={cy + 15 + i * 11.5} text-anchor="middle" fill="#8d949c" font-size="9.5">{s}</text>
+            ))}
+          </g>
+        )
+      }
+      if (el.k === 'line') {
+        const tone = TONE[el.tone ?? 'mute']
+        return (
+          <g>
+            <line
+              x1={el.x1} y1={el.y1} x2={el.x2} y2={el.y2}
+              stroke={tone.stroke} stroke-width={el.w ?? 1.5}
+              stroke-dasharray={el.dash ? '4 3' : undefined}
+              marker-end={el.a === 'end' || el.a === 'both' ? 'url(#arr)' : undefined}
+              marker-start={el.a === 'both' ? 'url(#arr)' : undefined}
+              opacity="0.9"
+            />
+            {el.t && (
+              <text x={el.lx ?? (el.x1 + el.x2) / 2} y={el.ly ?? (el.y1 + el.y2) / 2 - 6} text-anchor="middle" fill="#9aa1a8" font-size="9.5">{el.t}</text>
+            )}
+          </g>
+        )
+      }
+      return (
+        <text x={el.x} y={el.y} text-anchor={el.anchor ?? 'start'} fill={TONE[el.tone ?? 'mute'].text} font-size={el.size ?? 10.5}>{el.t}</text>
+      )
+    })
+  }
+</svg>
+
+<style>
+  .bdiag { display: block; width: 100%; height: auto; font-family: var(--mono); background: #101215; }
+</style>

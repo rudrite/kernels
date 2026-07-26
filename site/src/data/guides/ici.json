@@ -8,6 +8,10 @@
      "text": "You already know the ring: chips wired so each one talks only to its two neighbors, moving shards with remote DMA instead of routing through a switch. This chapter puts names on the specific movements that ring supports. Five words cover nearly everything a distributed kernel does on a pod: all-gather, reduce-scatter, all-reduce, `collective_permute`, and all-to-all. Each is the same physical ring, with a different rule for what a chip forwards and what it keeps. Once you can picture the ring turning, these API names stop being jargon and start reading as a literal count of hops and payload."
     },
     {
+     "kind": "diagram",
+     "id": "ici-ring"
+    },
+    {
      "kind": "p",
      "text": "All-gather is the simple case: every chip starts with one shard and ends with all of them. On an N-chip ring, that takes N-1 hops. Each chip receives a shard from one neighbor, keeps a copy, and forwards it to the next neighbor in the same step. After N-1 of those steps, every chip holds a full copy of every shard that started anywhere on the ring. Nothing gets combined along the way; the ring just circulates data until it has covered every chip."
     },

@@ -1,6 +1,8 @@
 ---
 import { Code } from 'astro:components'
 import MlirCode from '../../components/MlirCode.astro'
+import BlockDiagram from '../../components/BlockDiagram.astro'
+import { DIAGRAMS } from '../../data/diagrams'
 import Base from '../../layouts/Base.astro'
 import Spine from '../../components/Spine.astro'
 import Rich from '../../components/Rich.astro'
@@ -28,7 +30,7 @@ const drillStage = doc.drills ? STAGES.find((s) => s.id === doc.drills!.stage) :
 // are prose, verified code, cross-reference callouts, or pulls from the
 // generated corpora (never retyped).
 interface GuideBlock {
-  kind: 'p' | 'code' | 'callout' | 'gallery' | 'cf' | 'mistake' | 'exercise'
+  kind: 'p' | 'code' | 'callout' | 'gallery' | 'cf' | 'mistake' | 'exercise' | 'diagram'
   text?: string
   caption?: string
   lang?: string
@@ -187,6 +189,16 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
                     <div class="codebody errbody">
                       <pre>{b.lines ? m.error.split('\n').slice(b.lines[0], b.lines[1] + 1).join('\n') : m.error}</pre>
                     </div>
+                  </figure>
+                )
+              }
+              if (b.kind === 'diagram') {
+                const d = DIAGRAMS[b.id!]
+                if (!d) return null
+                return (
+                  <figure class="panel codefig">
+                    <figcaption class="provenance top">{d.caption}</figcaption>
+                    <BlockDiagram spec={d} />
                   </figure>
                 )
               }

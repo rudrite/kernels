@@ -8,6 +8,10 @@
      "text": "A vector register on a TPU holds a fixed grid: 8 sublanes by 128 lanes. That grid is physical, not a convention, and it is the reason every `vector<...>` type printed in a lowered module has the shape it does. Sublanes run down the register, lanes run across it, and every value in a compiled kernel gets tiled into that grid before any op touches it. This section names the rule precisely: what the tile is, how dtype changes it, and where it shows up when a kernel breaks."
     },
     {
+     "kind": "diagram",
+     "id": "mosaic-boundary"
+    },
+    {
      "kind": "p",
      "text": "Change the dtype and the tile changes with it. Register width in bytes stays fixed, so narrower elements pack more rows into the same 8x128 footprint. `f32` keeps the base tile at `(8, 128)`. `bf16` packs two elements per lane slot and doubles the sublane count to `(16, 128)`. `int8` packs four and lands at `(32, 128)`. Rows and lanes are not free parameters you choose. They are consequences of how many bytes each element takes."
     },

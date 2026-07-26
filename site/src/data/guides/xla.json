@@ -43,6 +43,10 @@
      "text": "Fusion is XLA's main lever for cutting HBM traffic, and its taxonomy is what turns a compiled dump from a wall of unfamiliar names into an actual diagnosis. Every fusion op in the dump carries a kind, and that kind tells you which shape of computation the compiler decided could share a single pass over memory, without you having to infer it from the op names alone."
     },
     {
+     "kind": "diagram",
+     "id": "fusion-before-after"
+    },
+    {
      "kind": "p",
      "text": "XLA groups computations under three fusion kinds. A loop fusion covers a chain of elementwise work, the add then multiply then cast pattern, merged into a single pass so nothing round-trips through HBM between steps. An input fusion is rooted at a reduction, with the operations that feed a sum or a max pulled inside the reduction itself, so the reduction reads its inputs once instead of reading a separately materialized intermediate. An output fusion feeds directly into a store, folding the last computation into the write instead of writing a temporary first."
     },

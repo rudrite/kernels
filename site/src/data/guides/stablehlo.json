@@ -8,6 +8,10 @@
      "text": "Every value in a StableHLO program carries an explicit type, and the notation makes that impossible to miss. `tensor<32x64xbf16>` reads left to right: dimensions first, then the element type, so a 32 by 64 matrix stored in bfloat16 shows up exactly that way in the dump you get out of JAX's lowering. There is no untyped register, no implicit widening. If a computation touches a value, the compiler already knows its shape and its dtype before a single operation runs."
     },
     {
+     "kind": "diagram",
+     "id": "lowering-ladder"
+    },
+    {
      "kind": "p",
      "text": "Scalars do not get a separate type. A single number is a tensor with rank zero, written `tensor<f32>` or `tensor<i32>`, with no dimension list at all. That is a deliberate simplification: one rule, tensor plus dtype, covers both a 4096 by 4096 matmul operand and a loop counter. Booleans follow the same logic with their own element type, `i1`, a one-bit integer. A comparison op like `stablehlo.compare` returns `tensor<i1>` for a scalar predicate or `tensor<32xi1>` for a per-row mask, and that mask is exactly what feeds a `stablehlo.select` or a `stablehlo.if` condition."
     },

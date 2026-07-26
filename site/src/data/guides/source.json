@@ -8,6 +8,10 @@
      "text": "Trace happens once, but what tracing captures from outside the function often catches people off guard. Close over a Python-level array, a weight matrix built outside the traced function, say, and JAX doesn't keep a live reference to it. It freezes the array's value into the jaxpr as a constant, carried alongside the traced computation as what the internals call a constvar. Call the function again with the same shapes and that constant is still the one baked in from the first trace, not read fresh from Python each time."
     },
     {
+     "kind": "diagram",
+     "id": "tracing"
+    },
+    {
      "kind": "p",
      "text": "Python side effects run once at trace time, not once per call. A print statement inside a traced function fires while JAX is walking the function with symbolic tracers standing in for real arrays, and that walk happens exactly once per distinct shape and dtype signature. Every call after that runs the compiled, traced computation directly, and the Python body never executes again. If you're watching stdout to confirm a kernel ran on some later call, there's nothing to see: the print already happened, once, during the original trace."
     },

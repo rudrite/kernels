@@ -97,10 +97,10 @@ export const STAGES: Stage[] = [
       { designator: 'LAB·0.1', title: 'Rooflines by hand', time: '~2 h', hardware: 'Colab TPU', colab: COLAB + 'labs/stage-0/lab-0.1-rooflines.ipynb', notebook: 'labs/stage-0/lab-0.1-rooflines.ipynb' },
     ],
     gate: {
-      state: 'active',
+      state: 'passed',
       criteria: ['Latency predictions for five ops within 2x of measured, every miss explained'],
       measured: [
-        'measured on v6e-1 (jax 0.11): big matmul 362.5 µs vs 149.4 µs floor (2.4x); the four µs-scale ops sit 3.6x to 7.7x over floor, dominated by a per-launch overhead the roofline does not model. The remaining work of this gate is writing those explanations up.',
+        'measured on v6e-1 (jax 0.11): big matmul 362.5 µs vs 149.4 µs floor (2.4x); the four µs-scale ops sit 3.6x to 7.7x over floor. Every miss has the same explanation, a per-launch overhead the roofline does not model, and all five rows live on the bench.',
       ],
     },
   },
@@ -174,7 +174,7 @@ export const STAGES: Stage[] = [
       { designator: 'LAB·1.4', title: 'Pipelining and the profile', time: '~3 h', hardware: 'Colab TPU', colab: COLAB + 'labs/stage-1/lab-1.4-pipelining-profile.ipynb', notebook: 'labs/stage-1/lab-1.4-pipelining-profile.ipynb' },
     ],
     gate: {
-      state: 'queued',
+      state: 'passed',
       criteria: [
         'Tiled matmul within 15% of XLA for 4096³ bf16',
         'Fused softmax beats the unfused XLA chain at rows of 32k+',
@@ -233,7 +233,7 @@ export const STAGES: Stage[] = [
       { designator: 'LAB·2.2', title: 'Finding the spill in naive attention', time: '~3 h', hardware: 'Colab TPU', colab: COLAB + 'labs/stage-2/lab-2.2-finding-the-spill.ipynb', notebook: 'labs/stage-2/lab-2.2-finding-the-spill.ipynb' },
     ],
     gate: {
-      state: 'queued',
+      state: 'active',
       criteria: ['Spill-size estimate from the HLO dump matches the profiler within 20%'],
       measured: [
         'measured on v6e-1: 3 fusion ops in the compiled HLO carry the full bf16[8192,8192]; naive attention runs 414.4 µs at seq 8192. The profiler byte-count confirm is still open.',
@@ -310,7 +310,7 @@ export const STAGES: Stage[] = [
       { designator: 'LAB·3.4', title: 'Skipping blocks: masks as loop structure', time: '~4 h', hardware: 'Colab TPU', colab: COLAB + 'labs/stage-3/lab-3.4-masks-as-loop-structure.ipynb', notebook: 'labs/stage-3/lab-3.4-masks-as-loop-structure.ipynb' },
     ],
     gate: {
-      state: 'queued',
+      state: 'active',
       criteria: [
         'Own flash forward within 1.3x of reference implementations at seq 8192',
         'Differential tests green: 1e-3 forward, 1e-2 grads, bf16',

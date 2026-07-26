@@ -8,6 +8,10 @@
      "text": "Every diagram of a TPU core you have seen so far draws two blocks: the MXU doing matrix multiplies, the VPU doing elementwise work, both fed from VMEM. That picture is accurate as far as it goes, but it leaves out the part that turns a kernel into more than a fixed loop. Somewhere, something has to decide which block of a ragged batch to skip, which index a block spec should read next, whether a flag says stop early. None of that is vector work, and the MXU and VPU diagram never shows where it happens."
     },
     {
+     "kind": "diagram",
+     "id": "tpu-chip"
+    },
+    {
      "kind": "p",
      "text": "That somewhere is SMEM, scalar memory. It holds the scalars a kernel branches on: sequence lengths, loop bounds, block indices, boolean flags. Scalar prefetch, the mechanism that reads an index array before the pipeline needs it, lands its result in SMEM, not VMEM. A ragged attention kernel checking whether a row's real length is 41 percent of the padded max is reading SMEM to make that call. The multi-kilobyte tile sitting in vector memory is not what the branch decision looks at."
     },
@@ -39,6 +43,10 @@
      "text": "Set the TPU aside for a moment and look at the machine most kernel authors learn on first: an H100-class GPU, by the numbers on its public spec sheet. These are approximate, since binning and clocks vary card to card: about 9.9e14 dense bf16 FLOP/s, about 3.35e12 bytes per second of HBM3 bandwidth. Divide one by the other and you get a ridge point near 295 flops per byte, the same roofline arithmetic that gave the TPU chapters their four numbers in the first place."
     },
     {
+     "kind": "diagram",
+     "id": "gpu-sm"
+    },
+    {
      "kind": "p",
      "text": "Line the ridge points up and the contrast turns concrete instead of vague. v5e sits near 240, v6e near 575, an H100-class part near 295. A kernel that is compute bound on a v6e at a given arithmetic intensity can be bandwidth bound on an H100-class GPU, because the GPU's ridge sits lower: its FLOP/s grew less relative to its bandwidth than v6e's did. The point is not which chip wins. It is that the same compute-bound-or-bandwidth-bound question gets a different answer depending which chip you asked it on."
     },
@@ -66,6 +74,10 @@
     {
      "kind": "p",
      "text": "A TPU chip runs one big core, not thousands of small ones, and its grid executes sequentially: one step's compute has to be scheduled before its results are needed, while the next step's data is already moving in behind it. That is the software pipeline earlier chapters described. Latency gets hidden by overlapping DMA transfers with compute inside a scratchpad you can see and size, VMEM. Because the whole schedule reduces to a handful of constants, FLOP/s, bandwidth, ridge point, tile shape, you can reason about whether a kernel is compute bound or bandwidth bound before you ever run it."
+    },
+    {
+     "kind": "diagram",
+     "id": "latency-two-ways"
     },
     {
      "kind": "p",

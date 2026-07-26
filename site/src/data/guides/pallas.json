@@ -8,6 +8,10 @@
      "text": "You already know that a BlockSpec pairs a block_shape with an index_map that changes as the grid advances. What the mental model skips is exactly how those two combine into an address. The index map does not return an offset in elements. It returns a block coordinate: which numbered block along that axis, not which row or column. Pallas then multiplies each returned coordinate by the matching entry in block_shape to get the element offset into the ref. Grid step (2, 0) paired with block shape (128, 512) reads starting at element (256, 0), because 2 times 128 is 256."
     },
     {
+     "kind": "diagram",
+     "id": "blockspec-mapping"
+    },
+    {
      "kind": "p",
      "text": "This is the detail that trips people up the first time they write an index map by hand. It feels natural to write the arithmetic yourself, to return (256, 0) directly, since that is the offset you actually want. Do that and every block after the first one lands in the wrong place, because Pallas multiplies again on top of an offset you already computed. The index map's job is to count blocks, not elements. Let the framework do the multiplication it is already going to do."
     },
@@ -63,6 +67,10 @@
     {
      "kind": "p",
      "text": "A block staged into VMEM is the default, and the one you have already been using: the compiler copies the block described by your BlockSpec into on-chip vector memory before your kernel body runs. Two other memory spaces exist for cases a plain block does not cover, and scratch memory sits alongside all three as workspace that belongs to none of your kernel's actual arguments."
+    },
+    {
+     "kind": "diagram",
+     "id": "memory-spaces"
     },
     {
      "kind": "p",
