@@ -2,7 +2,7 @@
 // HBM tiles, DMA edges, VMEM slots, carried state, and the compute unit.
 // Motion is quantized (discrete frames, no easing); autoplay never starts
 // itself and is disabled entirely under prefers-reduced-motion.
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { TraceDoc } from './types'
 
 const COPPER = '#c88a70'
@@ -25,11 +25,6 @@ interface Props {
 export default function Choreographer({ trace, initialFrame = 0 }: Props) {
   const [i, setI] = useState(Math.min(initialFrame, trace.frames.length - 1))
   const [playing, setPlaying] = useState(false)
-  const reduced = useRef(false)
-
-  useEffect(() => {
-    reduced.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  }, [])
 
   useEffect(() => {
     if (!playing) return
@@ -197,10 +192,12 @@ export default function Choreographer({ trace, initialFrame = 0 }: Props) {
         <button onClick={() => { setPlaying(false); setI((x) => Math.max(0, x - 1)) }} disabled={i === 0} aria-label="Previous step">«</button>
         <button
           onClick={() => {
-            if (reduced.current) setI((x) => Math.min(trace.frames.length - 1, x + 1))
-            else setPlaying((p) => !p)
+            // play always means play: restart when pressed at the final frame
+            if (!playing && i >= trace.frames.length - 1) setI(0)
+            setPlaying((p) => !p)
           }}
           aria-label={playing ? 'Pause' : 'Play'}
+          aria-pressed={playing}
         >
           {playing ? '❚❚' : '▶'}
         </button>
