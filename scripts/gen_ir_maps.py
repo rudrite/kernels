@@ -219,7 +219,7 @@ def align(groups: list[dict], jaxpr: list[str], atoms: list[dict]) -> tuple[list
             continue
 
         ptr = i
-        out.append({"op": op, "jaxpr": g["lines"], "hlo": buffer + [matched["line"]]})
+        out.append({"op": op, "idx": idx, "jaxpr": g["lines"], "hlo": buffer + [matched["line"]]})
         stats["mapped"] += 1
     return out, stats
 
@@ -253,7 +253,19 @@ def main() -> None:
 
         atoms = build_atoms(program["stablehlo"])
         groups, stats = align(full, jaxpr, atoms)
-        maps[pid] = {"groups": [{"jaxpr": g["jaxpr"], "hlo": g["hlo"], "op": g["op"]} for g in groups]}
+        # source lines ride along only where the text parse and the corpus's
+        # own eqn walk are known to agree index-for-index
+        src_ok = pid not in KNOWN_EQNS_DIVERGENCE
+        eqns = program["eqns"]
+        out_groups = []
+        for g in groups:
+            entry = {"jaxpr": g["jaxpr"], "hlo": g["hlo"], "op": g["op"]}
+            if src_ok:
+                src_line = eqns[g["idx"]].get("src_line")
+                if src_line is not None:
+                    entry["src"] = [src_line]
+            out_groups.append(entry)
+        maps[pid] = {"groups": out_groups}
 
         skipped = stats["not_in_table"] + stats["force_skip"] + stats["no_match"] + stats["shape_mismatch"]
         total_mapped += stats["mapped"]

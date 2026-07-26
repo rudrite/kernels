@@ -27,10 +27,12 @@ interface MapGroup {
   op: string
   jaxpr: number[]
   hlo: number[]
+  /** Source line(s), recorded by the generator from jax's own source_info. */
+  src?: number[]
 }
 const MAPS = irMaps as Record<string, { groups: MapGroup[] }>
 
-type Col = 'jaxpr' | 'hlo'
+type Col = 'src' | 'jaxpr' | 'hlo'
 
 export default function CorpusXray() {
   const [programId, setProgramId] = useState(PROGRAMS[0]!.id)
@@ -45,10 +47,11 @@ export default function CorpusXray() {
     setActive(null)
   }
 
-  const groupOf = (col: Col, line: number) => groups.findIndex((g) => g[col].includes(line))
+  const groupOf = (col: Col, line: number) => groups.findIndex((g) => (g[col] ?? []).includes(line))
 
   const mappedJaxprLines = new Set(groups.flatMap((g) => g.jaxpr)).size
   const mappedHloLines = new Set(groups.flatMap((g) => g.hlo)).size
+  const hasSource = !program.source[0]?.startsWith('(wrapped') && groups.some((g) => g.src)
 
   const renderCol = (col: Col, label: string, lines: string[]) => (
     <div className="col">
@@ -92,15 +95,16 @@ export default function CorpusXray() {
         </span>
       </div>
 
-      <div className="cols">
+      <div className={`cols ${hasSource ? 'three' : ''}`}>
+        {hasSource && renderCol('src', 'source', program.source)}
         {renderCol('jaxpr', 'jaxpr', program.jaxpr)}
         {renderCol('hlo', 'StableHLO', program.stablehlo)}
       </div>
 
       <p className="note" aria-live="polite">
         {activeGroup
-          ? `${activeGroup.op} · ${activeGroup.jaxpr.length} jaxpr line(s) ↔ ${activeGroup.hlo.length} StableHLO line(s)`
-          : 'mapping computed mechanically; unmapped lines are conservative skips, not absences'}
+          ? `${activeGroup.op}${activeGroup.src ? ` · from source line ${activeGroup.src[0]! + 1}` : ''} · ${activeGroup.jaxpr.length} jaxpr line(s) ↔ ${activeGroup.hlo.length} StableHLO line(s)`
+          : 'hover any column: source, jaxpr, and StableHLO light up together · source lines recorded by jax itself, IR mapping computed mechanically'}
       </p>
 
       <style>{`
@@ -112,6 +116,7 @@ export default function CorpusXray() {
         .cxray .picker .stat { font-size: 0.6875rem; color: ${PANEL_MUTE}; }
 
         .cxray .cols { display: grid; grid-template-columns: 1fr 1.3fr; gap: 1px; background: ${PANEL_RULE}; }
+        .cxray .cols.three { grid-template-columns: minmax(10rem, 0.55fr) 1fr 1.3fr; }
         .cxray .col { background: #101215; min-width: 0; }
         .cxray .col-head { font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase; color: ${PANEL_MUTE}; padding: 0.5rem 0.75rem; border-bottom: 1px solid ${PANEL_RULE}; }
         .cxray pre { margin: 0; padding: 0.5rem 0; overflow-x: auto; max-height: 26rem; overflow-y: auto; }
@@ -121,7 +126,7 @@ export default function CorpusXray() {
 
         .cxray .note { font-size: 0.75rem; color: ${PANEL_INK}; padding: 0.625rem 0.125rem 0; margin: 0; min-height: 2.5em; }
 
-        @media (max-width: 900px) { .cxray .cols { grid-template-columns: 1fr; } .cxray pre { max-height: 18rem; } }
+        @media (max-width: 900px) { .cxray .cols, .cxray .cols.three { grid-template-columns: 1fr; } .cxray pre { max-height: 18rem; } }
       `}</style>
     </div>
   )

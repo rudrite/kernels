@@ -148,13 +148,33 @@ def aval_info(v):
     return {"dtype": str(v.aval.dtype), "shape": list(v.aval.shape)}
 
 
-def walk_eqns(jaxpr, out, depth=0):
+def src_line_of(eq, fn_file, fn_name, fn_start, n_lines):
+    """Relative source line (0-based) of the user code that made this eqn,
+    read from jax's own source_info; None when it cannot be pinned."""
+    tb = getattr(eq.source_info, "traceback", None)
+    if tb is None:
+        return None
+    try:
+        frames = tb.frames
+    except AttributeError:
+        return None
+    for fr in frames:
+        if fr.file_name == fn_file and fr.function_name == fn_name:
+            rel = fr.line_num - fn_start
+            if 0 <= rel < n_lines:
+                return rel
+    return None
+
+
+def walk_eqns(jaxpr, out, src_ctx=None, depth=0):
     for eq in jaxpr.eqns:
         entry = {
             "op": eq.primitive.name,
             "inputs": [aval_info(v) for v in eq.invars if hasattr(v, "aval")],
             "outputs": [aval_info(v) for v in eq.outvars],
         }
+        if src_ctx is not None:
+            entry["src_line"] = src_line_of(eq, *src_ctx)
         if eq.primitive.name == "dot_general":
             dn = eq.params["dimension_numbers"]
             entry["dimension_numbers"] = [[list(dn[0][0]), list(dn[0][1])], [list(dn[1][0]), list(dn[1][1])]]
@@ -162,7 +182,7 @@ def walk_eqns(jaxpr, out, depth=0):
         # descend into called jaxprs (remat, shard_map, custom transforms)
         for p in eq.params.values():
             if hasattr(p, "jaxpr"):
-                walk_eqns(p.jaxpr, out, depth + 1)
+                walk_eqns(p.jaxpr, out, src_ctx, depth + 1)
 
 
 corpus = []
@@ -171,7 +191,13 @@ for spec in PROGRAMS:
     closed = jax.make_jaxpr(fn)(*args)
     stablehlo = jax.jit(fn).lower(*args).as_text()
     eqns = []
-    walk_eqns(closed.jaxpr, eqns)
+    src_ctx = None
+    try:
+        src_lines_raw, fn_start = inspect.getsourcelines(fn)
+        src_ctx = (inspect.getsourcefile(fn), fn.__name__, fn_start, len(src_lines_raw))
+    except (OSError, TypeError):
+        pass
+    walk_eqns(closed.jaxpr, eqns, src_ctx)
     try:
         source = inspect.getsource(fn)
     except (OSError, TypeError):

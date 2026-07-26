@@ -7,7 +7,9 @@
 <script>
   const pres = Array.from(document.querySelectorAll<HTMLPreElement>('.panel pre'))
   for (const pre of pres) {
-    if (pre.closest('.pal')) continue
+    // never mutate inside a React island: it hydrates later and React would
+    // meet DOM it did not render (a real hydration crash we hit once)
+    if (pre.closest('astro-island') || pre.closest('.pal')) continue
     if ((pre.textContent ?? '').trim().length < 20) continue
     pre.style.position = 'relative'
     const btn = document.createElement('button')

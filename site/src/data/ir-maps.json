@@ -11,7 +11,10 @@
         "hlo": [
           2
         ],
-        "op": "dot_general"
+        "op": "dot_general",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -24,7 +27,10 @@
         "hlo": [
           3
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -33,7 +39,10 @@
         "hlo": [
           5
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -42,7 +51,10 @@
         "hlo": [
           11
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -51,7 +63,10 @@
         "hlo": [
           14
         ],
-        "op": "mul"
+        "op": "mul",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -60,7 +75,10 @@
         "hlo": [
           15
         ],
-        "op": "tanh"
+        "op": "tanh",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -69,7 +87,10 @@
         "hlo": [
           18
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -78,7 +99,10 @@
         "hlo": [
           21
         ],
-        "op": "mul"
+        "op": "mul",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -87,7 +111,10 @@
         "hlo": [
           22
         ],
-        "op": "mul"
+        "op": "mul",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -99,7 +126,10 @@
         "hlo": [
           23
         ],
-        "op": "dot_general"
+        "op": "dot_general",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -112,7 +142,10 @@
         "hlo": [
           24
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -121,7 +154,10 @@
         "hlo": [
           26
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          2
+        ]
       }
     ]
   },
@@ -134,7 +170,10 @@
         "hlo": [
           2
         ],
-        "op": "convert_element_type"
+        "op": "convert_element_type",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -144,7 +183,10 @@
           3,
           4
         ],
-        "op": "reduce_sum"
+        "op": "reduce_sum",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -157,7 +199,10 @@
         "hlo": [
           5
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -166,7 +211,10 @@
         "hlo": [
           8
         ],
-        "op": "div"
+        "op": "div",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -175,7 +223,10 @@
         "hlo": [
           9
         ],
-        "op": "convert_element_type"
+        "op": "convert_element_type",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -184,7 +235,10 @@
         "hlo": [
           13
         ],
-        "op": "sub"
+        "op": "sub",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -193,7 +247,10 @@
         "hlo": [
           16
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -202,7 +259,10 @@
         "hlo": [
           17
         ],
-        "op": "rsqrt"
+        "op": "rsqrt",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -211,7 +271,10 @@
         "hlo": [
           19
         ],
-        "op": "mul"
+        "op": "mul",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -224,7 +287,10 @@
         "hlo": [
           20
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -233,7 +299,10 @@
         "hlo": [
           22
         ],
-        "op": "mul"
+        "op": "mul",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -246,7 +315,10 @@
         "hlo": [
           23
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -255,7 +327,10 @@
         "hlo": [
           25
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          3
+        ]
       }
     ]
   },
@@ -268,7 +343,10 @@
         "hlo": [
           2
         ],
-        "op": "mul"
+        "op": "mul",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -277,7 +355,10 @@
         "hlo": [
           3
         ],
-        "op": "convert_element_type"
+        "op": "convert_element_type",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -287,7 +368,10 @@
           4,
           5
         ],
-        "op": "reduce_sum"
+        "op": "reduce_sum",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -300,7 +384,10 @@
         "hlo": [
           6
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -309,7 +396,10 @@
         "hlo": [
           9
         ],
-        "op": "div"
+        "op": "div",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -318,7 +408,10 @@
         "hlo": [
           10
         ],
-        "op": "convert_element_type"
+        "op": "convert_element_type",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -327,7 +420,10 @@
         "hlo": [
           13
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -336,7 +432,10 @@
         "hlo": [
           14
         ],
-        "op": "rsqrt"
+        "op": "rsqrt",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -345,7 +444,10 @@
         "hlo": [
           16
         ],
-        "op": "mul"
+        "op": "mul",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -358,7 +460,10 @@
         "hlo": [
           17
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -367,7 +472,10 @@
         "hlo": [
           19
         ],
-        "op": "mul"
+        "op": "mul",
+        "src": [
+          2
+        ]
       }
     ]
   },
@@ -381,7 +489,10 @@
           2,
           3
         ],
-        "op": "reduce_max"
+        "op": "reduce_max",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -390,7 +501,10 @@
         "hlo": [
           6
         ],
-        "op": "max"
+        "op": "max",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -403,7 +517,10 @@
         "hlo": [
           7
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -412,7 +529,10 @@
         "hlo": [
           9
         ],
-        "op": "sub"
+        "op": "sub",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -421,7 +541,10 @@
         "hlo": [
           10
         ],
-        "op": "exp"
+        "op": "exp",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -430,7 +553,10 @@
         "hlo": [
           11
         ],
-        "op": "convert_element_type"
+        "op": "convert_element_type",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -440,7 +566,10 @@
           12,
           13
         ],
-        "op": "reduce_sum"
+        "op": "reduce_sum",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -453,7 +582,10 @@
         "hlo": [
           14
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -462,7 +594,10 @@
         "hlo": [
           15
         ],
-        "op": "convert_element_type"
+        "op": "convert_element_type",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -471,7 +606,10 @@
         "hlo": [
           17
         ],
-        "op": "div"
+        "op": "div",
+        "src": [
+          1
+        ]
       }
     ]
   },
@@ -485,7 +623,10 @@
           2,
           3
         ],
-        "op": "reduce_max"
+        "op": "reduce_max",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -498,7 +639,10 @@
         "hlo": [
           4
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -507,7 +651,10 @@
         "hlo": [
           6
         ],
-        "op": "sub"
+        "op": "sub",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -516,7 +663,10 @@
         "hlo": [
           7
         ],
-        "op": "exp"
+        "op": "exp",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -525,7 +675,10 @@
         "hlo": [
           8
         ],
-        "op": "convert_element_type"
+        "op": "convert_element_type",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -535,7 +688,10 @@
           9,
           10
         ],
-        "op": "reduce_sum"
+        "op": "reduce_sum",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -548,7 +704,10 @@
         "hlo": [
           11
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -557,7 +716,10 @@
         "hlo": [
           12
         ],
-        "op": "convert_element_type"
+        "op": "convert_element_type",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -566,7 +728,10 @@
         "hlo": [
           13
         ],
-        "op": "log"
+        "op": "log",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -575,7 +740,10 @@
         "hlo": [
           14
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          2
+        ]
       }
     ]
   },
@@ -588,7 +756,10 @@
         "hlo": [
           2
         ],
-        "op": "transpose"
+        "op": "transpose",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -600,7 +771,10 @@
         "hlo": [
           3
         ],
-        "op": "dot_general"
+        "op": "dot_general",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -610,7 +784,10 @@
           4,
           5
         ],
-        "op": "reduce_max"
+        "op": "reduce_max",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -623,7 +800,10 @@
         "hlo": [
           6
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -632,7 +812,10 @@
         "hlo": [
           8
         ],
-        "op": "sub"
+        "op": "sub",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -641,7 +824,10 @@
         "hlo": [
           9
         ],
-        "op": "exp"
+        "op": "exp",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -650,7 +836,10 @@
         "hlo": [
           10
         ],
-        "op": "convert_element_type"
+        "op": "convert_element_type",
+        "src": [
+          4
+        ]
       },
       {
         "jaxpr": [
@@ -660,7 +849,10 @@
           11,
           12
         ],
-        "op": "reduce_sum"
+        "op": "reduce_sum",
+        "src": [
+          4
+        ]
       },
       {
         "jaxpr": [
@@ -673,7 +865,10 @@
         "hlo": [
           13
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          4
+        ]
       },
       {
         "jaxpr": [
@@ -682,7 +877,10 @@
         "hlo": [
           14
         ],
-        "op": "convert_element_type"
+        "op": "convert_element_type",
+        "src": [
+          4
+        ]
       },
       {
         "jaxpr": [
@@ -691,7 +889,10 @@
         "hlo": [
           16
         ],
-        "op": "div"
+        "op": "div",
+        "src": [
+          4
+        ]
       },
       {
         "jaxpr": [
@@ -703,7 +904,10 @@
         "hlo": [
           17
         ],
-        "op": "dot_general"
+        "op": "dot_general",
+        "src": [
+          4
+        ]
       }
     ]
   },
@@ -716,7 +920,10 @@
         "hlo": [
           2
         ],
-        "op": "transpose"
+        "op": "transpose",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -728,7 +935,10 @@
         "hlo": [
           3
         ],
-        "op": "dot_general"
+        "op": "dot_general",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -742,7 +952,10 @@
           4,
           5
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -752,7 +965,10 @@
           9,
           10
         ],
-        "op": "reduce_max"
+        "op": "reduce_max",
+        "src": [
+          5
+        ]
       },
       {
         "jaxpr": [
@@ -761,7 +977,10 @@
         "hlo": [
           13
         ],
-        "op": "max"
+        "op": "max",
+        "src": [
+          5
+        ]
       },
       {
         "jaxpr": [
@@ -774,7 +993,10 @@
         "hlo": [
           14
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          5
+        ]
       },
       {
         "jaxpr": [
@@ -783,7 +1005,10 @@
         "hlo": [
           16
         ],
-        "op": "sub"
+        "op": "sub",
+        "src": [
+          5
+        ]
       },
       {
         "jaxpr": [
@@ -792,7 +1017,10 @@
         "hlo": [
           17
         ],
-        "op": "exp"
+        "op": "exp",
+        "src": [
+          5
+        ]
       },
       {
         "jaxpr": [
@@ -801,7 +1029,10 @@
         "hlo": [
           18
         ],
-        "op": "convert_element_type"
+        "op": "convert_element_type",
+        "src": [
+          5
+        ]
       },
       {
         "jaxpr": [
@@ -811,7 +1042,10 @@
           19,
           20
         ],
-        "op": "reduce_sum"
+        "op": "reduce_sum",
+        "src": [
+          5
+        ]
       },
       {
         "jaxpr": [
@@ -824,7 +1058,10 @@
         "hlo": [
           21
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          5
+        ]
       },
       {
         "jaxpr": [
@@ -833,7 +1070,10 @@
         "hlo": [
           22
         ],
-        "op": "convert_element_type"
+        "op": "convert_element_type",
+        "src": [
+          5
+        ]
       },
       {
         "jaxpr": [
@@ -842,7 +1082,10 @@
         "hlo": [
           24
         ],
-        "op": "div"
+        "op": "div",
+        "src": [
+          5
+        ]
       },
       {
         "jaxpr": [
@@ -854,7 +1097,10 @@
         "hlo": [
           25
         ],
-        "op": "dot_general"
+        "op": "dot_general",
+        "src": [
+          5
+        ]
       }
     ]
   },
@@ -870,7 +1116,10 @@
         "hlo": [
           2
         ],
-        "op": "dot_general"
+        "op": "dot_general",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -880,7 +1129,10 @@
           3,
           4
         ],
-        "op": "sqrt"
+        "op": "sqrt",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -889,7 +1141,10 @@
         "hlo": [
           5
         ],
-        "op": "convert_element_type"
+        "op": "convert_element_type",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -898,7 +1153,10 @@
         "hlo": [
           7
         ],
-        "op": "div"
+        "op": "div",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -908,7 +1166,10 @@
           8,
           9
         ],
-        "op": "reduce_max"
+        "op": "reduce_max",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -917,7 +1178,10 @@
         "hlo": [
           12
         ],
-        "op": "max"
+        "op": "max",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -930,7 +1194,10 @@
         "hlo": [
           13
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -939,7 +1206,10 @@
         "hlo": [
           15
         ],
-        "op": "sub"
+        "op": "sub",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -948,7 +1218,10 @@
         "hlo": [
           16
         ],
-        "op": "exp"
+        "op": "exp",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -957,7 +1230,10 @@
         "hlo": [
           17
         ],
-        "op": "convert_element_type"
+        "op": "convert_element_type",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -967,7 +1243,10 @@
           18,
           19
         ],
-        "op": "reduce_sum"
+        "op": "reduce_sum",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -980,7 +1259,10 @@
         "hlo": [
           20
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -989,7 +1271,10 @@
         "hlo": [
           21
         ],
-        "op": "convert_element_type"
+        "op": "convert_element_type",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -998,7 +1283,10 @@
         "hlo": [
           23
         ],
-        "op": "div"
+        "op": "div",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -1010,7 +1298,10 @@
         "hlo": [
           24
         ],
-        "op": "dot_general"
+        "op": "dot_general",
+        "src": [
+          3
+        ]
       }
     ]
   },
@@ -1027,7 +1318,10 @@
         "hlo": [
           2
         ],
-        "op": "reshape"
+        "op": "reshape",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -1039,7 +1333,10 @@
         "hlo": [
           3
         ],
-        "op": "dot_general"
+        "op": "dot_general",
+        "src": [
+          3
+        ]
       }
     ]
   },
@@ -1052,7 +1349,10 @@
         "hlo": [
           4
         ],
-        "op": "mul"
+        "op": "mul",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -1061,7 +1361,10 @@
         "hlo": [
           5
         ],
-        "op": "mul"
+        "op": "mul",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -1070,7 +1373,10 @@
         "hlo": [
           6
         ],
-        "op": "sub"
+        "op": "sub",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -1079,7 +1385,10 @@
         "hlo": [
           7
         ],
-        "op": "mul"
+        "op": "mul",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -1088,7 +1397,10 @@
         "hlo": [
           8
         ],
-        "op": "mul"
+        "op": "mul",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -1097,7 +1409,10 @@
         "hlo": [
           9
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          2
+        ]
       },
       {
         "jaxpr": [
@@ -1106,7 +1421,10 @@
         "hlo": [
           10
         ],
-        "op": "concatenate"
+        "op": "concatenate",
+        "src": [
+          2
+        ]
       }
     ]
   },
@@ -1123,7 +1441,10 @@
         "hlo": [
           2
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1136,7 +1457,10 @@
         "hlo": [
           3
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1145,7 +1469,10 @@
         "hlo": [
           4
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1158,7 +1485,10 @@
         "hlo": [
           5
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1171,7 +1501,10 @@
         "hlo": [
           6
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1180,7 +1513,10 @@
         "hlo": [
           7
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1193,7 +1529,10 @@
         "hlo": [
           8
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1206,7 +1545,10 @@
         "hlo": [
           9
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1215,7 +1557,10 @@
         "hlo": [
           10
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1228,7 +1573,10 @@
         "hlo": [
           11
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1241,7 +1589,10 @@
         "hlo": [
           12
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1250,7 +1601,10 @@
         "hlo": [
           13
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1259,7 +1613,10 @@
         "hlo": [
           14
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1268,7 +1625,10 @@
         "hlo": [
           15
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1277,7 +1637,10 @@
         "hlo": [
           16
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1286,7 +1649,10 @@
         "hlo": [
           17
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1295,7 +1661,10 @@
         "hlo": [
           18
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1304,7 +1673,10 @@
         "hlo": [
           19
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1313,7 +1685,10 @@
         "hlo": [
           20
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1322,7 +1697,10 @@
         "hlo": [
           21
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1331,7 +1709,10 @@
         "hlo": [
           22
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1340,7 +1721,10 @@
         "hlo": [
           23
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1349,7 +1733,10 @@
         "hlo": [
           24
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1358,7 +1745,10 @@
         "hlo": [
           25
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1367,7 +1757,10 @@
         "hlo": [
           26
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1376,7 +1769,10 @@
         "hlo": [
           27
         ],
-        "op": "concatenate"
+        "op": "concatenate",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1386,7 +1782,10 @@
           28,
           29
         ],
-        "op": "pad"
+        "op": "pad",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1395,7 +1794,10 @@
         "hlo": [
           30
         ],
-        "op": "pad"
+        "op": "pad",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1404,7 +1806,10 @@
         "hlo": [
           31
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1417,7 +1822,10 @@
         "hlo": [
           32
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1430,7 +1838,10 @@
         "hlo": [
           33
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1439,7 +1850,10 @@
         "hlo": [
           34
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1452,7 +1866,10 @@
         "hlo": [
           35
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1461,7 +1878,10 @@
         "hlo": [
           36
         ],
-        "op": "concatenate"
+        "op": "concatenate",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1470,7 +1890,10 @@
         "hlo": [
           37
         ],
-        "op": "pad"
+        "op": "pad",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1479,7 +1902,10 @@
         "hlo": [
           38
         ],
-        "op": "pad"
+        "op": "pad",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1488,7 +1914,10 @@
         "hlo": [
           39
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1501,7 +1930,10 @@
         "hlo": [
           40
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1514,7 +1946,10 @@
         "hlo": [
           41
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1523,7 +1958,10 @@
         "hlo": [
           42
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1536,7 +1974,10 @@
         "hlo": [
           43
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1545,7 +1986,10 @@
         "hlo": [
           44
         ],
-        "op": "concatenate"
+        "op": "concatenate",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1554,7 +1998,10 @@
         "hlo": [
           45
         ],
-        "op": "pad"
+        "op": "pad",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1563,7 +2010,10 @@
         "hlo": [
           46
         ],
-        "op": "pad"
+        "op": "pad",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1572,7 +2022,10 @@
         "hlo": [
           47
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1585,7 +2038,10 @@
         "hlo": [
           48
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1598,7 +2054,10 @@
         "hlo": [
           49
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1607,7 +2066,10 @@
         "hlo": [
           50
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1620,7 +2082,10 @@
         "hlo": [
           51
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1629,7 +2094,10 @@
         "hlo": [
           52
         ],
-        "op": "concatenate"
+        "op": "concatenate",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1638,7 +2106,10 @@
         "hlo": [
           53
         ],
-        "op": "pad"
+        "op": "pad",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1647,7 +2118,10 @@
         "hlo": [
           54
         ],
-        "op": "pad"
+        "op": "pad",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1656,7 +2130,10 @@
         "hlo": [
           55
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1669,7 +2146,10 @@
         "hlo": [
           56
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1682,7 +2162,10 @@
         "hlo": [
           57
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1691,7 +2174,10 @@
         "hlo": [
           58
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1704,7 +2190,10 @@
         "hlo": [
           59
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1713,7 +2202,10 @@
         "hlo": [
           60
         ],
-        "op": "concatenate"
+        "op": "concatenate",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1722,7 +2214,10 @@
         "hlo": [
           61
         ],
-        "op": "pad"
+        "op": "pad",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1731,7 +2226,10 @@
         "hlo": [
           62
         ],
-        "op": "pad"
+        "op": "pad",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1740,7 +2238,10 @@
         "hlo": [
           63
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1753,7 +2254,10 @@
         "hlo": [
           64
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1766,7 +2270,10 @@
         "hlo": [
           65
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1775,7 +2282,10 @@
         "hlo": [
           66
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1788,7 +2298,10 @@
         "hlo": [
           67
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1797,7 +2310,10 @@
         "hlo": [
           68
         ],
-        "op": "concatenate"
+        "op": "concatenate",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1806,7 +2322,10 @@
         "hlo": [
           69
         ],
-        "op": "pad"
+        "op": "pad",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1815,7 +2334,10 @@
         "hlo": [
           70
         ],
-        "op": "pad"
+        "op": "pad",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1824,7 +2346,10 @@
         "hlo": [
           71
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1837,7 +2362,10 @@
         "hlo": [
           72
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1850,7 +2378,10 @@
         "hlo": [
           73
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1859,7 +2390,10 @@
         "hlo": [
           74
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1872,7 +2406,10 @@
         "hlo": [
           75
         ],
-        "op": "slice"
+        "op": "slice",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1881,7 +2418,10 @@
         "hlo": [
           76
         ],
-        "op": "concatenate"
+        "op": "concatenate",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1890,7 +2430,10 @@
         "hlo": [
           77
         ],
-        "op": "pad"
+        "op": "pad",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1899,7 +2442,10 @@
         "hlo": [
           78
         ],
-        "op": "pad"
+        "op": "pad",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -1908,7 +2454,10 @@
         "hlo": [
           79
         ],
-        "op": "add"
+        "op": "add",
+        "src": [
+          1
+        ]
       }
     ]
   },
@@ -2006,7 +2555,10 @@
         "hlo": [
           4
         ],
-        "op": "dot_general"
+        "op": "dot_general",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2015,7 +2567,10 @@
         "hlo": [
           5
         ],
-        "op": "transpose"
+        "op": "transpose",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2027,7 +2582,10 @@
         "hlo": [
           6
         ],
-        "op": "dot_general"
+        "op": "dot_general",
+        "src": [
+          4
+        ]
       },
       {
         "jaxpr": [
@@ -2039,7 +2597,10 @@
         "hlo": [
           7
         ],
-        "op": "dot_general"
+        "op": "dot_general",
+        "src": [
+          5
+        ]
       }
     ]
   },
@@ -2052,7 +2613,10 @@
         "hlo": [
           2
         ],
-        "op": "transpose"
+        "op": "transpose",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2064,7 +2628,10 @@
         "hlo": [
           3
         ],
-        "op": "dot_general"
+        "op": "dot_general",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2074,7 +2641,10 @@
           4,
           5
         ],
-        "op": "reduce_max"
+        "op": "reduce_max",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2083,7 +2653,10 @@
         "hlo": [
           6
         ],
-        "op": "reshape"
+        "op": "reshape",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2092,7 +2665,10 @@
         "hlo": [
           9
         ],
-        "op": "convert_element_type"
+        "op": "convert_element_type",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2102,7 +2678,10 @@
           10,
           11
         ],
-        "op": "reduce_sum"
+        "op": "reduce_sum",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2115,7 +2694,10 @@
         "hlo": [
           12
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2124,7 +2706,10 @@
         "hlo": [
           14
         ],
-        "op": "sub"
+        "op": "sub",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2133,7 +2718,10 @@
         "hlo": [
           15
         ],
-        "op": "exp"
+        "op": "exp",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2143,7 +2731,10 @@
           16,
           17
         ],
-        "op": "reduce_sum"
+        "op": "reduce_sum",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2156,7 +2747,10 @@
         "hlo": [
           18
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2165,7 +2759,10 @@
         "hlo": [
           20
         ],
-        "op": "div"
+        "op": "div",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2177,7 +2774,10 @@
         "hlo": [
           27
         ],
-        "op": "dot_general"
+        "op": "dot_general",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2186,7 +2786,10 @@
         "hlo": [
           28
         ],
-        "op": "transpose"
+        "op": "transpose",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2198,7 +2801,10 @@
         "hlo": [
           29
         ],
-        "op": "dot_general"
+        "op": "dot_general",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2207,7 +2813,10 @@
         "hlo": [
           31
         ],
-        "op": "mul"
+        "op": "mul",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2216,7 +2825,10 @@
         "hlo": [
           32
         ],
-        "op": "mul"
+        "op": "mul",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2226,7 +2838,10 @@
           33,
           34
         ],
-        "op": "reduce_sum"
+        "op": "reduce_sum",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2235,7 +2850,10 @@
         "hlo": [
           35
         ],
-        "op": "reshape"
+        "op": "reshape",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2244,7 +2862,10 @@
         "hlo": [
           36
         ],
-        "op": "neg"
+        "op": "neg",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2253,7 +2874,10 @@
         "hlo": [
           38
         ],
-        "op": "div"
+        "op": "div",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2263,7 +2887,10 @@
           39,
           40
         ],
-        "op": "reduce_sum"
+        "op": "reduce_sum",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2276,7 +2903,10 @@
         "hlo": [
           41
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2285,7 +2915,10 @@
         "hlo": [
           42
         ],
-        "op": "add_any"
+        "op": "add_any",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2294,7 +2927,10 @@
         "hlo": [
           43
         ],
-        "op": "mul"
+        "op": "mul",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2303,7 +2939,10 @@
         "hlo": [
           44
         ],
-        "op": "neg"
+        "op": "neg",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2313,7 +2952,10 @@
           45,
           46
         ],
-        "op": "reduce_sum"
+        "op": "reduce_sum",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2322,7 +2964,10 @@
         "hlo": [
           47
         ],
-        "op": "reshape"
+        "op": "reshape",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2332,7 +2977,10 @@
           48,
           49
         ],
-        "op": "reduce_sum"
+        "op": "reduce_sum",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2341,7 +2989,10 @@
         "hlo": [
           50
         ],
-        "op": "div"
+        "op": "div",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2354,7 +3005,10 @@
         "hlo": [
           51
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2363,7 +3017,10 @@
         "hlo": [
           52
         ],
-        "op": "mul"
+        "op": "mul",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2372,7 +3029,10 @@
         "hlo": [
           53
         ],
-        "op": "add_any"
+        "op": "add_any",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2384,7 +3044,10 @@
         "hlo": [
           54
         ],
-        "op": "dot_general"
+        "op": "dot_general",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2393,7 +3056,10 @@
         "hlo": [
           55
         ],
-        "op": "transpose"
+        "op": "transpose",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2405,7 +3071,10 @@
         "hlo": [
           56
         ],
-        "op": "dot_general"
+        "op": "dot_general",
+        "src": [
+          3
+        ]
       },
       {
         "jaxpr": [
@@ -2414,7 +3083,10 @@
         "hlo": [
           57
         ],
-        "op": "transpose"
+        "op": "transpose",
+        "src": [
+          3
+        ]
       }
     ]
   },
@@ -2427,7 +3099,10 @@
         "hlo": [
           2
         ],
-        "op": "convert_element_type"
+        "op": "convert_element_type",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -2440,7 +3115,10 @@
         "hlo": [
           3
         ],
-        "op": "broadcast_in_dim"
+        "op": "broadcast_in_dim",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -2449,7 +3127,10 @@
         "hlo": [
           5
         ],
-        "op": "mul"
+        "op": "mul",
+        "src": [
+          1
+        ]
       },
       {
         "jaxpr": [
@@ -2461,7 +3142,10 @@
         "hlo": [
           6
         ],
-        "op": "dot_general"
+        "op": "dot_general",
+        "src": [
+          1
+        ]
       }
     ]
   },
