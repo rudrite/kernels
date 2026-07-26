@@ -43,6 +43,10 @@ const fmtBytes = (v: number): string => {
 // printed alongside it, so nothing is misrepresented, just abbreviated.
 const MAX_SHOWN = 12
 
+// locale-independent thousands grouping: the locale-dependent formatter
+// differs between the build server and the reader's browser, breaking hydration
+const fmt = (n: number): string => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+
 export default function BlockSpecSandbox() {
   const [M, setM] = useState(2048)
   const [N, setN] = useState(2048)
@@ -180,7 +184,7 @@ export default function BlockSpecSandbox() {
         </text>
       </svg>
       <p className="gridnote">
-        {gridM} × {gridN} = {(gridM * gridN).toLocaleString()} blocks launched
+        {gridM} × {gridN} = {fmt(gridM * gridN)} blocks launched
         {truncated ? ` (first ${shownRows} × ${shownCols} shown)` : ''}
       </p>
 
@@ -215,7 +219,7 @@ export default function BlockSpecSandbox() {
       )}
 
       <p className="provenance-line">
-        VMEM budget {VMEM_BUDGET.toLocaleString()} B for TPU v5e, source: {chipsData.source} (retrieved {chipsData.retrieved}).
+        VMEM budget {fmt(VMEM_BUDGET)} B for TPU v5e, source: {chipsData.source} (retrieved {chipsData.retrieved}).
       </p>
 
       <style>{`

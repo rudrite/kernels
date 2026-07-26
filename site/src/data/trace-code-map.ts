@@ -2,7 +2,7 @@
 // six frames (site/src/exhibits/matmul.ts, kBlocks = 4, called as
 // matmulTrace(4) in gym.astro) to line ranges in the walk's own code string
 // (site/src/data/walks/matmul.ts). Ranges are 1-indexed and inclusive, the
-// same convention CodeWalk's Step.lines already uses, so `lines[i]` (from
+// convention SyncedWalk uses (CodeWalk walks use 0-indexed ranges; these are separate consumers), so `lines[i]` (from
 // lib/highlight.ts, where lines[i] is source line i + 1) lines up directly.
 //
 // Verified against both files: pipelinedMatmulTrace(4) pushes 1 prologue

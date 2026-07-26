@@ -5,6 +5,7 @@ import SectionHead from '../components/SectionHead.astro'
 import Exhibit from '../components/Exhibit.astro'
 import DotDecoder from '../exhibits/DotDecoder'
 import ShapeOracle from '../exhibits/ShapeOracle'
+import SpotDecision from '../exhibits/SpotDecision'
 import corpus from '../data/ir-corpus.json'
 import opCards from '../data/op-cards.json'
 
@@ -42,6 +43,11 @@ const cards = Object.entries(opCards as Record<string, string>)
       </Exhibit>
       <Exhibit designator="GYM·02" title="the shape oracle" provenance="equations sampled from 278 real eqns · distractors computed, never invented">
         <ShapeOracle client:visible />
+      </Exhibit>
+    </div>
+    <div class="drill-wide">
+      <Exhibit designator="GYM·03" title="spot the decision" provenance="find the line the framework wrote for you: upcasts, hidden broadcasts, remat marks · targets computed by scanning the real dumps">
+        <SpotDecision client:visible />
       </Exhibit>
     </div>
   </section>
@@ -126,6 +132,7 @@ const cards = Object.entries(opCards as Record<string, string>)
 
   .drill-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; align-items: start; }
   @media (max-width: 1000px) { .drill-grid { grid-template-columns: 1fr; } }
+  .drill-wide { margin-top: 1.25rem; }
 
   .corpus-list { display: flex; flex-direction: column; gap: 0.5rem; }
   .prog summary { display: flex; gap: 1rem; align-items: baseline; padding: 0.75rem 0.875rem; cursor: pointer; list-style: none; }

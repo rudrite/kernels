@@ -15,6 +15,10 @@ import Roofline from '../../exhibits/Roofline'
 import IRXray from '../../exhibits/IRXray'
 import BlockSpecSandbox from '../../exhibits/BlockSpecSandbox'
 import SemTimeline from '../../exhibits/SemTimeline'
+import MeshViz from '../../exhibits/MeshViz'
+import SyncedWalk from '../../exhibits/SyncedWalk'
+import { MATMUL_FRAME_LINES } from '../../data/trace-code-map'
+import { walk as splashWalk } from '../../data/walks/splash'
 import Checklist from '../../exhibits/Checklist'
 import CodeWalk from '../../exhibits/CodeWalk'
 import { highlightLines } from '../../lib/highlight'
@@ -59,8 +63,9 @@ const checklist = CHECKLISTS[stage.id] ?? []
 
 const walksByStage: Record<string, typeof matmulWalk[]> = {
   pallas: [matmulWalk, softmaxWalk],
-  kernels: [flashWalk, causalWalk],
+  kernels: [flashWalk, causalWalk, splashWalk],
 }
+const syncedLines = stage.id === 'pallas' ? await highlightLines(matmulWalk.code, 'python') : []
 const stageWalks = await Promise.all(
   (walksByStage[stage.id] ?? []).map(async (w) => ({ walk: w, lines: await highlightLines(w.code, w.lang) })),
 )
@@ -160,8 +165,18 @@ const toc = [...chapterToc, ...fixedToc]
                 </Exhibit>
               )}
               {showSemaphore && (
-                <Exhibit designator="EX·10" title="the semaphore timeline · a deadlock, stepped into" provenance="ordering computed from an explicit dependency model of a 4-chip ring all-gather · toggle one wait and walk into the cycle">
-                  <SemTimeline client:visible />
+                <>
+                  <Exhibit designator="EX·10" title="the semaphore timeline · a deadlock, stepped into" provenance="ordering computed from an explicit dependency model of a 4-chip ring all-gather · toggle one wait and walk into the cycle">
+                    <SemTimeline client:visible />
+                  </Exhibit>
+                  <Exhibit designator="EX·11" title="the mesh, hop by hop" provenance="link bandwidths from the chip constants · per-hop bytes and times computed for a stated 32 MB shard">
+                    <MeshViz client:visible />
+                  </Exhibit>
+                </>
+              )}
+              {showSandbox && syncedLines.length > 0 && (
+                <Exhibit designator="EX·12" title="the schedule and its lines, locked together" provenance="each trace frame maps to the exact lines of the matmul walk that produce it · step either side, both move">
+                  <SyncedWalk trace={matmulTrace(4)} lines={syncedLines} frameLines={MATMUL_FRAME_LINES} client:visible />
                 </Exhibit>
               )}
             </div>
