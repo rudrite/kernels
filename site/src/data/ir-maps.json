@@ -1,0 +1,2474 @@
+{
+  "mlp": {
+    "groups": [
+      {
+        "jaxpr": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "hlo": [
+          2
+        ],
+        "op": "dot_general"
+      },
+      {
+        "jaxpr": [
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "hlo": [
+          3
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          10
+        ],
+        "hlo": [
+          5
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          13
+        ],
+        "hlo": [
+          11
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          14
+        ],
+        "hlo": [
+          14
+        ],
+        "op": "mul"
+      },
+      {
+        "jaxpr": [
+          15
+        ],
+        "hlo": [
+          15
+        ],
+        "op": "tanh"
+      },
+      {
+        "jaxpr": [
+          16
+        ],
+        "hlo": [
+          18
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          17
+        ],
+        "hlo": [
+          21
+        ],
+        "op": "mul"
+      },
+      {
+        "jaxpr": [
+          18
+        ],
+        "hlo": [
+          22
+        ],
+        "op": "mul"
+      },
+      {
+        "jaxpr": [
+          19,
+          20,
+          21,
+          22
+        ],
+        "hlo": [
+          23
+        ],
+        "op": "dot_general"
+      },
+      {
+        "jaxpr": [
+          23,
+          24,
+          25,
+          26,
+          27
+        ],
+        "hlo": [
+          24
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          28
+        ],
+        "hlo": [
+          26
+        ],
+        "op": "add"
+      }
+    ]
+  },
+  "layernorm": {
+    "groups": [
+      {
+        "jaxpr": [
+          1
+        ],
+        "hlo": [
+          2
+        ],
+        "op": "convert_element_type"
+      },
+      {
+        "jaxpr": [
+          2
+        ],
+        "hlo": [
+          3,
+          4
+        ],
+        "op": "reduce_sum"
+      },
+      {
+        "jaxpr": [
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "hlo": [
+          5
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          8
+        ],
+        "hlo": [
+          8
+        ],
+        "op": "div"
+      },
+      {
+        "jaxpr": [
+          9
+        ],
+        "hlo": [
+          9
+        ],
+        "op": "convert_element_type"
+      },
+      {
+        "jaxpr": [
+          57
+        ],
+        "hlo": [
+          13
+        ],
+        "op": "sub"
+      },
+      {
+        "jaxpr": [
+          58
+        ],
+        "hlo": [
+          16
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          59
+        ],
+        "hlo": [
+          17
+        ],
+        "op": "rsqrt"
+      },
+      {
+        "jaxpr": [
+          60
+        ],
+        "hlo": [
+          19
+        ],
+        "op": "mul"
+      },
+      {
+        "jaxpr": [
+          61,
+          62,
+          63,
+          64,
+          65
+        ],
+        "hlo": [
+          20
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          66
+        ],
+        "hlo": [
+          22
+        ],
+        "op": "mul"
+      },
+      {
+        "jaxpr": [
+          67,
+          68,
+          69,
+          70,
+          71
+        ],
+        "hlo": [
+          23
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          72
+        ],
+        "hlo": [
+          25
+        ],
+        "op": "add"
+      }
+    ]
+  },
+  "rmsnorm": {
+    "groups": [
+      {
+        "jaxpr": [
+          1
+        ],
+        "hlo": [
+          2
+        ],
+        "op": "mul"
+      },
+      {
+        "jaxpr": [
+          2
+        ],
+        "hlo": [
+          3
+        ],
+        "op": "convert_element_type"
+      },
+      {
+        "jaxpr": [
+          3
+        ],
+        "hlo": [
+          4,
+          5
+        ],
+        "op": "reduce_sum"
+      },
+      {
+        "jaxpr": [
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "hlo": [
+          6
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          9
+        ],
+        "hlo": [
+          9
+        ],
+        "op": "div"
+      },
+      {
+        "jaxpr": [
+          10
+        ],
+        "hlo": [
+          10
+        ],
+        "op": "convert_element_type"
+      },
+      {
+        "jaxpr": [
+          11
+        ],
+        "hlo": [
+          13
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          12
+        ],
+        "hlo": [
+          14
+        ],
+        "op": "rsqrt"
+      },
+      {
+        "jaxpr": [
+          13
+        ],
+        "hlo": [
+          16
+        ],
+        "op": "mul"
+      },
+      {
+        "jaxpr": [
+          14,
+          15,
+          16,
+          17,
+          18
+        ],
+        "hlo": [
+          17
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          19
+        ],
+        "hlo": [
+          19
+        ],
+        "op": "mul"
+      }
+    ]
+  },
+  "softmax": {
+    "groups": [
+      {
+        "jaxpr": [
+          1
+        ],
+        "hlo": [
+          2,
+          3
+        ],
+        "op": "reduce_max"
+      },
+      {
+        "jaxpr": [
+          2
+        ],
+        "hlo": [
+          6
+        ],
+        "op": "max"
+      },
+      {
+        "jaxpr": [
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "hlo": [
+          7
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          9
+        ],
+        "hlo": [
+          9
+        ],
+        "op": "sub"
+      },
+      {
+        "jaxpr": [
+          10
+        ],
+        "hlo": [
+          10
+        ],
+        "op": "exp"
+      },
+      {
+        "jaxpr": [
+          11
+        ],
+        "hlo": [
+          11
+        ],
+        "op": "convert_element_type"
+      },
+      {
+        "jaxpr": [
+          12
+        ],
+        "hlo": [
+          12,
+          13
+        ],
+        "op": "reduce_sum"
+      },
+      {
+        "jaxpr": [
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        "hlo": [
+          14
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          18
+        ],
+        "hlo": [
+          15
+        ],
+        "op": "convert_element_type"
+      },
+      {
+        "jaxpr": [
+          19
+        ],
+        "hlo": [
+          17
+        ],
+        "op": "div"
+      }
+    ]
+  },
+  "logsumexp": {
+    "groups": [
+      {
+        "jaxpr": [
+          1
+        ],
+        "hlo": [
+          2,
+          3
+        ],
+        "op": "reduce_max"
+      },
+      {
+        "jaxpr": [
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "hlo": [
+          4
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          7
+        ],
+        "hlo": [
+          6
+        ],
+        "op": "sub"
+      },
+      {
+        "jaxpr": [
+          8
+        ],
+        "hlo": [
+          7
+        ],
+        "op": "exp"
+      },
+      {
+        "jaxpr": [
+          9
+        ],
+        "hlo": [
+          8
+        ],
+        "op": "convert_element_type"
+      },
+      {
+        "jaxpr": [
+          10
+        ],
+        "hlo": [
+          9,
+          10
+        ],
+        "op": "reduce_sum"
+      },
+      {
+        "jaxpr": [
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "hlo": [
+          11
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          16
+        ],
+        "hlo": [
+          12
+        ],
+        "op": "convert_element_type"
+      },
+      {
+        "jaxpr": [
+          17
+        ],
+        "hlo": [
+          13
+        ],
+        "op": "log"
+      },
+      {
+        "jaxpr": [
+          18
+        ],
+        "hlo": [
+          14
+        ],
+        "op": "add"
+      }
+    ]
+  },
+  "attention": {
+    "groups": [
+      {
+        "jaxpr": [
+          1
+        ],
+        "hlo": [
+          2
+        ],
+        "op": "transpose"
+      },
+      {
+        "jaxpr": [
+          2,
+          3,
+          4,
+          5
+        ],
+        "hlo": [
+          3
+        ],
+        "op": "dot_general"
+      },
+      {
+        "jaxpr": [
+          6
+        ],
+        "hlo": [
+          4,
+          5
+        ],
+        "op": "reduce_max"
+      },
+      {
+        "jaxpr": [
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "hlo": [
+          6
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          12
+        ],
+        "hlo": [
+          8
+        ],
+        "op": "sub"
+      },
+      {
+        "jaxpr": [
+          13
+        ],
+        "hlo": [
+          9
+        ],
+        "op": "exp"
+      },
+      {
+        "jaxpr": [
+          14
+        ],
+        "hlo": [
+          10
+        ],
+        "op": "convert_element_type"
+      },
+      {
+        "jaxpr": [
+          15
+        ],
+        "hlo": [
+          11,
+          12
+        ],
+        "op": "reduce_sum"
+      },
+      {
+        "jaxpr": [
+          16,
+          17,
+          18,
+          19,
+          20
+        ],
+        "hlo": [
+          13
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          21
+        ],
+        "hlo": [
+          14
+        ],
+        "op": "convert_element_type"
+      },
+      {
+        "jaxpr": [
+          22
+        ],
+        "hlo": [
+          16
+        ],
+        "op": "div"
+      },
+      {
+        "jaxpr": [
+          23,
+          24,
+          25,
+          26
+        ],
+        "hlo": [
+          17
+        ],
+        "op": "dot_general"
+      }
+    ]
+  },
+  "causal": {
+    "groups": [
+      {
+        "jaxpr": [
+          1
+        ],
+        "hlo": [
+          2
+        ],
+        "op": "transpose"
+      },
+      {
+        "jaxpr": [
+          2,
+          3,
+          4,
+          5
+        ],
+        "hlo": [
+          3
+        ],
+        "op": "dot_general"
+      },
+      {
+        "jaxpr": [
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "hlo": [
+          4,
+          5
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          48
+        ],
+        "hlo": [
+          9,
+          10
+        ],
+        "op": "reduce_max"
+      },
+      {
+        "jaxpr": [
+          49
+        ],
+        "hlo": [
+          13
+        ],
+        "op": "max"
+      },
+      {
+        "jaxpr": [
+          50,
+          51,
+          52,
+          53,
+          54
+        ],
+        "hlo": [
+          14
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          56
+        ],
+        "hlo": [
+          16
+        ],
+        "op": "sub"
+      },
+      {
+        "jaxpr": [
+          57
+        ],
+        "hlo": [
+          17
+        ],
+        "op": "exp"
+      },
+      {
+        "jaxpr": [
+          58
+        ],
+        "hlo": [
+          18
+        ],
+        "op": "convert_element_type"
+      },
+      {
+        "jaxpr": [
+          59
+        ],
+        "hlo": [
+          19,
+          20
+        ],
+        "op": "reduce_sum"
+      },
+      {
+        "jaxpr": [
+          60,
+          61,
+          62,
+          63,
+          64
+        ],
+        "hlo": [
+          21
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          65
+        ],
+        "hlo": [
+          22
+        ],
+        "op": "convert_element_type"
+      },
+      {
+        "jaxpr": [
+          66
+        ],
+        "hlo": [
+          24
+        ],
+        "op": "div"
+      },
+      {
+        "jaxpr": [
+          67,
+          68,
+          69,
+          70
+        ],
+        "hlo": [
+          25
+        ],
+        "op": "dot_general"
+      }
+    ]
+  },
+  "mha": {
+    "groups": [
+      {
+        "jaxpr": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "hlo": [
+          2
+        ],
+        "op": "dot_general"
+      },
+      {
+        "jaxpr": [
+          5
+        ],
+        "hlo": [
+          3,
+          4
+        ],
+        "op": "sqrt"
+      },
+      {
+        "jaxpr": [
+          6
+        ],
+        "hlo": [
+          5
+        ],
+        "op": "convert_element_type"
+      },
+      {
+        "jaxpr": [
+          7
+        ],
+        "hlo": [
+          7
+        ],
+        "op": "div"
+      },
+      {
+        "jaxpr": [
+          8
+        ],
+        "hlo": [
+          8,
+          9
+        ],
+        "op": "reduce_max"
+      },
+      {
+        "jaxpr": [
+          9
+        ],
+        "hlo": [
+          12
+        ],
+        "op": "max"
+      },
+      {
+        "jaxpr": [
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "hlo": [
+          13
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          16
+        ],
+        "hlo": [
+          15
+        ],
+        "op": "sub"
+      },
+      {
+        "jaxpr": [
+          17
+        ],
+        "hlo": [
+          16
+        ],
+        "op": "exp"
+      },
+      {
+        "jaxpr": [
+          18
+        ],
+        "hlo": [
+          17
+        ],
+        "op": "convert_element_type"
+      },
+      {
+        "jaxpr": [
+          19
+        ],
+        "hlo": [
+          18,
+          19
+        ],
+        "op": "reduce_sum"
+      },
+      {
+        "jaxpr": [
+          20,
+          21,
+          22,
+          23,
+          24
+        ],
+        "hlo": [
+          20
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          25
+        ],
+        "hlo": [
+          21
+        ],
+        "op": "convert_element_type"
+      },
+      {
+        "jaxpr": [
+          26
+        ],
+        "hlo": [
+          23
+        ],
+        "op": "div"
+      },
+      {
+        "jaxpr": [
+          27,
+          28,
+          29,
+          30
+        ],
+        "hlo": [
+          24
+        ],
+        "op": "dot_general"
+      }
+    ]
+  },
+  "gqa": {
+    "groups": [
+      {
+        "jaxpr": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "hlo": [
+          2
+        ],
+        "op": "reshape"
+      },
+      {
+        "jaxpr": [
+          6,
+          7,
+          8,
+          9
+        ],
+        "hlo": [
+          3
+        ],
+        "op": "dot_general"
+      }
+    ]
+  },
+  "rope": {
+    "groups": [
+      {
+        "jaxpr": [
+          5
+        ],
+        "hlo": [
+          4
+        ],
+        "op": "mul"
+      },
+      {
+        "jaxpr": [
+          6
+        ],
+        "hlo": [
+          5
+        ],
+        "op": "mul"
+      },
+      {
+        "jaxpr": [
+          7
+        ],
+        "hlo": [
+          6
+        ],
+        "op": "sub"
+      },
+      {
+        "jaxpr": [
+          8
+        ],
+        "hlo": [
+          7
+        ],
+        "op": "mul"
+      },
+      {
+        "jaxpr": [
+          9
+        ],
+        "hlo": [
+          8
+        ],
+        "op": "mul"
+      },
+      {
+        "jaxpr": [
+          10
+        ],
+        "hlo": [
+          9
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          11
+        ],
+        "hlo": [
+          10
+        ],
+        "op": "concatenate"
+      }
+    ]
+  },
+  "scan": {
+    "groups": [
+      {
+        "jaxpr": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "hlo": [
+          2
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "hlo": [
+          3
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          11
+        ],
+        "hlo": [
+          4
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          12,
+          13,
+          14,
+          15,
+          16
+        ],
+        "hlo": [
+          5
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          17,
+          18,
+          19,
+          20,
+          21
+        ],
+        "hlo": [
+          6
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          22
+        ],
+        "hlo": [
+          7
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          23,
+          24,
+          25,
+          26,
+          27
+        ],
+        "hlo": [
+          8
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          28,
+          29,
+          30,
+          31,
+          32
+        ],
+        "hlo": [
+          9
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          33
+        ],
+        "hlo": [
+          10
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          34,
+          35,
+          36,
+          37,
+          38
+        ],
+        "hlo": [
+          11
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          39,
+          40,
+          41,
+          42,
+          43
+        ],
+        "hlo": [
+          12
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          44
+        ],
+        "hlo": [
+          13
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          45
+        ],
+        "hlo": [
+          14
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          46
+        ],
+        "hlo": [
+          15
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          47
+        ],
+        "hlo": [
+          16
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          48
+        ],
+        "hlo": [
+          17
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          49
+        ],
+        "hlo": [
+          18
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          50
+        ],
+        "hlo": [
+          19
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          51
+        ],
+        "hlo": [
+          20
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          52
+        ],
+        "hlo": [
+          21
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          53
+        ],
+        "hlo": [
+          22
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          54
+        ],
+        "hlo": [
+          23
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          55
+        ],
+        "hlo": [
+          24
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          56
+        ],
+        "hlo": [
+          25
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          57
+        ],
+        "hlo": [
+          26
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          58
+        ],
+        "hlo": [
+          27
+        ],
+        "op": "concatenate"
+      },
+      {
+        "jaxpr": [
+          59
+        ],
+        "hlo": [
+          28,
+          29
+        ],
+        "op": "pad"
+      },
+      {
+        "jaxpr": [
+          60
+        ],
+        "hlo": [
+          30
+        ],
+        "op": "pad"
+      },
+      {
+        "jaxpr": [
+          61
+        ],
+        "hlo": [
+          31
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          62,
+          63,
+          64,
+          65,
+          66
+        ],
+        "hlo": [
+          32
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          67,
+          68,
+          69,
+          70,
+          71
+        ],
+        "hlo": [
+          33
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          72
+        ],
+        "hlo": [
+          34
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          73,
+          74,
+          75,
+          76,
+          77
+        ],
+        "hlo": [
+          35
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          78
+        ],
+        "hlo": [
+          36
+        ],
+        "op": "concatenate"
+      },
+      {
+        "jaxpr": [
+          79
+        ],
+        "hlo": [
+          37
+        ],
+        "op": "pad"
+      },
+      {
+        "jaxpr": [
+          80
+        ],
+        "hlo": [
+          38
+        ],
+        "op": "pad"
+      },
+      {
+        "jaxpr": [
+          81
+        ],
+        "hlo": [
+          39
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          82,
+          83,
+          84,
+          85,
+          86
+        ],
+        "hlo": [
+          40
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          87,
+          88,
+          89,
+          90,
+          91
+        ],
+        "hlo": [
+          41
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          92
+        ],
+        "hlo": [
+          42
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          93,
+          94,
+          95,
+          96,
+          97
+        ],
+        "hlo": [
+          43
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          98
+        ],
+        "hlo": [
+          44
+        ],
+        "op": "concatenate"
+      },
+      {
+        "jaxpr": [
+          99
+        ],
+        "hlo": [
+          45
+        ],
+        "op": "pad"
+      },
+      {
+        "jaxpr": [
+          100
+        ],
+        "hlo": [
+          46
+        ],
+        "op": "pad"
+      },
+      {
+        "jaxpr": [
+          101
+        ],
+        "hlo": [
+          47
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          102,
+          103,
+          104,
+          105,
+          106
+        ],
+        "hlo": [
+          48
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          107,
+          108,
+          109,
+          110,
+          111
+        ],
+        "hlo": [
+          49
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          112
+        ],
+        "hlo": [
+          50
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          113,
+          114,
+          115,
+          116,
+          117
+        ],
+        "hlo": [
+          51
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          118
+        ],
+        "hlo": [
+          52
+        ],
+        "op": "concatenate"
+      },
+      {
+        "jaxpr": [
+          119
+        ],
+        "hlo": [
+          53
+        ],
+        "op": "pad"
+      },
+      {
+        "jaxpr": [
+          120
+        ],
+        "hlo": [
+          54
+        ],
+        "op": "pad"
+      },
+      {
+        "jaxpr": [
+          121
+        ],
+        "hlo": [
+          55
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          122,
+          123,
+          124,
+          125,
+          126
+        ],
+        "hlo": [
+          56
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          127,
+          128,
+          129,
+          130,
+          131
+        ],
+        "hlo": [
+          57
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          132
+        ],
+        "hlo": [
+          58
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          133,
+          134,
+          135,
+          136,
+          137
+        ],
+        "hlo": [
+          59
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          138
+        ],
+        "hlo": [
+          60
+        ],
+        "op": "concatenate"
+      },
+      {
+        "jaxpr": [
+          139
+        ],
+        "hlo": [
+          61
+        ],
+        "op": "pad"
+      },
+      {
+        "jaxpr": [
+          140
+        ],
+        "hlo": [
+          62
+        ],
+        "op": "pad"
+      },
+      {
+        "jaxpr": [
+          141
+        ],
+        "hlo": [
+          63
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          142,
+          143,
+          144,
+          145,
+          146
+        ],
+        "hlo": [
+          64
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          147,
+          148,
+          149,
+          150,
+          151
+        ],
+        "hlo": [
+          65
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          152
+        ],
+        "hlo": [
+          66
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          153,
+          154,
+          155,
+          156,
+          157
+        ],
+        "hlo": [
+          67
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          158
+        ],
+        "hlo": [
+          68
+        ],
+        "op": "concatenate"
+      },
+      {
+        "jaxpr": [
+          159
+        ],
+        "hlo": [
+          69
+        ],
+        "op": "pad"
+      },
+      {
+        "jaxpr": [
+          160
+        ],
+        "hlo": [
+          70
+        ],
+        "op": "pad"
+      },
+      {
+        "jaxpr": [
+          161
+        ],
+        "hlo": [
+          71
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          162,
+          163,
+          164,
+          165,
+          166
+        ],
+        "hlo": [
+          72
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          167,
+          168,
+          169,
+          170,
+          171
+        ],
+        "hlo": [
+          73
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          172
+        ],
+        "hlo": [
+          74
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          173,
+          174,
+          175,
+          176,
+          177
+        ],
+        "hlo": [
+          75
+        ],
+        "op": "slice"
+      },
+      {
+        "jaxpr": [
+          178
+        ],
+        "hlo": [
+          76
+        ],
+        "op": "concatenate"
+      },
+      {
+        "jaxpr": [
+          179
+        ],
+        "hlo": [
+          77
+        ],
+        "op": "pad"
+      },
+      {
+        "jaxpr": [
+          180
+        ],
+        "hlo": [
+          78
+        ],
+        "op": "pad"
+      },
+      {
+        "jaxpr": [
+          181
+        ],
+        "hlo": [
+          79
+        ],
+        "op": "add"
+      }
+    ]
+  },
+  "remat": {
+    "groups": [
+      {
+        "jaxpr": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "hlo": [
+          2
+        ],
+        "op": "dot_general"
+      },
+      {
+        "jaxpr": [
+          10
+        ],
+        "hlo": [
+          8
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          11
+        ],
+        "hlo": [
+          11
+        ],
+        "op": "mul"
+      },
+      {
+        "jaxpr": [
+          12
+        ],
+        "hlo": [
+          12
+        ],
+        "op": "tanh"
+      },
+      {
+        "jaxpr": [
+          13
+        ],
+        "hlo": [
+          15
+        ],
+        "op": "add"
+      },
+      {
+        "jaxpr": [
+          14
+        ],
+        "hlo": [
+          18
+        ],
+        "op": "mul"
+      },
+      {
+        "jaxpr": [
+          15
+        ],
+        "hlo": [
+          19
+        ],
+        "op": "mul"
+      },
+      {
+        "jaxpr": [
+          20,
+          21,
+          22,
+          23
+        ],
+        "hlo": [
+          20
+        ],
+        "op": "dot_general"
+      }
+    ]
+  },
+  "moe": {
+    "groups": [
+      {
+        "jaxpr": [
+          18,
+          19,
+          20,
+          21
+        ],
+        "hlo": [
+          4
+        ],
+        "op": "dot_general"
+      },
+      {
+        "jaxpr": [
+          22
+        ],
+        "hlo": [
+          5
+        ],
+        "op": "transpose"
+      },
+      {
+        "jaxpr": [
+          23,
+          24,
+          25,
+          26
+        ],
+        "hlo": [
+          6
+        ],
+        "op": "dot_general"
+      },
+      {
+        "jaxpr": [
+          27,
+          28,
+          29,
+          30
+        ],
+        "hlo": [
+          7
+        ],
+        "op": "dot_general"
+      }
+    ]
+  },
+  "grads": {
+    "groups": [
+      {
+        "jaxpr": [
+          1
+        ],
+        "hlo": [
+          2
+        ],
+        "op": "transpose"
+      },
+      {
+        "jaxpr": [
+          2,
+          3,
+          4,
+          5
+        ],
+        "hlo": [
+          3
+        ],
+        "op": "dot_general"
+      },
+      {
+        "jaxpr": [
+          6
+        ],
+        "hlo": [
+          4,
+          5
+        ],
+        "op": "reduce_max"
+      },
+      {
+        "jaxpr": [
+          7
+        ],
+        "hlo": [
+          6
+        ],
+        "op": "reshape"
+      },
+      {
+        "jaxpr": [
+          9
+        ],
+        "hlo": [
+          9
+        ],
+        "op": "convert_element_type"
+      },
+      {
+        "jaxpr": [
+          10
+        ],
+        "hlo": [
+          10,
+          11
+        ],
+        "op": "reduce_sum"
+      },
+      {
+        "jaxpr": [
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "hlo": [
+          12
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          16
+        ],
+        "hlo": [
+          14
+        ],
+        "op": "sub"
+      },
+      {
+        "jaxpr": [
+          17
+        ],
+        "hlo": [
+          15
+        ],
+        "op": "exp"
+      },
+      {
+        "jaxpr": [
+          18
+        ],
+        "hlo": [
+          16,
+          17
+        ],
+        "op": "reduce_sum"
+      },
+      {
+        "jaxpr": [
+          19,
+          20,
+          21,
+          22,
+          23
+        ],
+        "hlo": [
+          18
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          24
+        ],
+        "hlo": [
+          20
+        ],
+        "op": "div"
+      },
+      {
+        "jaxpr": [
+          36,
+          37,
+          38,
+          39
+        ],
+        "hlo": [
+          27
+        ],
+        "op": "dot_general"
+      },
+      {
+        "jaxpr": [
+          40
+        ],
+        "hlo": [
+          28
+        ],
+        "op": "transpose"
+      },
+      {
+        "jaxpr": [
+          41,
+          42,
+          43,
+          44
+        ],
+        "hlo": [
+          29
+        ],
+        "op": "dot_general"
+      },
+      {
+        "jaxpr": [
+          45
+        ],
+        "hlo": [
+          31
+        ],
+        "op": "mul"
+      },
+      {
+        "jaxpr": [
+          46
+        ],
+        "hlo": [
+          32
+        ],
+        "op": "mul"
+      },
+      {
+        "jaxpr": [
+          47
+        ],
+        "hlo": [
+          33,
+          34
+        ],
+        "op": "reduce_sum"
+      },
+      {
+        "jaxpr": [
+          48
+        ],
+        "hlo": [
+          35
+        ],
+        "op": "reshape"
+      },
+      {
+        "jaxpr": [
+          49
+        ],
+        "hlo": [
+          36
+        ],
+        "op": "neg"
+      },
+      {
+        "jaxpr": [
+          50
+        ],
+        "hlo": [
+          38
+        ],
+        "op": "div"
+      },
+      {
+        "jaxpr": [
+          51
+        ],
+        "hlo": [
+          39,
+          40
+        ],
+        "op": "reduce_sum"
+      },
+      {
+        "jaxpr": [
+          52,
+          53,
+          54,
+          55,
+          56
+        ],
+        "hlo": [
+          41
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          57
+        ],
+        "hlo": [
+          42
+        ],
+        "op": "add_any"
+      },
+      {
+        "jaxpr": [
+          58
+        ],
+        "hlo": [
+          43
+        ],
+        "op": "mul"
+      },
+      {
+        "jaxpr": [
+          59
+        ],
+        "hlo": [
+          44
+        ],
+        "op": "neg"
+      },
+      {
+        "jaxpr": [
+          60
+        ],
+        "hlo": [
+          45,
+          46
+        ],
+        "op": "reduce_sum"
+      },
+      {
+        "jaxpr": [
+          61
+        ],
+        "hlo": [
+          47
+        ],
+        "op": "reshape"
+      },
+      {
+        "jaxpr": [
+          62
+        ],
+        "hlo": [
+          48,
+          49
+        ],
+        "op": "reduce_sum"
+      },
+      {
+        "jaxpr": [
+          63
+        ],
+        "hlo": [
+          50
+        ],
+        "op": "div"
+      },
+      {
+        "jaxpr": [
+          64,
+          65,
+          66,
+          67,
+          68
+        ],
+        "hlo": [
+          51
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          69
+        ],
+        "hlo": [
+          52
+        ],
+        "op": "mul"
+      },
+      {
+        "jaxpr": [
+          70
+        ],
+        "hlo": [
+          53
+        ],
+        "op": "add_any"
+      },
+      {
+        "jaxpr": [
+          71,
+          72,
+          73,
+          74
+        ],
+        "hlo": [
+          54
+        ],
+        "op": "dot_general"
+      },
+      {
+        "jaxpr": [
+          75
+        ],
+        "hlo": [
+          55
+        ],
+        "op": "transpose"
+      },
+      {
+        "jaxpr": [
+          76,
+          77,
+          78,
+          79
+        ],
+        "hlo": [
+          56
+        ],
+        "op": "dot_general"
+      },
+      {
+        "jaxpr": [
+          80
+        ],
+        "hlo": [
+          57
+        ],
+        "op": "transpose"
+      }
+    ]
+  },
+  "dequant": {
+    "groups": [
+      {
+        "jaxpr": [
+          1
+        ],
+        "hlo": [
+          2
+        ],
+        "op": "convert_element_type"
+      },
+      {
+        "jaxpr": [
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "hlo": [
+          3
+        ],
+        "op": "broadcast_in_dim"
+      },
+      {
+        "jaxpr": [
+          7
+        ],
+        "hlo": [
+          5
+        ],
+        "op": "mul"
+      },
+      {
+        "jaxpr": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "hlo": [
+          6
+        ],
+        "op": "dot_general"
+      }
+    ]
+  },
+  "sharded": {
+    "groups": []
+  },
+  "psum": {
+    "groups": []
+  }
+}

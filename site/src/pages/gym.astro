@@ -6,6 +6,7 @@ import Exhibit from '../components/Exhibit.astro'
 import DotDecoder from '../exhibits/DotDecoder'
 import ShapeOracle from '../exhibits/ShapeOracle'
 import SpotDecision from '../exhibits/SpotDecision'
+import CorpusXray from '../exhibits/CorpusXray'
 import corpus from '../data/ir-corpus.json'
 import opCards from '../data/op-cards.json'
 
@@ -50,6 +51,17 @@ const cards = Object.entries(opCards as Record<string, string>)
         <SpotDecision client:visible />
       </Exhibit>
     </div>
+  </section>
+
+  <section class="wrap block">
+    <SectionHead id="xray" eyebrow="hover-synced, corpus-wide" title="The x-ray, on any program" />
+    <p class="prose sec-lede">
+      Pick a program and hover either column: the same computation lights at both layers. The mappings
+      are computed mechanically from op order; unmapped lines are conservative skips, never absences.
+    </p>
+    <Exhibit designator="GYM·04" title="the corpus x-ray" provenance="17 programs, 236 sync groups, all derived by the mapping script · nothing hand-drawn">
+      <CorpusXray client:visible />
+    </Exhibit>
   </section>
 
   <section class="wrap block">
