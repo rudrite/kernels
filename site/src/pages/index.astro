@@ -1,16 +1,18 @@
 ---
 import Base from '../layouts/Base.astro'
-import StackMap from '../components/StackMap.astro'
 import SectionHead from '../components/SectionHead.astro'
 import Exhibit from '../components/Exhibit.astro'
 import Choreographer from '../exhibits/Choreographer'
 import { flashTrace } from '../exhibits/flash'
-import { LAYERS, STAGES } from '../data/track'
+import { LAYERS, STAGES, stagesForLayer } from '../data/track'
+import irData from '../data/ir-attention.json'
+import chips from '../data/chips.json'
 import results from '../../../bench/results.json'
 
 const gatesTotal = STAGES.length
 const gatesPassed = STAGES.filter((s) => s.gate.state === 'passed').length
 const heroTrace = flashTrace(4)
+const v5e = chips.chips.find((c) => c.id === 'v5e')!
 
 interface BenchRow {
   id: string
@@ -21,58 +23,70 @@ interface BenchRow {
 }
 const benchTeaser = (results as BenchRow[]).slice(0, 3)
 
-const INSTRUMENTS = [
-  { d: 'EX·01', t: 'the roofline playground', href: '/s/machine#instruments', k: 'drag shapes across the ridge' },
-  { d: 'EX·02', t: 'tiled matmul, double-buffered', href: '/s/pallas#instruments', k: 'watch the pipeline hide the DMA' },
-  { d: 'EX·05', t: 'the IR x-ray', href: '/s/ir#instruments', k: 'one program, three layers, hover-synced' },
-  { d: 'EX·03', t: 'streaming attention', href: '/s/kernels#instruments', k: 'the score matrix that never exists' },
-  { d: 'EX·08', t: 'causal skip', href: '/s/kernels#instruments', k: 'masked blocks are never loaded' },
-  { d: 'EX·04', t: 'ring attention', href: '/s/distributed#instruments', k: 'same schedule, longer arrows' },
-]
+// One real fragment of each layer, shown in its band. Nothing invented:
+// IR lines come from the generated dumps, constants from the chip table.
+const MOTIFS: Record<string, string[]> = {
+  source: [irData.source[1]!.trim(), irData.source[3]!.trim()],
+  jaxpr: [irData.jaxpr[1]!.trim(), irData.jaxpr[6]!.trim()],
+  stablehlo: [irData.stablehlo[3]!.trim().slice(0, 72) + '…'],
+  xla: ['fuses along dataflow edges: yes', 'restructures algorithms: no · the 268 MB spill'],
+  gap: ['∅ nothing lowers through here'],
+  pallas: ['o_ref[...] += jnp.dot(a_ref[...], b_ref[...])', 'pl.BlockSpec((bm, bk), lambda i, j, k: (i, k))'],
+  mosaic: ['(8, 128) register tiles · VLIW bundles', 'you read its errors; you never write it'],
+  tpu: [
+    `${(v5e.bf16FlopsPerSec / 1e12).toFixed(0)} bf16 TFLOP/s · ${(v5e.hbmBytesPerSec / 1e9).toFixed(0)} GB/s HBM`,
+    `${(v5e.vmemBytes! / 1048576).toFixed(0)} MiB VMEM · ridge ${(v5e.bf16FlopsPerSec / v5e.hbmBytesPerSec).toFixed(0)} F/B`,
+  ],
+  ici: [`${(v5e.iciBytesPerSecOneWay / 1e9).toFixed(1)} GB/s per link, each way · chips form rings`],
+}
 
 const OUTCOMES = [
-  {
-    n: '01',
-    h: 'Read any IR on sight',
-    p: 'jaxpr, StableHLO, optimized HLO: you narrate unfamiliar dumps, decode any dot_general, and spot the decisions the framework made for you.',
-  },
-  {
-    n: '02',
-    h: 'Write kernels that beat XLA',
-    p: 'From rooflines to BlockSpecs to a flash attention you derived yourself, differential-tested and benchmarked against the hand-tuned ceiling.',
-  },
-  {
-    n: '03',
-    h: 'Treat the cluster as one kernel',
-    p: 'Collectives rebuilt from remote DMAs, communication hidden behind compute, and ring attention composed from theorems you proved once.',
-  },
+  { n: '01', h: 'Read any IR on sight', p: 'narrate unfamiliar dumps, decode any dot_general' },
+  { n: '02', h: 'Write kernels that beat XLA', p: 'derived, differential-tested, benchmarked' },
+  { n: '03', h: 'Treat the cluster as one kernel', p: 'communication hidden behind compute' },
 ]
+
+const INSTRUMENTS = [
+  { d: 'EX·01', t: 'the roofline playground', href: '/s/machine#instruments', k: 'drag shapes across the ridge' },
+  { d: 'EX·09', t: 'the BlockSpec sandbox', href: '/s/pallas#instruments', k: 'legal and illegal schedules, live' },
+  { d: 'EX·05', t: 'the IR x-ray', href: '/s/ir#instruments', k: 'one program, three layers, hover-synced' },
+  { d: 'EX·03', t: 'streaming attention', href: '/s/kernels#instruments', k: 'the score matrix that never exists' },
+  { d: 'EX·10', t: 'the semaphore timeline', href: '/s/distributed#instruments', k: 'step into a deadlock on purpose' },
+  { d: 'EX·11', t: 'the mesh, hop by hop', href: '/s/distributed#instruments', k: 'collectives over real link budgets' },
+]
+
+const pad = (n: number) => String(n).padStart(2, '0')
+// bands 0-3 on paper, band 4 is the threshold, bands 5-8 descend into the dark
+const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'depth-5', 'depth-6', 'depth-7', 'depth-8']
 ---
 
 <Base
   title="Rudrite Kernels — learn to make TPUs fast"
-  description="One path, fifteen chapters: the TPU kernel stack taught with live instruments, runnable labs, and gates measured on real hardware, pass or fail in public."
+  description="A mastery course down the TPU kernel stack: fifteen chapters, live instruments, runnable labs, and gates measured on real hardware, pass or fail in public."
 >
   <section class="wrap hero">
     <div class="hero-copy">
-      <p class="mono-label kicker">a mastery course · one path · fifteen chapters</p>
+      <p class="mono-label kicker">a mastery course · one path · down the stack</p>
       <h1>Learn to make TPUs fast.</h1>
       <p class="lede">
-        The TPU kernel stack as one course: each chapter teaches, then assigns its mastery work: the
-        instruments to manipulate, the drills to streak, the walks to step, the labs to run in Colab.
-        Everything on this site belongs to a chapter, your progress tracks in your browser, and the
-        stages end at gates measured on real hardware, published pass or fail.
+        This page is the stack. Scroll and you descend it: four layers of compiler land on paper, the
+        gap, then the dark where kernels live. Each layer is a chapter with assigned mastery work;
+        the stages are pinned where they belong; your progress rides on every entry.
       </p>
       <div class="cta-row">
         <a class="cta primary" href="/l/source" data-continue><span data-continue-label>start the path → chapter 1</span></a>
         <a class="cta" href="https://github.com/rudrite/kernels" rel="noopener">the repo</a>
       </div>
-      <p class="stat-line" aria-label="Track status">
-        <span class="meas">{gatesPassed}/{gatesTotal}</span> gates passed ·
-        <span class="meas">13</span> runnable labs · your progress
+      <p class="stat-line">
+        <span class="meas">{gatesPassed}/{gatesTotal}</span> gates passed · your progress
         <span class="meas" data-path-progress>0/15</span> chapters
       </p>
       <div class="your-bar" aria-hidden="true"><i data-path-progress-bar></i></div>
+      <div class="outcome-strip">
+        {OUTCOMES.map((o) => (
+          <div><span class="meas onum">{o.n}</span> <strong>{o.h}</strong><span class="op"> · {o.p}</span></div>
+        ))}
+      </div>
     </div>
     <div class="hero-instrument">
       <Exhibit
@@ -85,83 +99,131 @@ const OUTCOMES = [
     </div>
   </section>
 
-  <section class="wrap block">
-    <SectionHead id="outcomes" eyebrow="what the path produces" title="Fluency, not familiarity" />
-    <div class="outcomes">
-      {
-        OUTCOMES.map((o) => (
-          <div class="outcome">
-            <span class="onum meas">{o.n}</span>
-            <h3>{o.h}</h3>
-            <p>{o.p}</p>
-          </div>
-        ))
-      }
-    </div>
-  </section>
+  <div class="descent-cue wrap">
+    <span class="mono-label">↓ the descent · nine layers · six stages pinned along the way</span>
+  </div>
 
-  <section class="wrap block" aria-labelledby="map-head">
-    <SectionHead id="map-head" eyebrow="the path is the stack · your mastery rides on it" title="Fifteen chapters, one map" />
-    <p class="prose sec-lede">
-      Chapters 01-09 descend the stack, one layer at a time, top to bottom exactly as drawn. Chapters
-      10-15 are the stages, pinned to the layer each one teaches. Your work fraction sits on every entry;
-      the gap between XLA and Pallas stays empty until chapter 13 teaches you to cross it. Press
-      <span class="meas">⌘K</span> anywhere to jump.
-    </p>
-    <StackMap />
-  </section>
-
-  <section class="wrap block" aria-labelledby="instr">
-    <SectionHead id="instr" eyebrow="manipulable, never decorative" title="The instruments" />
-    <div class="instr-grid">
-      {
-        INSTRUMENTS.map((x) => (
-          <a class="panel instr-card" href={x.href}>
-            <div class="body">
-              <span class="designator">{x.d}</span>
-              <span class="it">{x.t}</span>
-              <span class="ik">{x.k}</span>
+  <div class="descent" id="descent">
+    {
+      LAYERS.map((layer, li) => {
+        const pinned = stagesForLayer(layer.id)
+        const motif = MOTIFS[layer.id] ?? []
+        return (
+          <section class={`band ${BAND_CLASS[li]}`} data-band={layer.id} aria-label={`Chapter ${pad(li + 1)}: ${layer.label}`}>
+            <div class="wrap band-grid">
+              <div class="band-depth">
+                <span class="bd-ch">ch {pad(li + 1)}</span>
+                <span class="bd-frac meas" data-work-frac={`l:${layer.id}`}></span>
+              </div>
+              <div class="band-main">
+                <a class="band-title" href={`/l/${layer.id}`} data-chapter-key={`l:${layer.id}`}>
+                  <h2>{layer.label}</h2>
+                </a>
+                <p class="band-desc">{layer.desc}</p>
+                {pinned.length > 0 && (
+                  <div class="band-stages">
+                    {pinned.map((s) => (
+                      <a class="stage-chip" href={`/s/${s.id}`} data-chapter-key={`s:${s.id}`}>
+                        <span class="led" data-state={s.gate.state === 'queued' ? undefined : s.gate.state} />
+                        <span class="chip-num">ch {pad(10 + s.num)}</span>
+                        <span class="chip-title">{s.title}</span>
+                        <span class="chip-frac meas" data-work-frac={`s:${s.id}`}></span>
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div class="band-motif" aria-hidden="true">
+                {motif.map((line) => (
+                  <code>{line}</code>
+                ))}
+              </div>
             </div>
-          </a>
-        ))
-      }
-    </div>
-  </section>
+          </section>
+        )
+      })
+    }
+  </div>
 
-  <section class="wrap block" aria-labelledby="receipts">
-    <SectionHead id="receipts" eyebrow="taught in public" title="Every number, with receipts" />
-    <div class="receipts">
-      <div class="prose">
-        <p>
-          Gates pass only on real hardware, and failures stay published. Nothing quantitative appears on
-          this site outside an instrument, and every value states what it is: a roofline prediction, an
-          off-chip verification, or a measured run with chip, dtype, shapes, and date attached.
-        </p>
-        <div class="how-cards">
-          <div class="panel how-card"><div class="body"><span class="designator">READ</span><p>Theory on paper. Derivations before code, references after your own attempt.</p></div></div>
-          <div class="panel how-card"><div class="body"><span class="designator">RUN</span><p>Every lab is a notebook in the repo. Open it in Colab, keep your copy.</p></div></div>
-          <div class="panel how-card"><div class="body"><span class="designator">GATE</span><p>A criterion, a measured number, a verdict. In public.</p></div></div>
+  <section class="workshop">
+    <div class="wrap">
+      <SectionHead id="instr" eyebrow="you have reached the floor" title="The workshop" />
+      <p class="ws-lede">
+        Below the stack sits the equipment: twelve instruments, four drills, six museum exhibits, thirteen
+        labs. Every one is assigned to a chapter above; press <span class="meas">⌘K</span> to jump anywhere.
+      </p>
+      <div class="instr-grid">
+        {
+          INSTRUMENTS.map((x) => (
+            <a class="panel instr-card" href={x.href}>
+              <div class="body">
+                <span class="designator">{x.d}</span>
+                <span class="it">{x.t}</span>
+                <span class="ik">{x.k}</span>
+              </div>
+            </a>
+          ))
+        }
+      </div>
+
+      <div class="receipts">
+        <div class="ws-prose">
+          <span class="mono-label ws-head">taught in public</span>
+          <p>
+            Gates pass only on real hardware, and failures stay published. Every value on this site states
+            what it is: a roofline prediction, an off-chip verification, or a measured run with chip,
+            dtype, shapes, and date attached.
+          </p>
+        </div>
+        <div class="panel bench-teaser">
+          <table>
+            <thead><tr><th>kernel</th><th>metric</th><th>value</th><th>chip</th></tr></thead>
+            <tbody>
+              {benchTeaser.map((r) => (
+                <tr><td>{r.kernel}</td><td>{r.metric}</td><td class="val">{r.value}</td><td>{r.chip}</td></tr>
+              ))}
+            </tbody>
+          </table>
+          <div class="provenance"><a href="/bench">the full bench →</a></div>
         </div>
       </div>
-      <div class="panel bench-teaser">
-        <table>
-          <thead><tr><th>kernel</th><th>metric</th><th>value</th><th>chip</th></tr></thead>
-          <tbody>
-            {
-              benchTeaser.map((r) => (
-                <tr><td>{r.kernel}</td><td>{r.metric}</td><td class="val">{r.value}</td><td>{r.chip}</td></tr>
-              ))
-            }
-          </tbody>
-        </table>
-        <div class="provenance"><a href="/bench">the full bench →</a></div>
-      </div>
     </div>
   </section>
+
+  <aside class="gauge" aria-hidden="true">
+    <span class="g-head">depth</span>
+    <ol>
+      {LAYERS.map((l, i) => <li data-gauge={l.id}><i></i>{pad(i + 1)}</li>)}
+    </ol>
+  </aside>
+
+  <script>
+    // the depth gauge: quantized, driven by which band crosses mid-viewport
+    const bands = Array.from(document.querySelectorAll<HTMLElement>('[data-band]'))
+    const marks = new Map(
+      Array.from(document.querySelectorAll<HTMLElement>('[data-gauge]')).map((el) => [el.getAttribute('data-gauge')!, el]),
+    )
+    const gauge = document.querySelector<HTMLElement>('.gauge')
+    if (bands.length && gauge) {
+      const obs = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            const id = e.target.getAttribute('data-band')!
+            if (e.isIntersecting) {
+              for (const [k, el] of marks) el.classList.toggle('on', k === id)
+            }
+          }
+          gauge.classList.toggle('visible', bands.some((b) => b.getBoundingClientRect().top < innerHeight && b.getBoundingClientRect().bottom > 0))
+        },
+        { rootMargin: '-45% 0px -45% 0px' },
+      )
+      for (const b of bands) obs.observe(b)
+    }
+  </script>
 </Base>
 
 <style>
-  .hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 3rem; align-items: center; padding-block: clamp(2.5rem, 6vw, 4.5rem) 2rem; }
+  .hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 3rem; align-items: center; padding-block: clamp(2.5rem, 6vw, 4rem) 1.5rem; }
   @media (max-width: 1100px) { .hero { grid-template-columns: 1fr; } }
   .kicker { display: block; margin-bottom: 1.25rem; color: var(--copper-deep); }
   h1 { font-size: clamp(2.25rem, 5vw, 3.5rem); line-height: 1.05; font-weight: 600; letter-spacing: -0.01em; }
@@ -171,48 +233,93 @@ const OUTCOMES = [
   .cta:hover { border-color: var(--copper-deep); color: var(--copper-deep); }
   .cta.primary { border-color: var(--copper-deep); color: var(--copper-deep); }
   .stat-line { margin-top: 1.5rem; font-family: var(--mono); font-size: 0.8125rem; color: var(--ink-mute); }
-  .stat-line a { color: var(--copper-deep); }
   .your-bar { height: 2px; background: var(--rule-soft); margin-top: 0.5rem; max-width: 24rem; }
   .your-bar i { display: block; height: 100%; width: 0; background: var(--pass); }
+  .outcome-strip { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.875rem; }
+  .outcome-strip .onum { color: var(--copper-deep); font-size: 0.75rem; }
+  .outcome-strip .op { color: var(--ink-mute); }
 
-  .block { padding-block: 2.5rem 0.5rem; }
-  .sec-lede { color: var(--ink-mute); margin-bottom: 1.5rem; }
+  .descent-cue { padding-block: 1.25rem 0.75rem; }
 
-  .outcomes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
-  @media (max-width: 900px) { .outcomes { grid-template-columns: 1fr; } }
-  .outcome .onum { display: block; font-size: 1.5rem; color: var(--copper-deep); }
-  .outcome h3 { font-family: var(--serif); font-weight: 600; font-size: 1.1875rem; margin: 0.5rem 0; }
-  .outcome p { font-size: 0.9375rem; line-height: 1.6; color: var(--ink-mute); }
+  /* the descent: paper above the gap, dark below it */
+  .band { border-top: 1px solid var(--rule-soft); }
+  .band-grid { display: grid; grid-template-columns: 7rem minmax(0, 1fr) minmax(14rem, 22rem); gap: 2rem; align-items: center; padding-block: 2.25rem; }
+  @media (max-width: 960px) { .band-grid { grid-template-columns: 5rem 1fr; } .band-motif { display: none; } }
 
-  .path-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; }
-  @media (max-width: 900px) { .path-cols { grid-template-columns: 1fr; } }
-  .part { margin: 0 0 0.5rem; color: var(--copper-deep); }
-  .order { list-style: none; padding: 0; border-top: 1px solid var(--rule); }
-  .order a { display: flex; align-items: center; gap: 0.875rem; padding: 0.6rem 0.25rem; border-bottom: 1px solid var(--rule-soft); text-decoration: none; font-family: var(--mono); font-size: 0.8125rem; }
-  .order a:hover { background: var(--paper-high); color: var(--copper-deep); }
-  .onum { color: var(--copper-deep); font-weight: 500; width: 1.75rem; }
-  .otitle { flex: 1; }
-  .ofrac { color: var(--ink-mute); font-size: 0.6875rem; }
-  [data-chapter-key].p-done .ofrac { color: var(--pass); }
-  .oweeks { color: var(--ink-mute); font-size: 0.6875rem; }
+  .depth-0 { background: #f4f5f2; }
+  .depth-1 { background: #edeee9; }
+  .depth-2 { background: #e5e6e0; }
+  .depth-3 { background: #dcded7; }
+  .depth-gap {
+    background: repeating-linear-gradient(-45deg, #d2d4cc, #d2d4cc 6px, #c8cac2 6px, #c8cac2 7px);
+  }
+  .depth-5, .depth-6, .depth-7, .depth-8 { color: var(--panel-ink); border-top-color: var(--panel-rule); }
+  .depth-5 { background: #23262b; }
+  .depth-6 { background: #1b1e22; }
+  .depth-7 { background: #15171b; }
+  .depth-8 { background: #101215; }
 
+  .band-depth { display: flex; flex-direction: column; gap: 0.375rem; font-family: var(--mono); }
+  .bd-ch { font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--copper-deep); }
+  .depth-5 .bd-ch, .depth-6 .bd-ch, .depth-7 .bd-ch, .depth-8 .bd-ch { color: var(--copper); }
+  .bd-frac { font-size: 0.75rem; color: var(--ink-mute); }
+  .depth-5 .bd-frac, .depth-6 .bd-frac, .depth-7 .bd-frac, .depth-8 .bd-frac { color: var(--panel-mute); }
+  [data-chapter-key].p-done ~ * .bd-frac { color: var(--pass); }
+
+  .band-title { text-decoration: none; color: inherit; }
+  .band-title h2 { font-family: var(--serif); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.125rem); letter-spacing: -0.01em; }
+  .band-title:hover h2 { color: var(--copper-deep); }
+  .depth-5 .band-title:hover h2, .depth-6 .band-title:hover h2, .depth-7 .band-title:hover h2, .depth-8 .band-title:hover h2 { color: var(--copper); }
+  .band-desc { margin-top: 0.4rem; font-size: 0.9375rem; color: var(--ink-mute); max-width: 52ch; }
+  .depth-5 .band-desc, .depth-6 .band-desc, .depth-7 .band-desc, .depth-8 .band-desc { color: var(--panel-mute); }
+  .depth-gap .band-title h2 { color: var(--copper-deep); }
+
+  .band-stages { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.875rem; }
+  .stage-chip { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--mono); font-size: 0.75rem; border: 1px solid var(--ink-mute); border-radius: 2px; padding: 0.375rem 0.625rem; text-decoration: none; background: var(--paper-high); color: var(--ink); }
+  .depth-5 .stage-chip, .depth-6 .stage-chip, .depth-7 .stage-chip, .depth-8 .stage-chip { background: #1a1d21; border-color: #4a525a; color: var(--panel-ink); }
+  .stage-chip:hover { border-color: var(--copper-deep); color: var(--copper-deep); }
+  .chip-num { font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--copper-deep); font-weight: 500; }
+  .depth-5 .chip-num, .depth-8 .chip-num { color: var(--copper); }
+  .chip-frac { font-size: 0.6875rem; color: var(--ink-mute); }
+  [data-chapter-key].p-done .chip-frac { color: var(--pass); }
+
+  .band-motif { display: flex; flex-direction: column; gap: 0.3rem; font-family: var(--mono); font-size: 0.71875rem; color: var(--ink-mute); overflow: hidden; }
+  .band-motif code { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .depth-5 .band-motif, .depth-6 .band-motif, .depth-7 .band-motif, .depth-8 .band-motif { color: #8a9298; }
+  .depth-gap .band-motif { color: var(--copper-deep); }
+
+  /* the workshop: the dark floor beneath the stack */
+  .workshop { background: #101215; color: var(--panel-ink); padding-block: 3rem 3.5rem; }
+  .workshop :global(.shead .eyebrow) { color: var(--panel-mute); }
+  .workshop :global(.shead .eyebrow::after) { background: var(--panel-rule); }
+  .workshop :global(.shead h2) { color: var(--panel-ink); }
+  .ws-lede { color: var(--panel-mute); max-width: 60ch; margin-bottom: 1.5rem; }
   .instr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
   @media (max-width: 900px) { .instr-grid { grid-template-columns: 1fr; } }
-  .instr-card { text-decoration: none; }
+  .instr-card { text-decoration: none; border-color: #2f343a; }
   .instr-card .body { padding: 0.875rem; display: flex; flex-direction: column; gap: 0.375rem; }
   .instr-card .it { color: var(--panel-ink); font-size: 0.875rem; }
   .instr-card .ik { color: var(--panel-mute); font-size: 0.75rem; }
   .instr-card:hover .it { color: var(--copper); }
 
-  .receipts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2.5rem; align-items: start; }
+  .receipts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2.5rem; align-items: start; margin-top: 2.5rem; }
   @media (max-width: 1000px) { .receipts { grid-template-columns: 1fr; } }
-  .how-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-top: 1.25rem; }
-  @media (max-width: 700px) { .how-cards { grid-template-columns: 1fr; } }
-  .how-card .body { padding: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; }
-  .how-card p { font-family: var(--serif); font-size: 0.8125rem; line-height: 1.5; color: var(--panel-ink); }
+  .ws-head { display: block; margin-bottom: 0.625rem; color: var(--copper); }
+  .ws-prose p { font-family: var(--serif); font-size: 1rem; line-height: 1.65; color: var(--panel-ink); }
   .bench-teaser table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
   .bench-teaser th { text-align: left; font-weight: 500; font-size: 0.6875rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--panel-mute); padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--panel-rule); }
   .bench-teaser td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--panel-rule); }
   .bench-teaser .val { color: var(--copper); }
   .bench-teaser .provenance a { color: var(--copper); text-decoration: none; }
+
+  /* the depth gauge */
+  .gauge { position: fixed; right: 1.25rem; top: 50%; transform: translateY(-50%); z-index: 40; font-family: var(--mono); opacity: 0; transition: opacity 200ms steps(2, jump-none); pointer-events: none; }
+  .gauge.visible { opacity: 1; }
+  .g-head { display: block; font-size: 0.5625rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 0.375rem; }
+  .gauge ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+  .gauge li { display: flex; align-items: center; gap: 0.375rem; font-size: 0.5625rem; color: var(--ink-mute); }
+  .gauge li i { display: inline-block; width: 8px; height: 1px; background: var(--ink-mute); }
+  .gauge li.on { color: var(--copper-deep); font-weight: 500; }
+  .gauge li.on i { width: 14px; height: 2px; background: var(--copper-deep); }
+  @media (max-width: 1240px) { .gauge { display: none; } }
 </style>
