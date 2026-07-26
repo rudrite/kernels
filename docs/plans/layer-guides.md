@@ -94,3 +94,17 @@ Missing, by layer:
       each as ring movements with cost formulas
 
 Order: 1 → 2 → 3 → 4 → 5 → 6. One commit per chapter guide.
+
+## Appendix: the GPU IR ladder (for a future GPU wing, not this track)
+
+jaxpr and StableHLO are shared with the TPU path and already drilled.
+The GPU-specific drills, if a wing ever earns its place:
+- HLO with the GPU backend: fusion kinds plus custom-call dispatch
+  (cuBLAS, cuDNN, Triton gemm fusions); more dispatch table, less
+  compiled program
+- Triton IR (tt/ttg dialects) and the Mosaic GPU dialect: the GYM·05
+  analogue; both print their modules, so the corpus pipeline transfers
+- PTX primer + SASS awareness: PTX is open and documented (one layer
+  deeper than TPU allows); SASS behind closed ptxas is the true box
+- Error vocabulary: register pressure and occupancy via ptxas -v and
+  Nsight Compute; GPUs run badly where TPUs refuse to compile
