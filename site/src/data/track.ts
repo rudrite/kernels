@@ -236,7 +236,7 @@ export const STAGES: Stage[] = [
       state: 'active',
       criteria: ['Spill-size estimate from the HLO dump matches the profiler within 20%'],
       measured: [
-        'measured on v6e-1: 3 fusion ops in the compiled HLO carry the full bf16[8192,8192]; naive attention runs 414.4 µs at seq 8192. The profiler byte-count confirm is still open.',
+        'measured on v6e-1: 3 fusion ops carry the full bf16[8192,8192], and the byte accounting turned up a real disagreement: our round-trip estimate says 276.8 MB, XLA\'s own cost analysis says 155.2 MB (0.56x). Two models, one truth; the profiler run that settles it is exactly what this gate is for.',
       ],
     },
   },
@@ -317,7 +317,7 @@ export const STAGES: Stage[] = [
       ],
       measured: [
         'measured on v6e-1: tuned flash (512, 1024 blocks) beats naive at every length, 1.05x at seq 4k growing to 1.35x at 32k, and beats jax.nn.dot_product_attention 4.15x at 32k. The windowed variant, where the mask is a loop bound, runs 4.87x ahead of XLA\'s masked attention at 16k.',
-        'measured on v6e-1, all bf16: forward max |flash − naive| 0.254 (dominated by naive computing its softmax in bf16); grads max diff q 0.163 · k 0.203 · v 0.0 against autodiff. Tightening these against f32 references is open gate work.',
+        'measured on v6e-1, differentials done right: f32 forward max err 2.15e-6 against the 1e-3 bar, and the bf16 pipeline lands at 0.38% relative against an f32 reference. Grads await one precision-pinned rerun: TPU f32 matmuls run at bf16 MXU precision by default, which is a lesson in itself.',
       ],
     },
   },

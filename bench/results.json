@@ -349,5 +349,31 @@
     "chip": "v6e-1 (TPU v6 lite)",
     "date": "2026-07-26",
     "commit": "pallas-power"
+  },
+  {
+    "id": "M-018",
+    "stage": 2,
+    "kernel": "naive attention byte accounting",
+    "metric": "round-trip estimate vs XLA cost analysis",
+    "value": "est. 276.8 MB vs 155.2 MB bytes accessed (0.56x): the models disagree; profiler confirm stays open",
+    "baseline": "2 x S^2 x 2 + io",
+    "chip": "v6e-1 (TPU v6 lite)",
+    "dtype": "bf16",
+    "shapes": "seq 8192, d 128",
+    "date": "2026-07-27",
+    "commit": "gate-close"
+  },
+  {
+    "id": "M-019",
+    "stage": 3,
+    "kernel": "flash forward differential, f32 pipeline",
+    "metric": "max |flash \u2212 reference|",
+    "value": "2.15e-6 (bar 1e-3); bf16 pipeline 0.38% relative vs f32 reference",
+    "baseline": "f32 attention reference",
+    "chip": "v6e-1 (TPU v6 lite)",
+    "dtype": "f32 / bf16",
+    "shapes": "seq 8192, d 128",
+    "date": "2026-07-27",
+    "commit": "gate-close"
   }
 ]
