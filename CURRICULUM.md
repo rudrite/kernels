@@ -164,8 +164,8 @@ The upstream PR itself: derivation, schedule decisions with measured consequence
 
 1. Order within a stage is prescriptive; derivations come before implementations, implementations before reading references.
 2. Every benchmark number recorded in this repo states: chip generation, dtype, shapes, and measurement method.
-3. Each stage's site artifact is produced during the stage, not batched at the end; teaching it is the retention mechanism.
-4. Weekly time expectation: 8-12 focused hours. If a stage overruns by more than a week, cut scope from the site artifact, never from the checkpoint.
+3. The site delivers each stage's teaching; work the stage through its chapters, guides, drills, and labs in order.
+4. Weekly time expectation: 8-12 focused hours. If a stage overruns by more than a week, slow down; never cut scope from the checkpoint.
 5. Internal resources (Mosaic/Pallas docs, Tokamax design notes, the JAXBench context pack) supersede the public links above where available.
 6. Leverage the open ecosystem before building anything. Tokamax is the performance ceiling and the tooling shelf; JAXBench is the benchmark harness and workload source; MaxText is where real operators come from; the JAX Pallas ops and tpu-inference kernels are the reference literature. Custom infrastructure is a last resort; thin glue over these is the default.
 7. Upstream presence starts in week 2, not week 11. When source reading turns up a bug, a doc gap, or a missing benchmark, file the issue or the small PR the same week. By the capstone, the maintainers reviewing your kernel should already know your name.
