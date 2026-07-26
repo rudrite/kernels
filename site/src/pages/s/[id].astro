@@ -6,13 +6,14 @@ import LabCard from '../../components/LabCard.astro'
 import Spine from '../../components/Spine.astro'
 import Exhibit from '../../components/Exhibit.astro'
 import NotebookPeek from '../../components/NotebookPeek.astro'
+import MemoryHierarchy from '../../components/MemoryHierarchy.astro'
 import Choreographer from '../../exhibits/Choreographer'
 import Roofline from '../../exhibits/Roofline'
 import IRXray from '../../exhibits/IRXray'
 import irData from '../../data/ir-attention.json'
 import labsData from '../../data/labs.generated.json'
 import { matmulTrace } from '../../exhibits/matmul'
-import { flashTrace, ringTrace } from '../../exhibits/flash'
+import { flashTrace, ringTrace, causalSkipTrace } from '../../exhibits/flash'
 import type { TraceDoc } from '../../exhibits/types'
 import { STAGES } from '../../data/track'
 
@@ -24,12 +25,18 @@ const { stage } = Astro.props
 const prev = STAGES.find((s) => s.num === stage.num - 1)
 const next = STAGES.find((s) => s.num === stage.num + 1)
 
-const traceByStage: Record<string, { designator: string; trace: TraceDoc } | undefined> = {
-  pallas: { designator: 'EX·02', trace: matmulTrace(4) },
-  kernels: { designator: 'EX·03', trace: flashTrace(4) },
-  distributed: { designator: 'EX·04', trace: ringTrace(4) },
+const tracesByStage: Record<string, { designator: string; trace: TraceDoc }[]> = {
+  pallas: [
+    { designator: 'EX·02', trace: matmulTrace(4) },
+    { designator: 'EX·07', trace: matmulTrace(4, false) },
+  ],
+  kernels: [
+    { designator: 'EX·03', trace: flashTrace(4) },
+    { designator: 'EX·08', trace: causalSkipTrace(4, 2) },
+  ],
+  distributed: [{ designator: 'EX·04', trace: ringTrace(4) }],
 }
-const exhibit = traceByStage[stage.id]
+const traceExhibits = tracesByStage[stage.id] ?? []
 const showRoofline = stage.id === 'machine'
 const showXray = stage.id === 'ir'
 const extractedLabs = stage.labs.filter((l) => l.designator in labsData)
@@ -48,35 +55,45 @@ const extractedLabs = stage.labs.filter((l) => l.designator in labsData)
       </section>
 
       <section class="block prose">
-        <h2 class="mono-label">what gets built</h2>
-        <ul class="build">
-          {stage.build.map((b) => <li>{b}</li>)}
-        </ul>
-        <p class="cur-note">Full readings, exercises, and order of work: <a href="https://github.com/rudrite/kernels/blob/main/CURRICULUM.md" rel="noopener"><span class="meas">CURRICULUM.md</span></a>, stage {stage.num}.</p>
+        <h2 class="mono-label">the chapter</h2>
+        {stage.theory.map((para) => <p class="theory">{para}</p>)}
       </section>
 
       {
         showRoofline && (
           <section class="block">
-            <h2 class="mono-label">instrument</h2>
-            <Exhibit
-              designator="EX·01"
-              title="the roofline playground"
-              provenance="chip constants from jax-ml.github.io/scaling-book (retrieved 2026-07-26) · all values computed, nothing invented"
-            >
-              <Roofline client:visible />
-            </Exhibit>
+            <h2 class="mono-label">instruments</h2>
+            <div class="ex-stack">
+              <Exhibit
+                designator="EX·06"
+                title="the memory hierarchy, to its real widths"
+                provenance="constants from jax-ml.github.io/scaling-book (retrieved 2026-07-26) · nothing invented"
+              >
+                <MemoryHierarchy />
+              </Exhibit>
+              <Exhibit
+                designator="EX·01"
+                title="the roofline playground"
+                provenance="chip constants from jax-ml.github.io/scaling-book (retrieved 2026-07-26) · all values computed, nothing invented"
+              >
+                <Roofline client:visible />
+              </Exhibit>
+            </div>
           </section>
         )
       }
 
       {
-        exhibit && (
+        traceExhibits.length > 0 && (
           <section class="block">
-            <h2 class="mono-label">instrument</h2>
-            <Exhibit designator={exhibit.designator} title={exhibit.trace.title} provenance={exhibit.trace.provenance}>
-              <Choreographer trace={exhibit.trace} client:visible />
-            </Exhibit>
+            <h2 class="mono-label">instruments</h2>
+            <div class="ex-stack">
+              {traceExhibits.map((ex) => (
+                <Exhibit designator={ex.designator} title={ex.trace.title} provenance={ex.trace.provenance}>
+                  <Choreographer trace={ex.trace} client:visible />
+                </Exhibit>
+              ))}
+            </div>
           </section>
         )
       }
@@ -84,13 +101,50 @@ const extractedLabs = stage.labs.filter((l) => l.designator in labsData)
       {
         showXray && (
           <section class="block">
-            <h2 class="mono-label">instrument</h2>
+            <h2 class="mono-label">instruments</h2>
             <Exhibit designator="EX·05" title="the IR x-ray · one program, three layers" provenance={irData.provenance}>
               <IRXray client:visible />
             </Exhibit>
           </section>
         )
       }
+
+      <section class="block prose">
+        <h2 class="mono-label">what gets built</h2>
+        <ul class="build">
+          {stage.build.map((b) => <li>{b}</li>)}
+        </ul>
+      </section>
+
+      {
+        stage.readings.length > 0 && (
+          <section class="block prose">
+            <h2 class="mono-label">readings</h2>
+            <ul class="readings">
+              {stage.readings.map((r) => (
+                <li>
+                  <a href={r.url} rel="noopener">{r.label}</a>
+                  <span class="rnote"> · {r.note}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )
+      }
+
+      <section class="block prose">
+        <h2 class="mono-label">the work, in order</h2>
+        {
+          stage.work.map((w) => (
+            <div class="workblock">
+              <h3 class="wlabel">{w.label}</h3>
+              <ul>
+                {w.items.map((item) => <li>{item}</li>)}
+              </ul>
+            </div>
+          ))
+        }
+      </section>
 
       {
         stage.labs.length > 0 && (
@@ -109,7 +163,7 @@ const extractedLabs = stage.labs.filter((l) => l.designator in labsData)
         extractedLabs.length > 0 && (
           <section class="block">
             <h2 class="mono-label">from the notebook</h2>
-            <div class="peek-stack">
+            <div class="ex-stack">
               {extractedLabs.map((l) => (
                 <NotebookPeek designator={l.designator} />
               ))}
@@ -141,13 +195,22 @@ const extractedLabs = stage.labs.filter((l) => l.designator in labsData)
   .side { position: sticky; top: 2rem; align-self: start; }
   @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .side { position: static; display: none; } }
 
-  .block { margin-top: 2.5rem; }
+  .block { margin-top: 2.75rem; }
   .block > h2 { margin-bottom: 0.875rem; }
   .goal { font-size: 1.1875rem; }
+  .theory { margin-bottom: 1em; }
   .build { padding-left: 1.1em; }
   .build li { margin-bottom: 0.45em; }
-  .cur-note { margin-top: 1rem; font-size: 0.875rem; color: var(--ink-mute); }
+  .readings { list-style: none; padding: 0; }
+  .readings li { margin-bottom: 0.6em; }
+  .readings a { font-family: var(--mono); font-size: 0.875rem; }
+  .rnote { color: var(--ink-mute); font-size: 0.9375rem; }
+  .workblock { margin-bottom: 1.25rem; }
+  .wlabel { font-family: var(--mono); font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.04em; color: var(--copper-deep); margin-bottom: 0.5rem; }
+  .workblock ul { padding-left: 1.1em; }
+  .workblock li { margin-bottom: 0.4em; }
   .lab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 1rem; }
+  .ex-stack { display: flex; flex-direction: column; gap: 1.25rem; }
 
   .pager { display: flex; justify-content: space-between; gap: 1rem; margin-top: 3.5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 0.8125rem; }
   .pager a { text-decoration: none; color: var(--ink-mute); }

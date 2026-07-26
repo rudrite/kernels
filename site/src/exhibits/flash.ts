@@ -86,3 +86,37 @@ function streamingAttentionTrace(kvBlocks: number, remote: boolean): TraceDoc {
 
 export const flashTrace = (kvBlocks: number): TraceDoc => streamingAttentionTrace(kvBlocks, false)
 export const ringTrace = (kvBlocks: number): TraceDoc => streamingAttentionTrace(kvBlocks, true)
+
+// Causal masking as loop structure: the view from query block 2 of 4. Blocks
+// past the diagonal are not masked after loading; they are never loaded.
+export function causalSkipTrace(kvBlocks: number, qBlock: number): TraceDoc {
+  const base = streamingAttentionTrace(kvBlocks, false)
+  const live = qBlock + 1
+  const dead: string[] = []
+  for (let j = live; j < kvBlocks; j++) dead.push(`K${j}`, `V${j}`)
+
+  // keep prologue + the live steps, then a re-written epilogue
+  const frames = base.frames.slice(0, 1 + live).map((f, i) => ({
+    ...f,
+    caption: i === 0 ? `prologue · query block ${qBlock} pins resident; only blocks on or before the diagonal will ever load` : f.caption,
+    // strip prefetches that point past the diagonal
+    dma: f.dma.filter((d) => !dead.includes(d.tile)),
+    reads: f.reads.filter((t) => !dead.includes(t)),
+  }))
+  frames.push({
+    caption: `epilogue · O = acc / l flushes; ${dead.length / 2} KV blocks were never visited. The mask is the loop bound, and the saving scales with sparsity`,
+    reads: [],
+    slots: { q: 'Q (resident)', kA: null, vA: null, kB: null, vB: null },
+    compute: { unit: 'VPU', expr: 'O = acc / l' },
+    state: { m: 'final', l: 'final', acc: 'O → HBM' },
+    dma: [],
+  })
+  return {
+    ...base,
+    id: 'causal-skip',
+    title: `causal attention from query block ${qBlock}: blocks past the diagonal never load`,
+    frames,
+    deadTiles: dead,
+    provenance: 'the loop bound is (query block + 1): struck tiles are never DMAed, computed, or masked; they simply do not exist to this grid step',
+  }
+}

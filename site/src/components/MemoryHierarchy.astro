@@ -1,0 +1,56 @@
+---
+// EX·06: the memory hierarchy with its real widths. Static; every number
+// comes from data/chips.json (scaling book), none are invented.
+import chips from '../data/chips.json'
+
+const v5e = chips.chips.find((c) => c.id === 'v5e')!
+const hbmGB = (v5e.hbmBytes / 1e9).toFixed(0)
+const hbmBW = (v5e.hbmBytesPerSec / 1e9).toFixed(0)
+const vmemMiB = v5e.vmemBytes ? (v5e.vmemBytes / 1048576).toFixed(0) : '?'
+const flops = (v5e.bf16FlopsPerSec / 1e12).toFixed(0)
+---
+
+<div class="mh">
+  <svg viewBox="0 0 640 250" role="img" aria-label={`TPU v5e memory hierarchy: HBM ${hbmGB} GB feeding VMEM ${vmemMiB} MiB feeding the compute units at ${flops} bf16 TFLOP/s`}>
+    <rect x="20" y="30" width="180" height="190" class="box" />
+    <text x="110" y="55" text-anchor="middle" class="name">HBM</text>
+    <text x="110" y="75" text-anchor="middle" class="val">{hbmGB} GB</text>
+    <text x="110" y="200" text-anchor="middle" class="sub">large, slow, off-core</text>
+
+    <path d="M 200 118 L 260 118" class="bw" />
+    <path d="M 260 118 l -8 -5 l 0 10 z" class="bw-head" />
+    <text x="230" y="106" text-anchor="middle" class="bwlabel">{hbmBW} GB/s</text>
+
+    <rect x="260" y="70" width="150" height="110" class="box" />
+    <text x="335" y="95" text-anchor="middle" class="name">VMEM</text>
+    <text x="335" y="115" text-anchor="middle" class="val">{vmemMiB} MiB</text>
+    <text x="335" y="162" text-anchor="middle" class="sub">software-managed</text>
+
+    <path d="M 410 118 L 470 118" class="bw fast" />
+    <path d="M 470 118 l -8 -5 l 0 10 z" class="bw-head fast-head" />
+
+    <rect x="470" y="45" width="150" height="70" class="box compute" />
+    <text x="545" y="72" text-anchor="middle" class="name copper">MXU</text>
+    <text x="545" y="92" text-anchor="middle" class="val copper">{flops} TFLOP/s bf16</text>
+
+    <rect x="470" y="135" width="150" height="70" class="box compute" />
+    <text x="545" y="162" text-anchor="middle" class="name copper">VPU</text>
+    <text x="545" y="182" text-anchor="middle" class="val copper">elementwise</text>
+
+    <text x="20" y="242" class="foot">TPU v5e · every stage of this track is choreography across these three widths</text>
+  </svg>
+</div>
+
+<style>
+  .mh svg { width: 100%; height: auto; display: block; font-family: var(--mono); }
+  .box { fill: transparent; stroke: var(--panel-edge); stroke-width: 1; }
+  .box.compute { stroke: var(--copper-deep); }
+  .name { fill: var(--panel-ink); font-size: 13px; letter-spacing: 1px; }
+  .val { fill: var(--panel-mute); font-size: 11px; }
+  .sub { fill: var(--panel-mute); font-size: 9.5px; }
+  .copper { fill: var(--copper); }
+  .bw { stroke: var(--steel); stroke-width: 2; fill: none; }
+  .bw-head { fill: var(--steel); }
+  .bwlabel { fill: var(--steel); font-size: 10px; }
+  .foot { fill: var(--panel-mute); font-size: 9.5px; letter-spacing: 0.5px; }
+</style>

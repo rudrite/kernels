@@ -4,7 +4,65 @@
 // pipeline emits for the same BlockSpecs.
 import type { TraceDoc, TraceFrame } from './types'
 
-export function matmulTrace(kBlocks: number): TraceDoc {
+export function matmulTrace(kBlocks: number, pipelined = true): TraceDoc {
+  if (!pipelined) return naiveMatmulTrace(kBlocks)
+  return pipelinedMatmulTrace(kBlocks)
+}
+
+// The pipeline turned off: load, then compute, strictly alternating. The MXU
+// idles during every transfer; the contrast with the pipelined schedule is
+// the entire argument for double buffering.
+function naiveMatmulTrace(kBlocks: number): TraceDoc {
+  const tiles = []
+  for (let k = 0; k < kBlocks; k++) {
+    tiles.push({ id: `A${k}`, group: 'A', row: 0, col: k })
+    tiles.push({ id: `B${k}`, group: 'B', row: 0, col: k })
+  }
+  const frames: TraceFrame[] = []
+  const occ: Record<string, string | null> = { a: null, b: null, acc: 'C (zeros)' }
+  for (let k = 0; k < kBlocks; k++) {
+    frames.push({
+      caption: `load ${k + 1} · DMA A${k}, B${k} into VMEM; the MXU sits idle the whole transfer`,
+      reads: [`A${k}`, `B${k}`],
+      slots: { ...occ },
+      compute: null,
+      dma: [
+        { tile: `A${k}`, toSlot: 'a', kind: 'hbm' },
+        { tile: `B${k}`, toSlot: 'b', kind: 'hbm' },
+      ],
+    })
+    occ['a'] = `A${k}`
+    occ['b'] = `B${k}`
+    occ['acc'] = `C += A·B (k ≤ ${k})`
+    frames.push({
+      caption: `compute ${k + 1} · MXU consumes A${k}·B${k}; the DMA engines sit idle the whole time`,
+      reads: [],
+      slots: { ...occ },
+      compute: { unit: 'MXU', expr: `acc += A${k} · B${k}` },
+      dma: [],
+    })
+  }
+  frames.push({
+    caption: 'epilogue · every step paid full transfer time plus full compute time, serially',
+    reads: [],
+    slots: { a: null, b: null, acc: 'C → HBM' },
+    compute: null,
+    dma: [],
+  })
+  return {
+    id: 'matmul-naive',
+    title: 'the same matmul with the pipeline off',
+    chip: 'schedule shape, chip-independent',
+    slotIds: ['a', 'b', 'acc'],
+    stateIds: [],
+    hbmTiles: tiles,
+    remoteGroups: [],
+    frames,
+    provenance: 'the depth-1 schedule: compare frame count and MXU idle time against EX·02 above · no invented values',
+  }
+}
+
+function pipelinedMatmulTrace(kBlocks: number): TraceDoc {
   const tiles = []
   for (let k = 0; k < kBlocks; k++) {
     tiles.push({ id: `A${k}`, group: 'A', row: 0, col: k })
@@ -16,7 +74,7 @@ export function matmulTrace(kBlocks: number): TraceDoc {
   const occupancy: Record<string, string | null> = { a0: null, b0: null, a1: null, b1: null, acc: 'C (zeros)' }
 
   frames.push({
-    caption: `grid step 0 · DMA A0, B0 into the first slot pair; the MXU has nothing to chew yet`,
+    caption: `grid step 0 · DMA A0, B0 into the first slot pair; the MXU has no data yet and waits`,
     reads: ['A0', 'B0'],
     slots: { ...occupancy },
     compute: null,

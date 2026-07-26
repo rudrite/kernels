@@ -45,6 +45,8 @@ export interface TraceDoc {
   hbmTiles: HbmTile[]
   /** When true, some tiles arrive over ICI from a neighbor chip. */
   remoteGroups: string[]
+  /** Tiles the schedule never visits (masked out); drawn struck-through. */
+  deadTiles?: string[]
   frames: TraceFrame[]
   /** Where these frames come from: the honesty line rendered on the panel. */
   provenance: string

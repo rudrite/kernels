@@ -90,12 +90,14 @@ export default function Choreographer({ trace }: Props) {
                 .map((t) => {
                   const p = tilePos(t.id)!
                   const hot = frame.reads.includes(t.id)
+                  const dead = trace.deadTiles?.includes(t.id) ?? false
                   return (
-                    <g key={t.id}>
+                    <g key={t.id} opacity={dead ? 0.45 : 1}>
                       <rect x={p.x} y={p.y} width={TILE} height={TILE} fill={hot ? '#1a1d21' : 'transparent'} stroke={hot ? STEEL : PANEL_RULE} strokeWidth={hot ? 1.5 : 1} strokeDasharray={remote ? '3 2' : undefined} />
                       <text x={p.x + TILE / 2} y={p.y + TILE / 2 + 3} textAnchor="middle" fill={hot ? PANEL_INK : PANEL_MUTE} fontSize={10} fontFamily="inherit">
                         {t.id}
                       </text>
+                      {dead && <line x1={p.x + 4} y1={p.y + TILE - 4} x2={p.x + TILE - 4} y2={p.y + 4} stroke={PANEL_MUTE} strokeWidth={1.5} />}
                     </g>
                   )
                 })}
