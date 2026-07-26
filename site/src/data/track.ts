@@ -55,7 +55,7 @@ export const STAGES: Stage[] = [
         title: 'Rooflines by hand',
         time: '~2 h',
         hardware: 'Colab TPU',
-        colab: null,
+        colab: 'https://colab.research.google.com/github/rudrite/kernels/blob/main/labs/stage-0/lab-0.1-rooflines.ipynb',
         notebook: 'labs/stage-0/lab-0.1-rooflines.ipynb',
       },
     ],

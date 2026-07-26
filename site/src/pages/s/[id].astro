@@ -52,7 +52,7 @@ const extractedLabs = stage.labs.filter((l) => l.designator in labsData)
         <ul class="build">
           {stage.build.map((b) => <li>{b}</li>)}
         </ul>
-        <p class="cur-note">Full readings, exercises, and order of work: <span class="meas">CURRICULUM.md</span> in the repo, stage {stage.num}.</p>
+        <p class="cur-note">Full readings, exercises, and order of work: <a href="https://github.com/rudrite/kernels/blob/main/CURRICULUM.md" rel="noopener"><span class="meas">CURRICULUM.md</span></a>, stage {stage.num}.</p>
       </section>
 
       {
