@@ -43,6 +43,10 @@ Annotated reads, as CodeWalks, of the kernels that define the craft: Tokamax fla
 - Semaphore timeline: the ring all-gather's sends/waits as a timeline; a toggle reorders one wait and steps into the deadlock, visually.
 - Ring attention CodeWalk synced to EX·04.
 
+## Status (2026-07-26)
+
+Built and live: P1 gym (corpus of 17 programs, dot decoder, shape oracle, corpus reader, 33 op cards), P2 sandbox + four CodeWalks + the mistake museum (six real captured errors), P4 checklists + bench compare, P5 semaphore timeline. Remaining: x-ray generalized over the corpus with mechanical mappings, trace-to-code sync, the production-kernel walks (P3), the mesh visualizer, spot-the-decision drill, soft stage-entry checks.
+
 ## Sequencing and estimates
 
 P1 first: it targets the stated bar most directly and its corpus generator underpins P2's walks and P3. Rough solo-effort: P1 2-3 weeks, P2 3-4, P3 2 (content-heavy), P4 1, P5 2. Each phase lands as its own set of commits with the loop discipline already in use (build, screenshot-read, fix, commit).

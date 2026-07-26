@@ -13,12 +13,22 @@ import MemoryHierarchy from '../../components/MemoryHierarchy.astro'
 import Choreographer from '../../exhibits/Choreographer'
 import Roofline from '../../exhibits/Roofline'
 import IRXray from '../../exhibits/IRXray'
+import BlockSpecSandbox from '../../exhibits/BlockSpecSandbox'
+import SemTimeline from '../../exhibits/SemTimeline'
+import Checklist from '../../exhibits/Checklist'
+import CodeWalk from '../../exhibits/CodeWalk'
+import { highlightLines } from '../../lib/highlight'
 import irData from '../../data/ir-attention.json'
 import labsData from '../../data/labs.generated.json'
 import { matmulTrace } from '../../exhibits/matmul'
 import { flashTrace, ringTrace, causalSkipTrace } from '../../exhibits/flash'
 import type { TraceDoc } from '../../exhibits/types'
 import { STAGES } from '../../data/track'
+import { CHECKLISTS } from '../../data/checklists'
+import { walk as matmulWalk } from '../../data/walks/matmul'
+import { walk as softmaxWalk } from '../../data/walks/softmax'
+import { walk as flashWalk } from '../../data/walks/flash'
+import { walk as causalWalk } from '../../data/walks/causal'
 
 export function getStaticPaths() {
   return STAGES.map((stage) => ({ params: { id: stage.id }, props: { stage } }))
@@ -42,17 +52,30 @@ const tracesByStage: Record<string, { designator: string; trace: TraceDoc }[]> =
 const traceExhibits = tracesByStage[stage.id] ?? []
 const showRoofline = stage.id === 'machine'
 const showXray = stage.id === 'ir'
+const showSandbox = stage.id === 'pallas'
+const showSemaphore = stage.id === 'distributed'
 const extractedLabs = stage.labs.filter((l) => l.designator in labsData)
+const checklist = CHECKLISTS[stage.id] ?? []
+
+const walksByStage: Record<string, typeof matmulWalk[]> = {
+  pallas: [matmulWalk, softmaxWalk],
+  kernels: [flashWalk, causalWalk],
+}
+const stageWalks = await Promise.all(
+  (walksByStage[stage.id] ?? []).map(async (w) => ({ walk: w, lines: await highlightLines(w.code, w.lang) })),
+)
 
 const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 const chapterToc = stage.chapter.map((c) => ({ id: `c-${slug(c.h)}`, label: c.h.toLowerCase() }))
 const fixedToc = [
-  ...(showRoofline || showXray || traceExhibits.length ? [{ id: 'instruments', label: 'instruments' }] : []),
+  ...(showRoofline || showXray || showSandbox || showSemaphore || traceExhibits.length ? [{ id: 'instruments', label: 'instruments' }] : []),
+  ...(stageWalks.length ? [{ id: 'walks', label: 'guided walks' }] : []),
   { id: 'built', label: 'what gets built' },
   ...(stage.readings.length ? [{ id: 'readings', label: 'readings' }] : []),
   { id: 'work', label: 'the work, in order' },
   ...(stage.labs.length ? [{ id: 'labs', label: 'labs' }] : []),
   ...(extractedLabs.length ? [{ id: 'notebook', label: 'from the notebook' }] : []),
+  ...(checklist.length ? [{ id: 'canyou', label: 'can you' }] : []),
   { id: 'gate', label: 'the gate' },
 ]
 const toc = [...chapterToc, ...fixedToc]
@@ -107,7 +130,7 @@ const toc = [...chapterToc, ...fixedToc]
       }
 
       {
-        (showRoofline || showXray || traceExhibits.length > 0) && (
+        (showRoofline || showXray || showSandbox || showSemaphore || traceExhibits.length > 0) && (
           <section class="block">
             <SectionHead id="instruments" eyebrow="hands on the machine" title="Instruments" />
             <div class="ex-stack">
@@ -131,6 +154,31 @@ const toc = [...chapterToc, ...fixedToc]
                   <IRXray client:visible />
                 </Exhibit>
               )}
+              {showSandbox && (
+                <Exhibit designator="EX·09" title="the BlockSpec sandbox" provenance="all legality arithmetic computed live: lattice rules, grid, and the v5e VMEM budget · diagnostic wording is ours, the arithmetic is the chip's">
+                  <BlockSpecSandbox client:visible />
+                </Exhibit>
+              )}
+              {showSemaphore && (
+                <Exhibit designator="EX·10" title="the semaphore timeline · a deadlock, stepped into" provenance="ordering computed from an explicit dependency model of a 4-chip ring all-gather · toggle one wait and walk into the cycle">
+                  <SemTimeline client:visible />
+                </Exhibit>
+              )}
+            </div>
+          </section>
+        )
+      }
+
+      {
+        stageWalks.length > 0 && (
+          <section class="block">
+            <SectionHead id="walks" eyebrow="line by line, at your pace" title="Guided walks" />
+            <div class="ex-stack">
+              {stageWalks.map((w) => (
+                <Exhibit designator={`WALK·${w.walk.id}`} title={w.walk.title} provenance="code verbatim from the lab notebook · step with the buttons or j/k">
+                  <CodeWalk lines={w.lines} steps={w.walk.steps} title={w.walk.title} client:visible />
+                </Exhibit>
+              ))}
             </div>
           </section>
         )
@@ -194,6 +242,18 @@ const toc = [...chapterToc, ...fixedToc]
               {extractedLabs.map((l) => (
                 <NotebookPeek designator={l.designator} />
               ))}
+            </div>
+          </section>
+        )
+      }
+
+      {
+        checklist.length > 0 && (
+          <section class="block">
+            <SectionHead id="canyou" eyebrow="the self-test, before the gate" title="Can you" />
+            <div class="panel canyou-panel">
+              <Checklist id={stage.id} items={checklist} client:visible />
+              <div class="provenance">checked state lives in your browser only · the gate below is the public half</div>
             </div>
           </section>
         )
@@ -275,6 +335,7 @@ const toc = [...chapterToc, ...fixedToc]
   .workblock li { margin-bottom: 0.4em; }
   .lab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 1rem; }
   .ex-stack { display: flex; flex-direction: column; gap: 1.25rem; }
+  .canyou-panel { padding-top: 0.5rem; }
   .artifact { margin-top: 1rem; color: var(--ink-mute); }
 
   .pager { display: flex; justify-content: space-between; gap: 1rem; margin-top: 3.5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 0.8125rem; }

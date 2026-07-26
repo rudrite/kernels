@@ -3,3 +3,4 @@ dist/
 .astro/
 .DS_Store
 site/src/data/labs.generated.json
+__pycache__/
