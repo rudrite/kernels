@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro'
+import Rich from '../../components/Rich.astro'
 import TitleBlock from '../../components/TitleBlock.astro'
 import GateStamp from '../../components/GateStamp.astro'
 import LabCard from '../../components/LabCard.astro'
@@ -54,9 +55,20 @@ const extractedLabs = stage.labs.filter((l) => l.designator in labsData)
         <p class="goal">{stage.goal}</p>
       </section>
 
+      <section class="block howto" aria-label="How to work this stage">
+        <span class="mono-label">how to work this stage</span>
+        <ol>
+          <li>read the chapter below</li>
+          <li>do the readings</li>
+          <li>work the weeks in order</li>
+          <li>run the labs in Colab</li>
+          <li>attempt the gate</li>
+        </ol>
+      </section>
+
       <section class="block prose">
         <h2 class="mono-label">the chapter</h2>
-        {stage.theory.map((para) => <p class="theory">{para}</p>)}
+        {stage.theory.map((para) => <p class="theory"><Rich text={para} /></p>)}
       </section>
 
       {
@@ -197,6 +209,10 @@ const extractedLabs = stage.labs.filter((l) => l.designator in labsData)
 
   .block { margin-top: 2.75rem; }
   .block > h2 { margin-bottom: 0.875rem; }
+  .howto { display: flex; align-items: baseline; gap: 1.25rem; flex-wrap: wrap; border-block: 1px solid var(--rule-soft); padding-block: 0.75rem; }
+  .howto ol { display: flex; gap: 1.5rem; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; counter-reset: step; font-family: var(--mono); font-size: 0.75rem; color: var(--ink-mute); }
+  .howto li { counter-increment: step; }
+  .howto li::before { content: counter(step) ' · '; color: var(--copper-deep); }
   .goal { font-size: 1.1875rem; }
   .theory { margin-bottom: 1em; }
   .build { padding-left: 1.1em; }

@@ -24,6 +24,10 @@ const gatesPassed = STAGES.filter((s) => s.gate.state === 'passed').length
       <a href={`/s/${STAGES.find((s) => s.gate.state === 'active')?.id ?? STAGES[0]!.id}`}
         >stage {STAGES.find((s) => s.gate.state === 'active')?.num ?? 0}</a>
     </p>
+    <div class="cta-row">
+      <a class="cta primary" href="/l/source">new here? descend the stack first → nine short layer tutorials</a>
+      <a class="cta" href="/s/machine">know the stack? begin stage 0 →</a>
+    </div>
   </section>
 
   <section class="wrap map-section" aria-labelledby="map-head">
@@ -33,6 +37,24 @@ const gatesPassed = STAGES.filter((s) => s.gate.state === 'passed').length
       the silicon, then crosses chips.
     </p>
     <StackMap />
+  </section>
+
+  <section class="wrap order-section" aria-labelledby="order-head">
+    <h2 id="order-head" class="mono-label sec">the track, in order</h2>
+    <ol class="order">
+      {
+        STAGES.map((s) => (
+          <li>
+            <a href={`/s/${s.id}`}>
+              <span class="led" data-state={s.gate.state === 'queued' ? undefined : s.gate.state} />
+              <span class="onum">S{s.num}</span>
+              <span class="otitle">{s.title}</span>
+              <span class="oweeks">{s.weeks}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
   </section>
 
   <section class="wrap how" aria-label="How the track works">
@@ -64,6 +86,19 @@ const gatesPassed = STAGES.filter((s) => s.gate.state === 'passed').length
   .lede { margin-top: 1.5rem; font-size: 1.1875rem; }
   .stat-line { margin-top: 1.5rem; font-family: var(--mono); font-size: 0.8125rem; color: var(--ink-mute); }
   .stat-line a { color: var(--copper-deep); }
+
+  .cta-row { display: flex; gap: 1rem; margin-top: 1.75rem; flex-wrap: wrap; }
+  .cta { font-family: var(--mono); font-size: 0.8125rem; text-decoration: none; border: 1px solid var(--ink-mute); padding: 0.625rem 1rem; border-radius: 2px; color: var(--ink); background: var(--paper-high); }
+  .cta:hover { border-color: var(--copper-deep); color: var(--copper-deep); }
+  .cta.primary { border-color: var(--copper-deep); color: var(--copper-deep); }
+
+  .order-section { padding-block: 2.5rem 0; }
+  .order { list-style: none; padding: 0; border-top: 1px solid var(--rule); }
+  .order a { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 0.25rem; border-bottom: 1px solid var(--rule-soft); text-decoration: none; font-family: var(--mono); font-size: 0.875rem; }
+  .order a:hover { background: var(--paper-high); color: var(--copper-deep); }
+  .onum { color: var(--copper-deep); font-weight: 500; width: 2rem; }
+  .otitle { flex: 1; }
+  .oweeks { color: var(--ink-mute); font-size: 0.75rem; }
 
   .map-section { padding-block: 2rem 1rem; }
   .sec { display: block; margin-bottom: 0.75rem; }

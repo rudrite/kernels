@@ -1,0 +1,33 @@
+---
+// Inline rich text for chapter prose: `code` gets the mono measurement
+// treatment, **bold** gets weight. Input is our own authored strings, escaped
+// before markup so no raw HTML ever passes through.
+interface Props {
+  text: string
+}
+const { text } = Astro.props
+
+const escaped = text
+  .replaceAll('&', '&amp;')
+  .replaceAll('<', '&lt;')
+  .replaceAll('>', '&gt;')
+
+const html = escaped
+  .replace(/`([^`]+)`/g, '<code class="ri">$1</code>')
+  .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+---
+
+<span set:html={html} />
+
+<style is:global>
+  code.ri {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    background: color-mix(in srgb, var(--rule-soft) 55%, transparent);
+    border: 1px solid var(--rule-soft);
+    border-radius: 2px;
+    padding: 0.05em 0.3em;
+    white-space: nowrap;
+  }
+  .panel code.ri { background: #1a1d21; border-color: var(--panel-rule); }
+</style>

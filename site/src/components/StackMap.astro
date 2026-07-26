@@ -14,9 +14,12 @@ import { LAYERS, stagesForLayer } from '../data/track'
             <span class="node" />
           </span>
           <div class="cell label-cell">
-            <span class="layer-label">{layer.label}</span>
+            <a class="layer-link" href={`/l/${layer.id}`}>
+              <span class="layer-label">{layer.label}</span>
+              <span class="read-hint" aria-hidden="true">tutorial →</span>
+            </a>
           </div>
-          <div class="cell desc-cell">{layer.desc}</div>
+          <div class="cell desc-cell"><a class="desc-link" href={`/l/${layer.id}`}>{layer.desc}</a></div>
           <div class="cell stages-cell">
             {pinned.map((s) => (
               <a class="stage-chip" href={`/s/${s.id}`}>
@@ -57,8 +60,14 @@ import { LAYERS, stagesForLayer } from '../data/track'
     width: 7px; height: 7px; background: var(--paper); border: 1.5px solid var(--ink);
   }
 
+  .layer-link { display: inline-flex; flex-direction: column; gap: 0.125rem; text-decoration: none; }
   .layer-label { font-family: var(--mono); font-weight: 500; font-size: 0.9375rem; letter-spacing: 0.02em; }
-  .desc-cell { font-size: 0.9375rem; color: var(--ink-mute); max-width: 40ch; }
+  .read-hint { font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.08em; color: var(--copper-deep); opacity: 0; transition: opacity 120ms; }
+  .row:hover .read-hint { opacity: 1; }
+  .layer-link:hover .layer-label { color: var(--copper-deep); }
+  .desc-cell { font-size: 0.9375rem; max-width: 40ch; }
+  .desc-link { color: var(--ink-mute); text-decoration: none; }
+  .desc-link:hover { color: var(--ink); }
 
   .stages-cell { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: flex-end; }
   .stage-chip {

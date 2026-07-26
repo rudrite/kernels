@@ -1,7 +1,8 @@
 ---
 // Renders a lab's extracted notebook cells: the site view of the single
 // source of truth in labs/. Left border color follows the lane grammar:
-// copper = algorithm, steel = schedule.
+// copper = algorithm, steel = schedule. Shiki highlights at build time.
+import { Code } from 'astro:components'
 import labs from '../data/labs.generated.json'
 
 interface LabCells {
@@ -24,7 +25,9 @@ const lab = (labs as Record<string, LabCells>)[designator]
         <span class="t">{lab.title} · extracted from the notebook</span>
       </figcaption>
       {lab.cells.map((c) => (
-        <pre class={`cell ${c.lane ?? ''}`}><code>{c.code}</code></pre>
+        <div class={`cell ${c.lane ?? ''}`}>
+          <Code code={c.code} lang="python" theme="vesper" />
+        </div>
       ))}
       <div class="provenance">source of truth: {lab.file} · cells tagged site:show render here; edit the notebook, rebuild, the page updates</div>
     </figure>
@@ -37,13 +40,16 @@ const lab = (labs as Record<string, LabCells>)[designator]
   .t { font-size: 0.8125rem; color: var(--panel-ink); }
   .cell {
     margin: 0.875rem;
+    border: 1px solid var(--panel-rule);
+    border-left-width: 3px;
+  }
+  .cell :global(pre) {
+    margin: 0;
     padding: 0.75rem 0.875rem;
     font-size: 0.75rem;
     line-height: 1.55;
     overflow-x: auto;
-    border: 1px solid var(--panel-rule);
-    border-left-width: 3px;
-    color: var(--panel-ink);
+    background: transparent !important;
   }
   .cell.algorithm { border-left-color: var(--copper); }
   .cell.schedule { border-left-color: var(--steel); }

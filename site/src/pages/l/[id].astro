@@ -1,0 +1,105 @@
+---
+import { Code } from 'astro:components'
+import Base from '../../layouts/Base.astro'
+import Spine from '../../components/Spine.astro'
+import Rich from '../../components/Rich.astro'
+import { LAYERS, STAGES } from '../../data/track'
+import { LAYER_DOCS, layerDoc } from '../../data/layers'
+import irData from '../../data/ir-attention.json'
+
+export function getStaticPaths() {
+  return LAYER_DOCS.map((doc) => ({ params: { id: doc.id }, props: { doc } }))
+}
+
+const { doc } = Astro.props
+const order = LAYERS.map((l) => l.id)
+const idx = order.indexOf(doc.id)
+const prev = idx > 0 ? layerDoc(order[idx - 1]!) : undefined
+const next = idx < order.length - 1 ? layerDoc(order[idx + 1]!) : undefined
+const layer = LAYERS[idx]!
+const drillStage = doc.drills ? STAGES.find((s) => s.id === doc.drills!.stage) : undefined
+
+const irText = (which: 'source' | 'jaxpr' | 'stablehlo', lines?: [number, number]) => {
+  const all = irData[which] as string[]
+  const slice = lines ? all.slice(lines[0], lines[1] + 1) : all
+  return slice.join('\n')
+}
+---
+
+<Base title={`${doc.title} — the stack, layer by layer — Rudrite Kernels`} description={doc.lede}>
+  <div class="wrap layout">
+    <aside class="side"><Spine currentLayer={doc.id} /></aside>
+
+    <article class="main">
+      <p class="mono-label kicker">the descent · layer {idx + 1} of {order.length}</p>
+      <h1>{doc.title}</h1>
+      <p class="lede prose"><Rich text={doc.lede} /></p>
+
+      {
+        doc.sections.map((sec) => (
+          <section class="block prose">
+            <h2 class="mono-label">{sec.h}</h2>
+            {sec.ps.map((p) => (
+              <p class="theory">
+                <Rich text={p} />
+              </p>
+            ))}
+            {sec.code && (
+              <figure class="panel codefig">
+                <figcaption class="provenance top">{sec.code.caption}</figcaption>
+                <div class="codebody">
+                  <Code
+                    code={sec.code.fromIR ? irText(sec.code.fromIR, sec.code.lines) : sec.code.text!}
+                    lang={sec.code.fromIR === 'stablehlo' ? 'mlir' : sec.code.fromIR === 'jaxpr' ? 'haskell' : 'python'}
+                    theme="vesper"
+                  />
+                </div>
+              </figure>
+            )}
+          </section>
+        ))
+      }
+
+      {
+        drillStage && doc.drills && (
+          <section class="block">
+            <a class="drill" href={`/s/${drillStage.id}`}>
+              <span class="mono-label">hands-on</span>
+              <span class="dtext">{doc.drills.label} →</span>
+            </a>
+          </section>
+        )
+      }
+
+      <nav class="pager" aria-label="Layers">
+        {prev ? <a href={`/l/${prev.id}`}>← up · {prev.title}</a> : <a href="/">← the map</a>}
+        {next ? <a href={`/l/${next.id}`}>descend · {next.title} →</a> : <a href="/s/machine">begin stage 0 →</a>}
+      </nav>
+    </article>
+  </div>
+</Base>
+
+<style>
+  .layout { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: 3rem; padding-block: 2.5rem; }
+  .side { position: sticky; top: 2rem; align-self: start; }
+  @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .side { display: none; } }
+
+  .kicker { color: var(--copper-deep); margin-bottom: 0.875rem; }
+  h1 { font-size: clamp(1.875rem, 4.5vw, 2.75rem); font-weight: 600; letter-spacing: -0.01em; }
+  .lede { margin-top: 0.75rem; font-size: 1.1875rem; color: var(--ink-mute); }
+  .block { margin-top: 2.5rem; }
+  .block > h2 { margin-bottom: 0.875rem; }
+  .theory { margin-bottom: 1em; }
+
+  .codefig { margin: 1.25rem 0 0; }
+  .codefig .top { border-top: none; border-bottom: 1px solid var(--panel-rule); }
+  .codebody :global(pre) { margin: 0; padding: 0.875rem; overflow-x: auto; font-size: 0.75rem; line-height: 1.6; background: transparent !important; }
+
+  .drill { display: inline-flex; flex-direction: column; gap: 0.375rem; border: 1px solid var(--ink); background: var(--paper-high); padding: 0.875rem 1.125rem; text-decoration: none; }
+  .drill:hover .dtext { color: var(--copper-deep); }
+  .dtext { font-family: var(--mono); font-size: 0.875rem; }
+
+  .pager { display: flex; justify-content: space-between; gap: 1rem; margin-top: 3.5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 0.8125rem; }
+  .pager a { text-decoration: none; color: var(--ink-mute); }
+  .pager a:hover { color: var(--copper-deep); }
+</style>
