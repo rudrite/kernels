@@ -101,7 +101,7 @@ const cards = Object.entries(opCards as Record<string, string>)
                     <span class="hint">source · jaxpr · stablehlo</span>
                   </summary>
                   <div class="dumps">
-                    <div class="dump">
+                    <div class="dump src">
                       <div class="provenance top">source</div>
                       <Code code={p.source.join('\n')} lang="python" theme="vesper" />
                     </div>
@@ -183,11 +183,13 @@ const cards = Object.entries(opCards as Record<string, string>)
   .prog .pn { color: var(--panel-mute); font-family: var(--mono); font-size: 0.75rem; flex: 1; }
   .prog .hint { color: var(--panel-mute); font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.05em; }
   .prog[open] summary { border-bottom: 1px solid var(--panel-rule); }
-  .dumps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--panel-rule); }
-  @media (max-width: 1100px) { .dumps { grid-template-columns: 1fr; } }
+  .dumps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--panel-rule); }
+  .dump.src { grid-column: 1 / -1; }
+  .dump.src :global(pre) { max-height: 10rem; }
+  @media (max-width: 1100px) { .dumps { grid-template-columns: 1fr; } .dump.src { grid-column: auto; } }
   .dump { background: #101215; min-width: 0; }
   .dump .top { border-top: none; border-bottom: 1px solid var(--panel-rule); }
-  .dump :global(pre) { margin: 0; padding: 0.75rem; overflow-x: auto; font-size: 0.78125rem; line-height: 1.65; background: transparent !important; max-height: 26rem; overflow-y: auto; }
+  .dump :global(pre) { margin: 0; padding: 0.875rem 1rem; overflow-x: auto; font-size: 0.78125rem; line-height: 1.65; background: transparent !important; max-height: 30rem; overflow-y: auto; }
 
   .op-filter {
     font-family: var(--mono); font-size: 0.8125rem; color: var(--ink);
