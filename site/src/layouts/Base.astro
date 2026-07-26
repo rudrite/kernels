@@ -62,7 +62,7 @@ const ogImage = new URL(`/og/${ogSlug}.png`, Astro.site)
     <footer class="site-footer">
       <div class="wrap foot">
         <span class="mono-label">rudrite kernels</span>
-        <span class="mono-label">taught in public · every number measured</span>
+        <span class="foot-note">I'm learning this in the open. Every number here was measured, or says plainly that it wasn't yet.</span>
       </div>
     </footer>
     <SearchPalette index={SEARCH_INDEX} client:load />
@@ -88,5 +88,7 @@ const ogImage = new URL(`/og/${ogSlug}.png`, Astro.site)
   .search-btn kbd { font-family: var(--mono); font-size: 0.625rem; border: 1px solid var(--rule); border-radius: 2px; padding: 0.05rem 0.25rem; }
   @media (max-width: 900px) { .search-btn kbd { display: none; } }
   .site-footer { border-top: 1px solid var(--rule); margin-top: 5rem; }
-  .foot { display: flex; justify-content: space-between; gap: 1rem; padding-block: 1.25rem; flex-wrap: wrap; }
+  .foot { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; padding-block: 1.25rem; flex-wrap: wrap; }
+  .foot-note { font-family: var(--mono); font-size: 0.75rem; color: var(--ink-mute); max-width: 52ch; text-align: right; }
+  @media (max-width: 700px) { .foot-note { text-align: left; } }
 </style>

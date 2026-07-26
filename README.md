@@ -1,6 +1,6 @@
 # kernels
 
-Rudrite's TPU kernel wing: a public, lab-driven curriculum for learning to write fast TPU kernels, from the machine's first principles to distributed Pallas, taught in public with every checkpoint measured on real hardware.
+Rudrite's TPU kernel wing: a public, lab-driven curriculum for learning to write fast TPU kernels, from the machine's first principles to distributed Pallas, built while learning it, in the open; checkpoints only count when a real chip measured them.
 
 Site: **live** at [kernels.rudrite.com](https://kernels.rudrite.com) · Cloudflare Pages, deploys on every push to main
 
