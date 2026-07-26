@@ -35,7 +35,11 @@ const items = MASTERY[chapterKey] ?? []
               <span class="m-num">{String(i + 1).padStart(2, '0')}</span>
               <span class="m-label">{item.label}</span>
             </button>
-            {item.href && <a class="m-go" href={item.href}>go →</a>}
+            {item.href && (
+              <a class="m-go" href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel={item.href.startsWith('http') ? 'noopener' : undefined}>
+                {item.href.startsWith('http') ? 'open ↗' : 'go →'}
+              </a>
+            )}
             {item.auto && <span class="m-auto">auto</span>}
           </li>
         ))}

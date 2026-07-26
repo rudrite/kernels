@@ -10,6 +10,7 @@ const { lab } = Astro.props
 ---
 
 <article class="panel lab">
+  {lab.colab && <a class="card-link" href={lab.colab} target="_blank" rel="noopener" aria-label={`Open ${lab.designator} in Colab (new tab)`}></a>}
   <div class="body">
     <div class="top">
       <span class="designator">{lab.designator}</span>
@@ -21,7 +22,7 @@ const { lab } = Astro.props
   <div class="provenance action-row">
     {
       lab.colab ? (
-        <a href={lab.colab} rel="noopener">open in Colab → runs from this repo, save a copy to keep it</a>
+        <a href={lab.colab} target="_blank" rel="noopener">open in Colab ↗ · runs from this repo, save a copy to keep it</a>
       ) : lab.notebook ? (
         <span>in repo: {lab.notebook} · Colab link activates when the repo goes public</span>
       ) : (
@@ -32,7 +33,10 @@ const { lab } = Astro.props
 </article>
 
 <style>
-  .lab { display: flex; flex-direction: column; }
+  .lab { display: flex; flex-direction: column; position: relative; }
+  .card-link { position: absolute; inset: 0; z-index: 0; border-radius: 2px; }
+  .lab:has(.card-link):hover { border-color: var(--copper); }
+  .lab .lab-toggle, .lab .action-row a { position: relative; z-index: 1; }
   .body { padding: 0.875rem; flex: 1; }
   .top { display: flex; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
   .designator { color: var(--copper); }

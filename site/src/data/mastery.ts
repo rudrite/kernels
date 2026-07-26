@@ -57,14 +57,14 @@ export const MASTERY: Record<string, WorkItem[]> = {
   ],
   's:machine': [
     { id: 'read', label: 'read the chapter and the two scaling-book chapters' },
-    { id: 'lab', label: 'run LAB·0.1 on a Colab TPU', auto: { type: 'labs', ids: ['LAB·0.1'] } },
+    { id: 'lab', label: 'run LAB·0.1 on a Colab TPU', href: 'https://colab.research.google.com/github/rudrite/kernels/blob/main/labs/stage-0/lab-0.1-rooflines.ipynb', auto: { type: 'labs', ids: ['LAB·0.1'] } },
     { id: 'canyou', label: 'tick every can-you item honestly', auto: { type: 'checklist', stage: 'machine', total: 7 } },
   ],
   's:pallas': [
     { id: 'read', label: 'read the chapter; step EX·02 against EX·07 until the difference is boring' },
     { id: 'walks', label: 'step both guided walks, then the synced walk (EX·12)', href: '/s/pallas#walks' },
     { id: 'museum', label: 'read all six mistake exhibits; predict each error before revealing it', href: '/mistakes' },
-    { id: 'labs', label: 'run LAB·1.1 through LAB·1.4', auto: { type: 'labs', ids: ['LAB·1.1', 'LAB·1.2', 'LAB·1.3', 'LAB·1.4'] } },
+    { id: 'labs', label: 'run LAB·1.1 through LAB·1.4', href: '#labs', auto: { type: 'labs', ids: ['LAB·1.1', 'LAB·1.2', 'LAB·1.3', 'LAB·1.4'] } },
     { id: 'canyou', label: 'tick every can-you item honestly', auto: { type: 'checklist', stage: 'pallas', total: 8 } },
   ],
   's:ir': [
@@ -72,19 +72,19 @@ export const MASTERY: Record<string, WorkItem[]> = {
     { id: 'decoder10', label: 'dot_general decoder: streak of 10 (the fluency bar)', href: '/gym#drills', auto: { type: 'streak', key: 'gym.dot.streak', goal: 10 } },
     { id: 'oracle10', label: 'shape oracle: streak of 10', href: '/gym#drills', auto: { type: 'streak', key: 'gym.shape.streak', goal: 10 } },
     { id: 'spot5', label: 'spot the decision: streak of 5', href: '/gym#drills', auto: { type: 'streak', key: 'gym.spot.streak', goal: 5 } },
-    { id: 'labs', label: 'run LAB·2.1 and LAB·2.2', auto: { type: 'labs', ids: ['LAB·2.1', 'LAB·2.2'] } },
+    { id: 'labs', label: 'run LAB·2.1 and LAB·2.2', href: '#labs', auto: { type: 'labs', ids: ['LAB·2.1', 'LAB·2.2'] } },
     { id: 'canyou', label: 'tick every can-you item honestly', auto: { type: 'checklist', stage: 'ir', total: 7 } },
   ],
   's:kernels': [
     { id: 'read', label: 'read the chapter; derive the monoid on paper before anything else' },
     { id: 'walks', label: 'step the flash and causal walks, then the production Splash walk', href: '/s/kernels#walks' },
-    { id: 'labs', label: 'run LAB·3.1 through LAB·3.4, blind-build rules observed', auto: { type: 'labs', ids: ['LAB·3.1', 'LAB·3.2', 'LAB·3.3', 'LAB·3.4'] } },
+    { id: 'labs', label: 'run LAB·3.1 through LAB·3.4, blind-build rules observed', href: '#labs', auto: { type: 'labs', ids: ['LAB·3.1', 'LAB·3.2', 'LAB·3.3', 'LAB·3.4'] } },
     { id: 'canyou', label: 'tick every can-you item honestly', auto: { type: 'checklist', stage: 'kernels', total: 8 } },
   ],
   's:distributed': [
     { id: 'read', label: 'read the chapter; step into the deadlock in EX·10 on purpose' },
     { id: 'mesh', label: 'EX·11: compute one hop time by hand, confirm against the caption', href: '/s/distributed#instruments' },
-    { id: 'labs', label: 'run LAB·4.1 and LAB·4.2', auto: { type: 'labs', ids: ['LAB·4.1', 'LAB·4.2'] } },
+    { id: 'labs', label: 'run LAB·4.1 and LAB·4.2', href: '#labs', auto: { type: 'labs', ids: ['LAB·4.1', 'LAB·4.2'] } },
     { id: 'canyou', label: 'tick every can-you item honestly', auto: { type: 'checklist', stage: 'distributed', total: 7 } },
   ],
   's:capstone': [
