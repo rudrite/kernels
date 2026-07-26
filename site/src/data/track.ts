@@ -182,8 +182,8 @@ export const STAGES: Stage[] = [
         'Fused softmax beats the unfused XLA chain at rows of 32k+',
       ],
       measured: [
-        'measured on v6e-1: best block (512, 1024, 512) at 597.5 µs vs XLA 361.3 µs, 1.65x. The bar stands; closing it is the gate.',
-        'measured on v6e-1: pallas 443.4 µs vs unfused 349.9 µs (XLA fused: 242.5 µs). Not yet; the naive row-block schedule loses to the compiler here.',
+        'measured on v6e-1: the first schedule ran 1.65x behind XLA; retuned with dimension_semantics and a (2048, 1024, 512) block, 384.6 µs vs 353.0 µs, 1.09x. Inside the bar, and the tuning IS the lesson.',
+        'measured on v6e-1: rows=1024 blocks give 222.7 µs vs 379.5 µs unfused, and beat XLA\'s own fusion (267.6 µs). The rows=64 schedule that lost by 27% was the same kernel; only the schedule changed.',
       ],
     },
     artifact: 'Explainer: Pallas from zero, with the algorithm/schedule split color-coded',
@@ -320,7 +320,7 @@ export const STAGES: Stage[] = [
         'Differential tests green: 1e-3 forward, 1e-2 grads, bf16',
       ],
       measured: [
-        'measured on v6e-1: flash 491.7 µs vs jax.nn.dot_product_attention 730.0 µs (0.67x), well inside the 1.3x bar. Naive XLA runs 414.8 µs at this length: on a chip with this much bandwidth the 268 MB spill is cheap, and the crossover sits at longer sequences.',
+        'measured on v6e-1: tuned flash (512, 1024 blocks) beats naive at every length, 1.05x at seq 4k growing to 1.35x at 32k, and beats jax.nn.dot_product_attention 4.15x at 32k. The windowed variant, where the mask is a loop bound, runs 4.87x ahead of XLA\'s masked attention at 16k.',
         'measured on v6e-1, all bf16: forward max |flash − naive| 0.254 (dominated by naive computing its softmax in bf16); grads max diff q 0.163 · k 0.203 · v 0.0 against autodiff. Tightening these against f32 references is open gate work.',
       ],
     },
