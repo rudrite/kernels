@@ -8,6 +8,7 @@ import '@fontsource/vt323/400.css'
 import 'katex/dist/katex.min.css'
 import '../styles/global.css'
 import Lockup from '../components/Lockup.astro'
+import PathStrip from '../components/PathStrip.astro'
 import ProgressKit from '../components/ProgressKit.astro'
 import SearchPalette from '../exhibits/SearchPalette'
 import CodeChrome from '../components/CodeChrome.astro'
@@ -58,6 +59,7 @@ const ogImage = new URL(`/og/${ogSlug}.png`, Astro.site)
         </nav>
       </div>
     </header>
+    <PathStrip />
     <main><slot /></main>
     <footer class="site-footer">
       <div class="wrap foot">

@@ -1,0 +1,65 @@
+---
+// The path, always in reach: fifteen ticks, the live mastery fraction, and
+// the continue pointer, on every page. ProgressKit paints all of it through
+// the same data attributes the home page uses; without JS the strip still
+// renders as a static map of the path.
+import { PATH } from '../lib/path'
+
+const current = Astro.url.pathname
+---
+
+<div class="path-strip">
+  <div class="wrap strip-row">
+    <a href="/" class="mono-label strip-label">
+      the path · <span data-path-progress>0/{PATH.length}</span>
+    </a>
+    <ol class="ticks" aria-label="Chapters">
+      {
+        PATH.map((c) => (
+          <li class={c.part === 'ii' && c.num === 10 ? 'part-break' : ''}>
+            <a
+              href={c.href}
+              data-chapter-key={c.key}
+              class={`tick ${current === c.href ? 'here' : ''}`}
+              title={`${String(c.num).padStart(2, '0')} · ${c.title}`}
+              aria-label={`Chapter ${c.num}: ${c.title}`}
+            />
+          </li>
+        ))
+      }
+    </ol>
+    <a class="mono-label strip-continue" data-continue href="/">
+      <span data-continue-label>start the path</span>
+    </a>
+  </div>
+</div>
+
+<style>
+  .path-strip { background: var(--paper-high); border-bottom: 1px solid var(--rule); }
+  .strip-row { display: flex; align-items: center; gap: 1.25rem; padding-block: 0.4rem; }
+  .strip-label { text-decoration: none; color: var(--ink-mute); white-space: nowrap; }
+  .strip-label:hover { color: var(--copper-deep); }
+
+  .ticks { display: flex; align-items: center; gap: 0.25rem; list-style: none; margin: 0; padding: 0; flex: 1; min-width: 0; }
+  .ticks li { display: flex; }
+  .ticks li.part-break { margin-left: 0.75rem; }
+  .tick {
+    display: block; width: 0.875rem; height: 0.5rem; border-radius: 1px;
+    border: 1px solid var(--rule); background: var(--paper);
+  }
+  .tick:hover { border-color: var(--copper-deep); }
+  .tick.here { outline: 2px solid var(--copper-deep); outline-offset: 1px; }
+  :global(.tick.p-done) { background: var(--copper-deep); border-color: var(--copper-deep); }
+
+  .strip-continue { text-decoration: none; color: var(--copper-deep); white-space: nowrap; }
+  .strip-continue:hover { text-decoration: underline; }
+
+  @media (max-width: 900px) {
+    .strip-continue { display: none; }
+  }
+  @media (max-width: 640px) {
+    .ticks { display: none; }
+    .strip-row { justify-content: space-between; }
+    .strip-continue { display: inline; }
+  }
+</style>
