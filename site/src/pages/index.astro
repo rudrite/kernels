@@ -55,13 +55,13 @@ const OUTCOMES = [
 >
   <section class="wrap hero">
     <div class="hero-copy">
-      <p class="mono-label kicker">a public curriculum · one path · fifteen chapters</p>
+      <p class="mono-label kicker">a mastery course · one path · fifteen chapters</p>
       <h1>Learn to make TPUs fast.</h1>
       <p class="lede">
-        The TPU kernel stack, taught from first principles: the machine, Pallas, the IRs, the kernels
-        everyone depends on, and the distributed kernels that hide communication behind compute. Live
-        instruments on every chapter, labs that run in Colab, and gates measured on real hardware,
-        published pass or fail.
+        The TPU kernel stack as one course: each chapter teaches, then assigns its mastery work: the
+        instruments to manipulate, the drills to streak, the walks to step, the labs to run in Colab.
+        Everything on this site belongs to a chapter, your progress tracks in your browser, and the
+        stages end at gates measured on real hardware, published pass or fail.
       </p>
       <div class="cta-row">
         <a class="cta primary" href="/l/source" data-continue><span data-continue-label>start the path → chapter 1</span></a>
@@ -116,6 +116,7 @@ const OUTCOMES = [
                 <a href={`/l/${l.id}`} data-chapter-key={`l:${l.id}`}>
                   <span class="onum">{String(i + 1).padStart(2, '0')}</span>
                   <span class="otitle">{l.label}</span>
+                  <span class="ofrac meas" data-work-frac={`l:${l.id}`}></span>
                   <span class="oweeks">~20 min</span>
                 </a>
               </li>
@@ -133,6 +134,7 @@ const OUTCOMES = [
                   <span class="led" data-state={s.gate.state === 'queued' ? undefined : s.gate.state} />
                   <span class="onum">{String(LAYERS.length + i + 1).padStart(2, '0')}</span>
                   <span class="otitle">{s.title}</span>
+                  <span class="ofrac meas" data-work-frac={`s:${s.id}`}></span>
                   <span class="oweeks">{s.weeks}</span>
                 </a>
               </li>
@@ -233,6 +235,8 @@ const OUTCOMES = [
   .order a:hover { background: var(--paper-high); color: var(--copper-deep); }
   .onum { color: var(--copper-deep); font-weight: 500; width: 1.75rem; }
   .otitle { flex: 1; }
+  .ofrac { color: var(--ink-mute); font-size: 0.6875rem; }
+  [data-chapter-key].p-done .ofrac { color: var(--pass); }
   .oweeks { color: var(--ink-mute); font-size: 0.6875rem; }
 
   .instr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }

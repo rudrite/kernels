@@ -1,0 +1,65 @@
+---
+// The chapter's mastery work: the ordered, tracked list of everything this
+// chapter asks of the reader. Manual items toggle by click; drill, lab, and
+// checklist items complete themselves from their own stores (ProgressKit
+// owns the wiring). This panel is the course; the prose serves it.
+import { MASTERY } from '../data/mastery'
+
+interface Props {
+  chapterKey: string
+}
+const { chapterKey } = Astro.props
+const items = MASTERY[chapterKey] ?? []
+---
+
+{
+  items.length > 0 && (
+    <section class="mastery panel" aria-label="Mastery work for this chapter">
+      <header class="m-head">
+        <span class="m-title">mastery work · this chapter</span>
+        <span class="m-frac" data-work-frac={chapterKey}>0/{items.length}</span>
+      </header>
+      <ol>
+        {items.map((item, i) => (
+          <li>
+            <button
+              type="button"
+              class="m-row"
+              data-work-row
+              data-work-chapter={chapterKey}
+              data-work-id={item.id}
+              data-work-auto={item.auto ? JSON.stringify(item.auto) : undefined}
+              disabled={Boolean(item.auto)}
+            >
+              <span class="m-box" aria-hidden="true" />
+              <span class="m-num">{String(i + 1).padStart(2, '0')}</span>
+              <span class="m-label">{item.label}</span>
+            </button>
+            {item.href && <a class="m-go" href={item.href}>go →</a>}
+            {item.auto && <span class="m-auto">auto</span>}
+          </li>
+        ))}
+      </ol>
+      <div class="provenance">manual items are your word; auto items complete from your streaks, labs, and can-you ticks · stored in your browser only</div>
+    </section>
+  )
+}
+
+<style>
+  .mastery { margin-top: 1.75rem; }
+  .m-head { display: flex; justify-content: space-between; align-items: baseline; padding: 0.75rem 0.875rem; border-bottom: 1px solid var(--panel-rule); }
+  .m-title { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--copper); }
+  .m-frac { font-family: var(--mono); font-size: 0.875rem; color: var(--panel-ink); }
+  ol { list-style: none; margin: 0; padding: 0.375rem 0; }
+  li { display: flex; align-items: center; gap: 0.75rem; padding: 0 0.875rem; }
+  .m-row { display: flex; align-items: center; gap: 0.75rem; flex: 1; background: transparent; border: none; padding: 0.45rem 0; font: inherit; text-align: left; cursor: pointer; color: var(--panel-ink); }
+  .m-row:disabled { cursor: default; }
+  .m-box { width: 13px; height: 13px; border: 1.5px solid var(--panel-mute); border-radius: 2px; flex: 0 0 auto; position: relative; }
+  li.done .m-box { border-color: var(--pass); background: var(--pass); }
+  li.done .m-label { color: var(--panel-mute); }
+  .m-num { font-family: var(--mono); font-size: 0.6875rem; color: var(--copper); }
+  .m-label { font-family: var(--mono); font-size: 0.8125rem; line-height: 1.5; }
+  .m-go { font-family: var(--mono); font-size: 0.75rem; color: var(--copper); text-decoration: none; white-space: nowrap; }
+  .m-go:hover { text-decoration: underline; }
+  .m-auto { font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.08em; color: var(--panel-mute); border: 1px solid var(--panel-rule); border-radius: 2px; padding: 0.1rem 0.3rem; }
+</style>

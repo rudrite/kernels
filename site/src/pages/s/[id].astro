@@ -5,6 +5,7 @@ import TitleBlock from '../../components/TitleBlock.astro'
 import SectionHead from '../../components/SectionHead.astro'
 import ReadingRails from '../../components/ReadingRails.astro'
 import PathPager from '../../components/PathPager.astro'
+import MasteryWork from '../../components/MasteryWork.astro'
 import GateStamp from '../../components/GateStamp.astro'
 import LabCard from '../../components/LabCard.astro'
 import Spine from '../../components/Spine.astro'
@@ -105,16 +106,7 @@ const toc = [...chapterToc, ...fixedToc]
         <p class="goal">{stage.goal}</p>
       </section>
 
-      <section class="block howto" aria-label="How to work this stage">
-        <span class="mono-label">how to work this stage</span>
-        <ol>
-          <li>read the chapter</li>
-          <li>do the readings</li>
-          <li>work the weeks in order</li>
-          <li>run the labs in Colab</li>
-          <li>attempt the gate</li>
-        </ol>
-      </section>
+      <MasteryWork chapterKey={`s:${stage.id}`} />
 
       {
         stage.chapter.map((sec) => (

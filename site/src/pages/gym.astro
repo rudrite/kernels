@@ -27,8 +27,9 @@ const cards = Object.entries(opCards as Record<string, string>)
   description="Drills over a corpus of seventeen real programs: decode dimension_numbers on sight, predict shapes before the reveal, and read jaxpr and StableHLO until fluency."
 >
   <section class="wrap head">
-    <p class="mono-label kicker">the reading gym</p>
+    <p class="mono-label kicker">the reading gym · serves chapters 02, 03, 04, and 12</p>
     <h1>Fluency is drills, not prose.</h1>
+    <p class="course-note mono-label">this page is not a detour: the path assigns each drill here at a specific chapter, with a streak target. Follow the assignments; the streaks check themselves off.</p>
     <p class="prose lede">
       Seventeen real programs, traced and dumped: every jaxpr and StableHLO here was generated, never
       retyped, and every drill answer is computed from the same structured facts. Streaks persist in your
@@ -139,6 +140,7 @@ const cards = Object.entries(opCards as Record<string, string>)
   .kicker { display: block; margin-bottom: 1.25rem; color: var(--copper-deep); }
   h1 { font-size: clamp(1.875rem, 4.5vw, 2.75rem); font-weight: 600; letter-spacing: -0.01em; }
   .lede { margin-top: 1.25rem; font-size: 1.125rem; }
+  .course-note { margin-top: 0.875rem; color: var(--copper-deep); text-transform: none; letter-spacing: 0.02em; max-width: 60ch; line-height: 1.6; }
   .block { padding-block: 2rem 0.5rem; }
   .sec-lede { color: var(--ink-mute); margin-bottom: 1.25rem; }
 
