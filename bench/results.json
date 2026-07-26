@@ -375,5 +375,18 @@
     "shapes": "seq 8192, d 128",
     "date": "2026-07-27",
     "commit": "gate-close"
+  },
+  {
+    "id": "M-020",
+    "stage": 3,
+    "kernel": "attention custom_vjp grads, precision-pinned",
+    "metric": "max |custom_vjp \u2212 autodiff|, f32",
+    "value": "q 6.5e-6 \u00b7 k 6.7e-6 \u00b7 v 2.4e-7 (bar 1e-2); unpinned the same test reads 0.15, which is the MXU lesson",
+    "baseline": "jax.grad of reference",
+    "chip": "v6e-1 (TPU v6 lite)",
+    "dtype": "f32",
+    "shapes": "512x128 q, 1024x128 kv",
+    "date": "2026-07-27",
+    "commit": "gate-close"
   }
 ]

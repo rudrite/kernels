@@ -310,14 +310,14 @@ export const STAGES: Stage[] = [
       { designator: 'LAB·3.4', title: 'Skipping blocks: masks as loop structure', time: '~4 h', hardware: 'Colab TPU', colab: COLAB + 'labs/stage-3/lab-3.4-masks-as-loop-structure.ipynb', notebook: 'labs/stage-3/lab-3.4-masks-as-loop-structure.ipynb' },
     ],
     gate: {
-      state: 'active',
+      state: 'passed',
       criteria: [
         'Own flash forward within 1.3x of reference implementations at seq 8192',
         'Differential tests green: 1e-3 forward, 1e-2 grads, bf16',
       ],
       measured: [
         'measured on v6e-1: tuned flash (512, 1024 blocks) beats naive at every length, 1.05x at seq 4k growing to 1.35x at 32k, and beats jax.nn.dot_product_attention 4.15x at 32k. The windowed variant, where the mask is a loop bound, runs 4.87x ahead of XLA\'s masked attention at 16k.',
-        'measured on v6e-1, differentials done right: f32 forward max err 2.15e-6 against the 1e-3 bar, and the bf16 pipeline lands at 0.38% relative against an f32 reference. Grads await one precision-pinned rerun: TPU f32 matmuls run at bf16 MXU precision by default, which is a lesson in itself.',
+        'measured on v6e-1, precision-pinned differentials: forward 3.34e-6 against the 1e-3 bar, grads q 6.5e-6 · k 6.7e-6 · v 2.4e-7 against the 1e-2 bar, bf16 pipeline 0.38% relative on the forward. The same grad test without the precision pin reads 0.15: TPU f32 matmuls run at bf16 MXU precision by default, and that lesson is now on the bench.',
       ],
     },
   },
