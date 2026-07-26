@@ -1,0 +1,176 @@
+{
+ "provenance": "generated with jax 0.4.38 on cpu \u00b7 jaxpr and StableHLO are backend-independent \u00b7 shapes (128, 64) bf16",
+ "source": [
+  "def attention(q, k, v):",
+  "    s = q @ k.T",
+  "    m = jnp.max(s, axis=-1, keepdims=True)",
+  "    p = jnp.exp(s - m)",
+  "    l = jnp.sum(p, axis=-1, keepdims=True)",
+  "    w = p / l",
+  "    return w @ v"
+ ],
+ "jaxpr": [
+  "{ lambda ; a:bf16[128,64] b:bf16[128,64] c:bf16[128,64]. let",
+  "    d:bf16[64,128] = transpose[permutation=(1, 0)] b",
+  "    e:bf16[128,128] = dot_general[",
+  "      dimension_numbers=(([1], [0]), ([], []))",
+  "      preferred_element_type=bfloat16",
+  "    ] a d",
+  "    f:bf16[128] = reduce_max[axes=(1,)] e",
+  "    g:bf16[128,1] = broadcast_in_dim[",
+  "      broadcast_dimensions=(0,)",
+  "      shape=(128, 1)",
+  "      sharding=None",
+  "    ] f",
+  "    h:bf16[128,128] = sub e g",
+  "    i:bf16[128,128] = exp h",
+  "    j:f32[128,128] = convert_element_type[new_dtype=float32 weak_type=False] i",
+  "    k:f32[128] = reduce_sum[axes=(1,)] j",
+  "    l:f32[128,1] = broadcast_in_dim[",
+  "      broadcast_dimensions=(0,)",
+  "      shape=(128, 1)",
+  "      sharding=None",
+  "    ] k",
+  "    m:bf16[128,1] = convert_element_type[new_dtype=bfloat16 weak_type=False] l",
+  "    n:bf16[128,128] = div i m",
+  "    o:bf16[128,64] = dot_general[",
+  "      dimension_numbers=(([1], [0]), ([], []))",
+  "      preferred_element_type=bfloat16",
+  "    ] n c",
+  "  in (o,) }"
+ ],
+ "stablehlo": [
+  "module @jit_attention attributes {mhlo.num_partitions = 1 : i32, mhlo.num_replicas = 1 : i32} {",
+  "  func.func public @main(%arg0: tensor<128x64xbf16>, %arg1: tensor<128x64xbf16>, %arg2: tensor<128x64xbf16>) -> (tensor<128x64xbf16> {jax.result_info = \"\"}) {",
+  "    %0 = stablehlo.transpose %arg1, dims = [1, 0] : (tensor<128x64xbf16>) -> tensor<64x128xbf16>",
+  "    %1 = stablehlo.dot_general %arg0, %0, contracting_dims = [1] x [0], precision = [DEFAULT, DEFAULT] : (tensor<128x64xbf16>, tensor<64x128xbf16>) -> tensor<128x128xbf16>",
+  "    %cst = stablehlo.constant dense<0xFF80> : tensor<bf16>",
+  "    %2 = stablehlo.reduce(%1 init: %cst) applies stablehlo.maximum across dimensions = [1] : (tensor<128x128xbf16>, tensor<bf16>) -> tensor<128xbf16>",
+  "    %3 = stablehlo.broadcast_in_dim %2, dims = [0] : (tensor<128xbf16>) -> tensor<128x1xbf16>",
+  "    %4 = stablehlo.broadcast_in_dim %3, dims = [0, 1] : (tensor<128x1xbf16>) -> tensor<128x128xbf16>",
+  "    %5 = stablehlo.subtract %1, %4 : tensor<128x128xbf16>",
+  "    %6 = stablehlo.exponential %5 : tensor<128x128xbf16>",
+  "    %7 = stablehlo.convert %6 : (tensor<128x128xbf16>) -> tensor<128x128xf32>",
+  "    %cst_0 = stablehlo.constant dense<0.000000e+00> : tensor<f32>",
+  "    %8 = stablehlo.reduce(%7 init: %cst_0) applies stablehlo.add across dimensions = [1] : (tensor<128x128xf32>, tensor<f32>) -> tensor<128xf32>",
+  "    %9 = stablehlo.broadcast_in_dim %8, dims = [0] : (tensor<128xf32>) -> tensor<128x1xf32>",
+  "    %10 = stablehlo.convert %9 : (tensor<128x1xf32>) -> tensor<128x1xbf16>",
+  "    %11 = stablehlo.broadcast_in_dim %10, dims = [0, 1] : (tensor<128x1xbf16>) -> tensor<128x128xbf16>",
+  "    %12 = stablehlo.divide %6, %11 : tensor<128x128xbf16>",
+  "    %13 = stablehlo.dot_general %12, %arg2, contracting_dims = [1] x [0], precision = [DEFAULT, DEFAULT] : (tensor<128x128xbf16>, tensor<128x64xbf16>) -> tensor<128x64xbf16>",
+  "    return %13 : tensor<128x64xbf16>",
+  "  }",
+  "}"
+ ],
+ "groups": [
+  {
+   "id": "scores",
+   "note": "two dot_generals bracket the softmax; k.T becomes an explicit transpose",
+   "src": [
+    1
+   ],
+   "jaxpr": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "hlo": [
+    2,
+    3
+   ]
+  },
+  {
+   "id": "rowmax",
+   "note": "the max needs the whole row before any exp can run: the multi-pass shape",
+   "src": [
+    2
+   ],
+   "jaxpr": [
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+   ],
+   "hlo": [
+    4,
+    5,
+    6
+   ]
+  },
+  {
+   "id": "exp",
+   "note": "subtract-then-exp; the broadcast back to 128x128 is explicit in the IR",
+   "src": [
+    3
+   ],
+   "jaxpr": [
+    12,
+    13
+   ],
+   "hlo": [
+    7,
+    8,
+    9
+   ]
+  },
+  {
+   "id": "rowsum",
+   "note": "JAX upcasts the bf16 sum to f32 and converts back: a real numerics decision, visible only in the IR",
+   "src": [
+    4
+   ],
+   "jaxpr": [
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21
+   ],
+   "hlo": [
+    10,
+    11,
+    12,
+    13,
+    14
+   ]
+  },
+  {
+   "id": "normalize",
+   "note": "one divide, broadcast over the row",
+   "src": [
+    5
+   ],
+   "jaxpr": [
+    22
+   ],
+   "hlo": [
+    15,
+    16
+   ]
+  },
+  {
+   "id": "output",
+   "note": "the second matmul consumes the normalized weights",
+   "src": [
+    6
+   ],
+   "jaxpr": [
+    23,
+    24,
+    25,
+    26
+   ],
+   "hlo": [
+    17,
+    18
+   ]
+  }
+ ]
+}
