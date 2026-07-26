@@ -1,0 +1,92 @@
+{
+ "meta": {
+  "chip": "TPU v6 lite",
+  "jax": "0.11.0",
+  "iters": 20,
+  "program": "naive attention, seq 8192, d 128, bf16",
+  "generated": "labs/profile-bytes.ipynb",
+  "captured": "2026-07-27"
+ },
+ "rows": [
+  {
+   "id": "jit",
+   "op": "jit_naive_attention",
+   "kind": "jit",
+   "count": 20,
+   "total_us": 4352.0,
+   "us_per_iter": 217.6,
+   "full": "jit_naive_attention(6262733101867440798)",
+   "note": "the jit envelope: wall time per call. It equals the two compute ops' sum exactly, which says every copy hid behind compute."
+  },
+  {
+   "id": "online-softmax",
+   "op": "%online-softmax \u00b7 tpu_custom_call",
+   "kind": "custom",
+   "count": 20,
+   "total_us": 2559.3,
+   "us_per_iter": 128.0,
+   "full": "%online-softmax = bf16[8192,128]{1,0:T(8,128)(2,1)} custom-call(bf16[8192,8192] %fusion, bf16[8192,128] %copy-done.1), custom_call_target=\"tpu_custom_call\", frontend_attributes={tiling=\"1024,1024\"}",
+   "note": "the discovery: XLA:TPU pattern-matched the softmax and second matmul into its own online-softmax kernel, one pass over S, tiled 1024x1024. A custom call: cost models cannot see inside it."
+  },
+  {
+   "id": "copy-start-1",
+   "op": "%copy-start.1",
+   "kind": "copy",
+   "count": 40,
+   "total_us": 1792.0,
+   "us_per_iter": 89.6,
+   "full": "%copy-start.1 = (bf16[8192,128]{1,0:T(8,128)(2,1)S(1)}, ...) copy-start(...)",
+   "note": "an async copy per iteration, 40 events for 20 iterations because start and its span both appear. Its 89.6 \u00b5s is the in-flight window riding under the fusion, not time added to the program."
+  },
+  {
+   "id": "fusion-s",
+   "op": "%fusion \u00b7 S producer (kOutput)",
+   "kind": "fusion",
+   "count": 20,
+   "total_us": 1791.3,
+   "us_per_iter": 89.6,
+   "full": "%fusion = bf16[8192,8192]{1,0:T(8,128)(2,1)} fusion(bf16[8192,128] %copy-done, bf16[8192,128] %k.1), kind=kOutput, calls=%fused_computation",
+   "note": "QK^T computed and the full bf16[8192,8192] written to HBM: the spill's first half, 134 MB per iteration, hardware-timed."
+  },
+  {
+   "id": "copy-start",
+   "op": "%copy-start",
+   "kind": "copy",
+   "count": 40,
+   "total_us": 1.0,
+   "us_per_iter": 0.1,
+   "full": "%copy-start = (bf16[8192,128]{1,0:T(8,128)(2,1)}, ...) copy-start(...)",
+   "note": "the cheap operand copy: issued and done almost instantly; compare its span with copy-start.1's."
+  },
+  {
+   "id": "copy-done",
+   "op": "%copy-done",
+   "kind": "copy",
+   "count": 20,
+   "total_us": 0.1,
+   "us_per_iter": 0.0,
+   "full": "%copy-done = bf16[8192,128]{1,0:T(8,128)(2,1)} copy-done(%copy-start)",
+   "note": "the wait end of an async copy: nearly free when the transfer already landed. This pairing is the same start/wait transaction chapter 06 teaches with semaphores."
+  },
+  {
+   "id": "copy-done-1",
+   "op": "%copy-done.1",
+   "kind": "copy",
+   "count": 20,
+   "total_us": 0.1,
+   "us_per_iter": 0.0,
+   "full": "%copy-done.1 = bf16[8192,128]{1,0:T(8,128)(2,1)} copy-done(%copy-start.1)",
+   "note": "the wait for the long copy: still nearly free, because the 89.6 \u00b5s transfer finished while the fusion computed."
+  },
+  {
+   "id": "counters",
+   "op": "hardware counter samples",
+   "kind": "counter",
+   "count": 8,
+   "total_us": 0.0,
+   "us_per_iter": 0.0,
+   "full": "VDD Core FW Throttle(%) and VF_CHIP_HDE_STATS_* lines",
+   "note": "counter samples share the device plane with ops; skip them when reading time, mine them when chasing throttling."
+  }
+ ]
+}

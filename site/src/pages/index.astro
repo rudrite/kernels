@@ -22,7 +22,7 @@ interface BenchRow {
   chip: string
 }
 // the power rows: measured wins (and one honest loss) over the compiler
-const TEASER_IDS = ['M-013', 'M-015', 'M-014']
+const TEASER_IDS = ['M-013', 'M-015', 'M-023']
 const benchTeaser = TEASER_IDS.map((id) => (results as BenchRow[]).find((r) => r.id === id)!).filter(Boolean)
 
 // One real fragment of each layer, shown in its band. Nothing invented:
@@ -151,7 +151,7 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
     <div class="wrap">
       <SectionHead id="instr" eyebrow="you have reached the floor" title="The workshop" />
       <p class="ws-lede">
-        Below the stack sits the equipment: twelve instruments, six gym stations, eight museum exhibits, fifteen
+        Below the stack sits the equipment: twelve instruments, eight gym stations, eight museum exhibits, eighteen
         labs. Every one is assigned to a chapter above; press <span class="meas">⌘K</span> to jump anywhere.
       </p>
       <div class="instr-grid">

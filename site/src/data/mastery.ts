@@ -58,6 +58,7 @@ export const MASTERY: Record<string, WorkItem[]> = {
   ],
   'l:tpu': [
     { id: 'read', label: 'read the chapter: the four numbers' },
+    { id: 'timeline', label: 'timeline x-ray: find where the copies hid', href: '/gym#timeline' },
     { id: 'roofline', label: 'roofline playground: find the shape where matmul goes memory-bound', href: '/s/machine#instruments' },
     { id: 'guide', label: 'the full guide: every section read, exercises worked', href: '#exercises' },
   ],
@@ -83,8 +84,8 @@ export const MASTERY: Record<string, WorkItem[]> = {
     { id: 'decoder10', label: 'dot_general decoder: streak of 10 (the fluency bar)', href: '/gym#drills', auto: { type: 'streak', key: 'gym.dot.streak', goal: 10 } },
     { id: 'oracle10', label: 'shape oracle: streak of 10', href: '/gym#drills', auto: { type: 'streak', key: 'gym.shape.streak', goal: 10 } },
     { id: 'spot5', label: 'spot the decision: streak of 5', href: '/gym#drills', auto: { type: 'streak', key: 'gym.spot.streak', goal: 5 } },
-    { id: 'labs', label: 'run LAB·2.1 and LAB·2.2', href: '#labs', auto: { type: 'labs', ids: ['LAB·2.1', 'LAB·2.2'] } },
-    { id: 'canyou', label: 'tick every can-you item honestly', auto: { type: 'checklist', stage: 'ir', total: 7 } },
+    { id: 'labs', label: 'run LAB·2.1 through LAB·2.3', href: '#labs', auto: { type: 'labs', ids: ['LAB·2.1', 'LAB·2.2', 'LAB·2.3'] } },
+    { id: 'canyou', label: 'tick every can-you item honestly', auto: { type: 'checklist', stage: 'ir', total: 8 } },
   ],
   's:kernels': [
     { id: 'read', label: 'read the chapter; derive the monoid on paper before anything else' },

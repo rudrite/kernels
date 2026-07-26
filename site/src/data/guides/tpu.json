@@ -108,6 +108,95 @@
    ]
   },
   {
+   "h": "Reading the machine's own account",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "Everything before this section predicts; this section checks. The whole roofline discipline earns its keep only when you can hold the prediction next to what the machine actually did, and the machine keeps an account: the profiler's device timeline, one timed event per op, straight from the hardware. Capturing it costs four lines. Compile outside the trace window, run enough steady-state iterations to swamp noise, and read the `xplane` files that land."
+    },
+    {
+     "kind": "code",
+     "lang": "python",
+     "caption": "the capture pattern, verified on v6e-1 by LAB\u00b72.3: compile outside, trace steady state",
+     "text": "# capture: compile OUTSIDE the window, then trace steady-state iterations\nfn = jax.jit(naive_attention)\nfn(*xs).block_until_ready()\n\nwith jax.profiler.trace(\"/tmp/xprof-run\"):\n    for _ in range(20):\n        fn(*xs).block_until_ready()\n\n# what lands: plugins/profile/<run>/<host>.xplane.pb, one per host"
+    },
+    {
+     "kind": "p",
+     "text": "The working loop has four beats, and the order is the discipline. Predict the number from constants first, the way stage 0 drills. Profile to get the machine's account. **Attribute the gap op by op**: an unattributed gap is a guess wearing a number. Then change exactly one thing and measure again. Every optimization story this site tells, from the `dimension_semantics` retune to the byte-confirm, is this loop run honestly."
+    },
+    {
+     "kind": "callout",
+     "label": "lab",
+     "href": "/s/ir#labs",
+     "text": "LAB\u00b72.3 runs this whole loop on a real chip in fifteen minutes: capture, parse, and the byte verdict."
+    },
+    {
+     "kind": "callout",
+     "label": "go deeper",
+     "href": "https://docs.jax.dev/en/latest/profiling.html",
+     "text": "The official jax profiling guide: TensorBoard setup, the trace viewer UI, and remote capture."
+    }
+   ]
+  },
+  {
+   "h": "The three accounts, and when each lies",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "A program's cost has three tellings, and this site caught them disagreeing in public. The first is the cost model: `compiled.cost_analysis()` returns XLA's own estimate of flops and bytes, instantly, with no hardware. It said naive attention at seq 8192 moves 155.2 MB. The second is the round-trip arithmetic from chapter 04: the score matrix written and read is 276.8 MB with I/O. Nearly a factor of two apart, and both cannot be right."
+    },
+    {
+     "kind": "p",
+     "text": "The third account settled it. The device timeline put 217.6 \u00b5s of hardware time on the two ops that carry the score matrix, and time converts to bytes through bandwidth. Not nameplate bandwidth: no real stream hits the datasheet ceiling. A pure 1 GB copy measured this chip at 1287.5 GB/s, 80.5% of nameplate, and at that achieved rate 217.6 \u00b5s is 280.2 MB. The estimate said 276.8. Agreement within 1.2%, and the cost model's 155.2 turned out to be an artifact: it cannot see inside custom calls."
+    },
+    {
+     "kind": "p",
+     "text": "Why was there a custom call inside a program made of `jnp` ops? Because the timeline held a surprise worth the whole exercise: XLA:TPU had pattern-matched the softmax and second matmul and dispatched its own kernel, named `%online-softmax` in the timeline, tiled `1024,1024`. The compiler recognized a famous shape and swapped in a hand-written crossing. Recognition, not derivation: chapter 05 draws that line precisely, and this trace is its best evidence."
+    },
+    {
+     "kind": "callout",
+     "label": "instrument",
+     "href": "/gym#timeline",
+     "text": "GYM\u00b708 renders this exact trace, op by op, with the discovery sitting in plain view."
+    },
+    {
+     "kind": "callout",
+     "label": "bench",
+     "href": "/bench",
+     "text": "Rows M-018 through M-023 carry the whole disagreement and its resolution, with provenance."
+    }
+   ]
+  },
+  {
+   "h": "The timeline, op by op",
+   "blocks": [
+    {
+     "kind": "p",
+     "text": "A trace holds several planes; the one that matters for kernel work is the device plane (`/device:TPU:0`), and everything on it has a name you already know how to read. The `jit_<function>` event is the envelope: wall time per call. Fusions carry their HLO text, so chapter 04's reading skill transfers directly. Custom calls carry their target. Hardware counter samples ride along in the same plane; skip them when reading time, mine them when chasing throttling."
+    },
+    {
+     "kind": "p",
+     "text": "Async copies appear as start and done pairs, and the reading that matters is overlap. In the captured trace, `copy-start.1` shows 89.6 \u00b5s of in-flight time per iteration, yet the envelope equals the two compute ops' sum exactly: the copy hid completely behind the fusion, which is chapter 06's pipeline promise showing up as measured fact. When an envelope exceeds the compute sum, the difference is your unhidden transfer time, named and measurable."
+    },
+    {
+     "kind": "code",
+     "lang": "python",
+     "caption": "reading the plane in code, as LAB\u00b72.3 does; the xplane proto's package location varies by image and the lab handles that",
+     "text": "# read the device plane programmatically: durations per op, no UI needed\nspace = xplane_pb2.XSpace()\nspace.ParseFromString(open(path, \"rb\").read())\nfor plane in space.planes:\n    if \"TPU\" in plane.name and \"Host\" not in plane.name:\n        names = {m.id: m.name for m in plane.event_metadata.values()}\n        for line in plane.lines:\n            for ev in line.events:\n                op = names.get(ev.metadata_id)\n                us = ev.duration_ps / 1e6"
+    },
+    {
+     "kind": "p",
+     "text": "One operational note that cost this site an afternoon: the `xplane` proto has lived in several packages over the years, and current Colab images ship none of them importable. The lab's setup cell searches the environment, then fetches the proto from the openxla source and compiles it on the spot. Tooling archaeology is part of profiling; budget for it."
+    },
+    {
+     "kind": "callout",
+     "label": "instrument",
+     "href": "/gym#timeline",
+     "text": "Hover every op in GYM\u00b708 until each one explains itself back to you."
+    }
+   ]
+  },
+  {
    "h": "Exercises",
    "blocks": [
     {
@@ -121,6 +210,18 @@
     {
      "kind": "exercise",
      "text": "One paragraph: why can a TPU kernel's schedule be checked by arithmetic before running, while a GPU kernel's occupancy usually needs a profiler? Use the two latency-hiding models by name."
+    },
+    {
+     "kind": "exercise",
+     "text": "Trace the power notebook's tuned matmul and compare its `jit` envelope against the sum of its compute ops. State how many microseconds of transfer failed to hide, if any."
+    },
+    {
+     "kind": "exercise",
+     "text": "Run LAB\u00b72.3's achieved-bandwidth cell and report your runtime's copy rate as a percent of nameplate. Then re-convert the 217.6 \u00b5s of spill time to bytes with your number and check it against 276.8 MB."
+    },
+    {
+     "kind": "exercise",
+     "text": "In GYM\u00b708, explain why `copy-start.1` shows 40 events for 20 iterations, and where its 89.6 \u00b5s went. The envelope arithmetic is the proof."
     }
    ]
   }

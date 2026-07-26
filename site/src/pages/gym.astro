@@ -9,6 +9,7 @@ import CorpusXray from '../exhibits/CorpusXray'
 import MosaicXray from '../exhibits/MosaicXray'
 import TransformDrill from '../exhibits/TransformDrill'
 import FusionXray from '../exhibits/FusionXray'
+import TimelineXray from '../exhibits/TimelineXray'
 import opCards from '../data/op-cards.json'
 
 const cards = Object.entries(opCards as Record<string, string>)
@@ -35,7 +36,7 @@ const CATEGORIES = ['all', 'compute', 'reduction', 'shape', 'control', 'distribu
       <div class="wrap wgrid">
         <span class="wtag">the gym</span>
         <div>
-          <p class="mono-label serves">serves chapters 02 · 03 · 04 · 07 · 12 — the path assigns each drill with a streak target; the streaks check themselves off</p>
+          <p class="mono-label serves">serves chapters 02 · 03 · 04 · 07 · 08 · 12 — the path assigns each drill with a streak target; the streaks check themselves off</p>
           <h1 class="wh1">Fluency is drills, not prose.</h1>
           <p class="wlede">
             Seventeen real programs, traced and dumped: every jaxpr and StableHLO here was generated,
@@ -104,6 +105,26 @@ const CATEGORIES = ['all', 'compute', 'reduction', 'shape', 'control', 'distribu
           </p>
           <Exhibit designator="GYM·07" title="the fusion x-ray" provenance="three programs captured by labs/capture-hlo.ipynb on v6e-1 · ops verbatim, frame tables trimmed, runtime paths scrubbed">
             <FusionXray client:visible />
+          </Exhibit>
+        </div>
+      </div>
+    </section>
+
+    <section class="wband" id="timeline">
+      <div class="wrap wgrid">
+        <span class="wtag">the machine's<br />own account</span>
+        <div>
+          <h2 class="wh2">A real profile, read op by op</h2>
+          <p class="wlede narrow">
+            Twenty iterations of naive attention, traced on a v6e-1 and aggregated from the device
+            plane: hardware time, not a cost model. Two things to find here. The envelope equals the
+            two compute ops alone, so the 89.6 µs copy hid entirely behind compute. And the
+            second-largest op is a kernel nobody in the program wrote: XLA:TPU pattern-matched the
+            softmax and dispatched its own online-softmax custom call. Chapter 08's guide teaches
+            the capture and the reading; LAB·2.3 has you reproduce all of it.
+          </p>
+          <Exhibit designator="GYM·08" title="the timeline x-ray" provenance="captured by labs/profile-bytes.ipynb on v6e-1, jax 0.11 · durations from the device plane, verbatim">
+            <TimelineXray client:visible />
           </Exhibit>
         </div>
       </div>

@@ -30,6 +30,7 @@ export const CHECKLISTS: Record<string, string[]> = {
     'Given a StableHLO op you have never seen, tell whether it is a real computation or compiler bookkeeping (a broadcast, a convert, a reshape).',
     "Pull one real operator from a production model library and name what its jaxpr carries that your toy version doesn't (remat markers, sharding constraints, dtype casts).",
     'Tell a lax.scan from an unrolled lax.associative_scan just by reading the jaxpr, with no scan primitive present in the unrolled case.',
+    'Capture a trace of any jitted function, read the device plane, and attribute the jit envelope to its ops: name what hid and what did not.',
   ],
   kernels: [
     'Derive online softmax from the two-pass definition on a blank page, ending at the (m, l, acc) triple, without checking a reference.',

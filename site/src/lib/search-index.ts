@@ -78,6 +78,7 @@ const drills: SearchEntry[] = [
   { t: 'GYM·05 the mosaic x-ray', k: 'pallas kernel tpu dialect mosaic module debug' },
   { t: 'GYM·06 name the transform', k: 'grad vmap scan remat shard_map jaxpr quiz' },
   { t: 'GYM·07 the fusion x-ray', k: 'before after optimized hlo fusion spill' },
+  { t: 'GYM·08 the timeline x-ray', k: 'xprof profile device plane online-softmax copies hidden' },
 ].map((x) => ({ kind: 'drill' as const, title: x.t, href: '/gym#drills', hint: 'the gym', keywords: x.k }))
 
 const ops: SearchEntry[] = Object.keys(opCards as Record<string, string>).map((op) => ({

@@ -129,6 +129,7 @@ export const LAYER_DOCS: LayerDoc[] = [
         ps: [
           'Fusion has an exact limit: XLA merges along dataflow edges, but it **cannot apply algebraic identities**. It cannot notice that a two-pass softmax could become a one-pass streaming computation, because that is a theorem about exponentials, not a graph transformation. So in naive attention, the seq x seq score matrix is computed, written to HBM, and read back, no matter how well everything around it fuses. At `seq 8192` in bf16 that is `134 MB` written and read: `268 MB` of traffic that exists because the algorithm is multi-pass.',
           'Say the conclusion precisely, because the whole stack turns on it: the spill is not a fusion failure, **it is an algorithm failure**. No compiler pass fixes it. A theorem fixes it, and a human currently has to apply that theorem by hand, one layer down, on the other side of the gap.',
+          'One update from this site\'s own bench: XLA:TPU now pattern-matches this exact program and dispatches a hand-written online-softmax custom kernel; the profiler shows it by name, and GYM·08 holds the trace. That is recognition of a famous shape, not derivation of the rewrite: perturb the pattern and the ceiling returns. Chapter 05 states what follows.',
         ],
       },
     ],
@@ -145,6 +146,7 @@ export const LAYER_DOCS: LayerDoc[] = [
           'Above the gap: XLA, where the compiler decides everything and you cannot intervene. Below it: Pallas, where you decide everything: block shapes, memory residency, pipeline depth, all of it, tangled together with your math. There is no dial between the modes. Either you accept the compiler\'s ceiling, or you take over completely.',
           'This is why the famous kernels exist as hand-written artifacts maintained by a small number of specialists. Flash attention is the online-softmax theorem plus expert memory choreography, welded together in one file. Every kernel like it is a crossing of this gap on foot: someone applied an algebraic identity the compiler could not, then hand-scheduled the result.',
           'The track teaches you to make that crossing yourself. Stage 2 shows you the ceiling from above, in the compiler\'s own dumps. Stage 3 hands you the theorem and has you build the crossing: derive online softmax, prove its combine associative, then write the streaming kernel the compiler could not produce. After you have crossed once, the priesthood kernels read as engineering rather than magic.',
+          'A field note from this site\'s own profiler, and it sharpens the claim rather than weakening it: on current XLA:TPU, the device timeline shows the compiler recognizing naive attention and dispatching its own hand-written online-softmax kernel (GYM·08 has the trace). Read the distinction exactly. Pattern recognition ships crossings humans already built; it does not derive new ones. For the shapes the matcher knows, the compiler now carries you over the gap. For everything else, and for every variant one mutation away, the gap is where it always was.',
         ],
       },
     ],

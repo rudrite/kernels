@@ -84,7 +84,7 @@ Goal: read every representation your code passes through, and find XLA's fusion 
 The annotated dump exists and your spill-size estimate matches the profiler within 20%.
 
 ### Delivered on the site
-The chapter 02 to 04 and 07 guides plus the x-ray instruments: one program held open at every layer with hover sync.
+The chapter 02 to 04 and 07 guides plus the x-ray instruments: one program held open at every layer with hover sync. Profiling lives here too: LAB·2.3 captures and reads a real trace, GYM·08 renders it op by op, and chapter 08's guide teaches the capture, the three cost accounts, and the timeline reading.
 
 ---
 

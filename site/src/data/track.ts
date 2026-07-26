@@ -204,6 +204,9 @@ export const STAGES: Stage[] = [
         'That sentence deserves its own paragraph, because this whole track pivots on it: the spill is not a fusion failure, it is an algorithm failure. No pass in the compiler can fix it; a theorem can, and stage 3 proves that theorem. This stage\'s job is to see the spill in the compiler\'s own output so you never again confuse "the compiler fused it" with "the memory traffic is gone."',
         '>> The spill is not a fusion failure. It is an algorithm failure.',
       ] },
+      { h: "The machine's account", ps: [
+        'This stage now closes its own loop on hardware. LAB·2.3 captures a trace of the very program whose spill you just found, reads the device plane in code, and converts hardware time to bytes through measured bandwidth: the gate below passed at 1.2% agreement on exactly that chain. The same trace held a discovery worth knowing before stage 3: the current compiler pattern-matches this program and dispatches its own online-softmax kernel, which chapter 08\'s guide and the GYM·08 timeline teach you to see for yourself.',
+      ] },
       { h: 'The fluency drill', ps: [
         'The fluency drill: `dot_general` `dimension_numbers`, decoded on sight. Which axes contract, which batch. It feels pedantic for a week and then every IR you ever read becomes legible.',
       ] },
@@ -231,12 +234,13 @@ export const STAGES: Stage[] = [
     labs: [
       { designator: 'LAB·2.1', title: 'The lowering ladder, traced', time: '~3 h', hardware: 'any machine (interpret mode)', colab: COLAB + 'labs/stage-2/lab-2.1-lowering-ladder.ipynb', notebook: 'labs/stage-2/lab-2.1-lowering-ladder.ipynb' },
       { designator: 'LAB·2.2', title: 'Finding the spill in naive attention', time: '~3 h', hardware: 'Colab TPU', colab: COLAB + 'labs/stage-2/lab-2.2-finding-the-spill.ipynb', notebook: 'labs/stage-2/lab-2.2-finding-the-spill.ipynb' },
+      { designator: 'LAB·2.3', title: 'The profile, read raw', time: '~15 min', hardware: 'Colab TPU', colab: COLAB + 'labs/profile-bytes.ipynb', notebook: 'labs/profile-bytes.ipynb' },
     ],
     gate: {
-      state: 'active',
+      state: 'passed',
       criteria: ['Spill-size estimate from the HLO dump matches the profiler within 20%'],
       measured: [
-        'profiled on v6e-1, and the timeline held a surprise: XLA:TPU pattern-matched the softmax and second matmul into its own online-softmax custom kernel. The S round-trip is still real, hardware-timed at 217.6 µs across the two ops that carry it, which is why the cost model (blind inside custom calls) undercounted at 155.2 MB. The achieved-bandwidth conversion that settles the 20% bar is one cell from closing.',
+        'profiled on v6e-1, closed at 1.2% on a 20% bar: the S-carrying ops cost 217.6 µs of hardware time, and at the measured copy bandwidth (1287.5 GB/s, 80.5% of nameplate) that is 280.2 MB against the 276.8 MB estimate. Two lessons rode along: the cost model said 155.2 MB because it cannot see inside custom calls, and the timeline revealed XLA:TPU swapping in its own online-softmax kernel for this exact pattern.',
       ],
     },
   },
@@ -453,7 +457,7 @@ export const LAYERS: Layer[] = [
   },
   { id: 'pallas', label: 'Pallas', desc: 'Hand choreography: BlockSpecs, grids, VMEM residency, DMA.', kind: 'layer' },
   { id: 'mosaic', label: 'Mosaic → LLO', desc: 'The TPU backend. Kernels compile here; you never touch it.', kind: 'layer' },
-  { id: 'tpu', label: 'The machines', desc: 'MXU, VPU, VMEM, HBM. Where all the time is actually spent; the GPU taught alongside, for contrast.', kind: 'layer' },
+  { id: 'tpu', label: 'The machines', desc: 'MXU, VPU, VMEM, HBM, and the profiler\'s own account of them. The GPU taught alongside, for contrast.', kind: 'layer' },
   { id: 'ici', label: 'ICI ⇄ chips', desc: 'The inter-chip links. Collectives are kernels here too.', kind: 'ici' },
 ]
 
