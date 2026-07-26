@@ -47,7 +47,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
                 <figure class="panel half">
                   <figcaption class="provenance top fail">the failing code</figcaption>
                   <div class="codebody"><Code code={m.snippet} lang="python" theme="vesper" /></div>
-                  <figcaption class="provenance err">{m.error}</figcaption>
+                  <figcaption class="errbox"><span class="err-label">the error, verbatim</span><span class="err-text">{m.error}</span></figcaption>
                 </figure>
                 <figure class="panel half">
                   <figcaption class="provenance top pass">the fix</figcaption>
@@ -67,12 +67,14 @@ const pad = (n: number) => String(n).padStart(2, '0')
   
   h2.wh2 { margin-bottom: 0.75rem; }
   .why { font-family: var(--serif); font-size: 1rem; line-height: 1.7; color: var(--ink); max-width: 66ch; margin-bottom: 1.25rem; }
-  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; align-items: start; }
+  .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; align-items: start; }
   @media (max-width: 1100px) { .pair { grid-template-columns: 1fr; } }
-  .half { margin: 0; }
+  .half { margin: 0; min-width: 0; }
   .half .top { border-top: none; border-bottom: 1px solid var(--panel-rule); }
   .half .top.fail { color: var(--fail); }
   .half .top.pass { color: var(--pass); }
-  .codebody :global(pre) { margin: 0; padding: 0.75rem 0.875rem; overflow-x: auto; font-size: 0.71875rem; line-height: 1.55; background: transparent !important; }
-  .err { color: var(--fail); white-space: pre-wrap; }
+  .codebody :global(pre) { margin: 0; padding: 0.875rem 1rem; overflow-x: auto; font-size: 0.8125rem; line-height: 1.65; background: transparent !important; }
+  .errbox { display: flex; flex-direction: column; gap: 0.45rem; border-top: 1px solid var(--panel-rule); padding: 0.75rem 1rem 0.875rem; }
+  .err-label { font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fail); }
+  .err-text { font-family: var(--mono); font-size: 0.75rem; line-height: 1.65; color: #d99a90; white-space: pre-wrap; }
 </style>
