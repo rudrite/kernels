@@ -29,7 +29,7 @@ const carded = PAGES.flatMap((page) => {
 
 describe('lab cards and notebooks', () => {
   it('cards every lab the three new paths ship', () => {
-    expect(carded.length).toBe(11)
+    expect(carded.length).toBe(12)
   })
 
   it('names a designator the notebooks actually register', () => {

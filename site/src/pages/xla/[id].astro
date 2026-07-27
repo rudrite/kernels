@@ -20,7 +20,10 @@ const lab = (designator: string, title: string, time: string, hardware: string, 
 // auto-rule checks off when the card's mark-as-run is ticked.
 const LABS: Record<string, Lab[]> = {
   pipeline: [lab('LAB·X1', 'Read your own dump', '~1.5 h', 'any machine', 'labs/xla/lab-x1-read-your-dump.ipynb')],
-  fusion: [lab('LAB·X2', 'The TPU pipeline, dumped', '~2 h', 'Colab TPU', 'labs/xla/lab-x2-tpu-pipeline.ipynb')],
+  fusion: [
+    lab('LAB·X2', 'The TPU pipeline, dumped', '~2 h', 'Colab TPU', 'labs/xla/lab-x2-tpu-pipeline.ipynb'),
+    lab('LAB·X4', 'Two loose ends', '~1 h', 'Colab TPU', 'labs/xla/lab-x4-two-loose-ends.ipynb'),
+  ],
   spmd: [lab('LAB·X3', 'Collectives in the lowering', '~1.5 h', 'any machine', 'labs/xla/lab-x3-collectives-in-the-lowering.ipynb')],
 }
 
