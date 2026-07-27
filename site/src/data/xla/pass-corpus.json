@@ -20,17 +20,17 @@
     {
       "name": "tpu_fusion",
       "origin": "tpu",
-      "why": "one of five fusion stages the TPU pipeline registers"
+      "why": "one of five fusion stages the TPU registers, and one of the two that actually change the module when disabled"
     },
     {
       "name": "main_fusion",
       "origin": "tpu",
-      "why": "another of them, which is why disabling one name changed nothing"
+      "why": "a TPU fusion stage that leaves this program's module untouched when disabled, unlike tpu_fusion"
     },
     {
       "name": "tpu_multi_output_fusion",
       "origin": "tpu",
-      "why": "multi-output fusion, filed separately on TPU"
+      "why": "multi-output fusion, filed separately on TPU, and the other stage that changes the module when disabled"
     },
     {
       "name": "async-collective-fusion",
@@ -80,7 +80,7 @@
     {
       "name": "fusion",
       "origin": "both",
-      "why": "both pipelines register a pass called exactly this, which is why a flag naming it looked like it should work on either"
+      "why": "both pipelines register a pass called exactly this. Disabling it on the TPU changes nothing for an attention program, which is how a flag can be accepted and still be a no-op"
     },
     {
       "name": "bitcast_dtypes_expander",

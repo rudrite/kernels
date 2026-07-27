@@ -7,9 +7,19 @@ import ReadingRails from '../../components/ReadingRails.astro'
 import MasteryWork from '../../components/MasteryWork.astro'
 import BlockDiagram from '../../components/BlockDiagram.astro'
 import LabCard from '../../components/LabCard.astro'
+import Exhibit from '../../components/Exhibit.astro'
+import StrideExplorer from '../../exhibits/StrideExplorer'
 import { PT_CHAPTERS, PT_PATH, ptChapterAt, type PtChapter } from '../../data/pytorch/track'
 import { PT_DIAGRAMS } from '../../data/pytorch/diagrams'
 import type { Lab } from '../../data/track'
+
+const INSTRUMENTS: Record<string, { d: string; t: string; p: string }> = {
+  tensors: {
+    d: 'EX·14',
+    t: 'the view explorer',
+    p: 'build a chain of views and watch the map change while the storage does not · the arithmetic is checked against 48 chains run on torch 2.2.2',
+  },
+}
 
 const COLAB = 'https://colab.research.google.com/github/rudrite/kernels/blob/main/'
 const lab = (designator: string, title: string, time: string, hardware: string, file: string): Lab => ({
@@ -40,6 +50,12 @@ const partLabel = chapter.part === 'i' ? 'part i, the model' : 'part ii, the pra
 // Presentation-owned diagram slots for chapters whose data carries none.
 const EXTRA_DIAGRAMS: Record<string, { id: string; after: number }> = {
   'the-loop': { id: 'pt-loop', after: 0 },
+  modules: { id: 'pt-modules', after: 0 },
+  data: { id: 'pt-data', after: 0 },
+  graphs: { id: 'pt-graphs', after: 0 },
+  performance: { id: 'pt-timing', after: 0 },
+  'tpu-practice': { id: 'pt-tpu-practice', after: 0 },
+  'training-run': { id: 'pt-run', after: 0 },
   distributed: { id: 'pt-ddp-fsdp', after: 1 },
 }
 const slot = chapter.diagram ?? EXTRA_DIAGRAMS[chapter.id]
@@ -142,6 +158,18 @@ const diagram = slot ? PT_DIAGRAMS[slot.id] : undefined
                 <LabCard lab={l} />
               ))}
             </div>
+          </section>
+        )
+      }
+
+
+      {
+        INSTRUMENTS[chapter.id] && (
+          <section class="block" id="instruments">
+            <SectionHead id="instruments-head" eyebrow="live" title="Instrument" />
+            <Exhibit designator={INSTRUMENTS[chapter.id]!.d} title={INSTRUMENTS[chapter.id]!.t} provenance={INSTRUMENTS[chapter.id]!.p}>
+              <StrideExplorer client:visible />
+            </Exhibit>
           </section>
         )
       }
