@@ -116,10 +116,16 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
         <span class="pc-d">twelve chapters across the language · a strict superset of the official tutorials</span>
         <span class="pc-m meas"><span data-path-progress="jax">0/12</span> chapters · enter the path →</span>
       </a>
+      <a class="path-card" href="/xla">
+        <span class="mono-label pc-k">path 03 · open</span>
+        <span class="pc-t">XLA mastery</span>
+        <span class="pc-d">fourteen chapters through the compiler · PJRT to Pathways, grounded in real dumps</span>
+        <span class="pc-m meas"><span data-path-progress="xla">0/14</span> chapters · enter the path →</span>
+      </a>
       <div class="path-card reserved" aria-disabled="true">
-        <span class="mono-label pc-k">path 03 · reserved</span>
+        <span class="mono-label pc-k">path 04 · reserved</span>
         <span class="pc-t">PyTorch mastery</span>
-        <span class="pc-d">in design · lands after the JAX path's gym and labs</span>
+        <span class="pc-d">in design · the next path to open</span>
         <span class="pc-m meas">not yet open</span>
       </div>
     </div>
@@ -263,8 +269,9 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
 
   /* the paths: the course family, one card each */
   .paths { padding-block: 0.5rem 0.25rem; }
-  .paths-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; border-top: 1px solid var(--rule); padding-top: 1.25rem; }
-  @media (max-width: 960px) { .paths-row { grid-template-columns: 1fr; } }
+  .paths-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; border-top: 1px solid var(--rule); padding-top: 1.25rem; }
+  @media (max-width: 1180px) { .paths-row { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 700px) { .paths-row { grid-template-columns: 1fr; } }
   .path-card { display: flex; flex-direction: column; gap: 0.375rem; border: 1px solid var(--rule); background: var(--paper-high); border-radius: 2px; padding: 0.875rem 1rem; text-decoration: none; color: inherit; }
   .path-card.here { border-left: 3px solid var(--copper-deep); }
   a.path-card:hover { border-color: var(--copper-deep); }

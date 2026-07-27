@@ -1,0 +1,87 @@
+---
+import Base from '../../layouts/Base.astro'
+import kernelMistakes from '../../data/mistakes.json'
+import jaxMistakes from '../../data/jax-mistakes.json'
+import xlaMistakes from '../../data/xla-mistakes.json'
+
+const WINGS = [
+  {
+    href: '/mistakes/kernels',
+    k: 'kernels wing',
+    t: 'Pallas failures',
+    d: 'BlockSpecs, grids, the lattice, VMEM budgets. Six from the interpreter, two from a real TPU compile.',
+    count: kernelMistakes.length,
+    provenance: 'interpret mode + v6e-1',
+  },
+  {
+    href: '/mistakes/jax',
+    k: 'jax wing',
+    t: 'JAX failures',
+    d: 'The first-month surprises: mutation, tracer branches, data-shaped masks, non-scalar grad, axis specs, unhashable statics.',
+    count: jaxMistakes.length,
+    provenance: 'jax 0.4.38 · CPU',
+  },
+  {
+    href: '/mistakes/xla',
+    k: 'xla wing',
+    t: 'SPMD-seam failures',
+    d: 'Where shardings meet the partitioner: uneven specs, unbound axes, collectives without a mesh.',
+    count: xlaMistakes.length,
+    provenance: '8 host devices · CPU',
+  },
+]
+---
+
+<Base
+  title="The mistake museum — Rudrite Kernels"
+  description="Real failures, one wing per mastery path: the failing code, the verbatim error, the fix, and the rule. Every exhibit ran and was captured."
+>
+  <div class="ws-ground">
+    <section class="wband">
+      <div class="wrap wgrid">
+        <span class="wtag">the museum</span>
+        <div>
+          <p class="mono-label serves">one wing per path · every exhibit ran, failed, and was captured; every fix ran and passed</p>
+          <h1 class="wh1">Meet every failure in a toy first.</h1>
+          <p class="wlede">
+            The museum's rule has not changed since it had one wing: no invented errors, no
+            paraphrased messages. Each wing serves its path, and the exhibits are assigned
+            reading where the matching chapter teaches the rule.
+          </p>
+          <div class="wings">
+            {
+              WINGS.map((w) => (
+                <a class="wing panel" href={w.href}>
+                  <span class="mono-label wk">{w.k}</span>
+                  <span class="wt">{w.t}</span>
+                  <span class="wd">{w.d}</span>
+                  <span class="wm">{w.count} exhibits · {w.provenance} →</span>
+                </a>
+              ))
+            }
+            <div class="wing panel reserved" aria-disabled="true">
+              <span class="mono-label wk">pytorch wing</span>
+              <span class="wt">Reserved</span>
+              <span class="wd">Opens with the PyTorch mastery path.</span>
+              <span class="wm">not yet collecting</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .serves { margin-bottom: 1rem; letter-spacing: 0.04em; }
+  .wings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; margin-top: 2rem; }
+  @media (max-width: 900px) { .wings { grid-template-columns: 1fr; } }
+  .wing { display: flex; flex-direction: column; gap: 0.45rem; padding: 1.125rem 1.25rem; text-decoration: none; }
+  .wk { color: var(--copper); }
+  .wt { font-family: var(--serif); font-weight: 600; font-size: 1.375rem; color: var(--panel-ink); }
+  .wd { font-size: 0.875rem; color: var(--panel-mute); line-height: 1.6; }
+  .wm { font-family: var(--mono); font-size: 0.75rem; color: var(--copper); margin-top: 0.375rem; }
+  a.wing:hover .wt { color: var(--copper); }
+  .wing.reserved { border-style: dashed; opacity: 0.75; }
+  .wing.reserved .wm { color: var(--panel-mute); }
+</style>

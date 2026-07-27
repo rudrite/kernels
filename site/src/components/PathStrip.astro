@@ -6,19 +6,26 @@
 // still renders as a static map of the path.
 import { PATH } from '../lib/path'
 import { JAX_PATH } from '../data/jax/track'
+import { XLA_PATH } from '../data/xla/track'
 
-// build format 'file' can surface this page as /jax.html at render time
+// build format 'file' can surface index pages as /jax.html at render time.
+// Workshop sub-pages (/gym/jax, /mistakes/xla, ...) carry their path's strip.
 const current = Astro.url.pathname.replace(/\.html$/, '').replace(/\/+$/, '') || '/'
-const onJax = current === '/jax' || current.startsWith('/jax/')
-const strip = onJax
-  ? { id: 'jax', home: '/jax', label: 'the jax path', chapters: JAX_PATH, breakAt: 9 }
-  : { id: 'kernels', home: '/', label: 'the path', chapters: PATH, breakAt: 10 }
+const seg = current.split('/').filter(Boolean)
+const pathId = seg[0] === 'gym' || seg[0] === 'mistakes' ? seg[1] : seg[0]
+const strip =
+  pathId === 'jax'
+    ? { id: 'jax', home: '/jax', label: 'the jax path', chapters: JAX_PATH, breakAt: 9 }
+    : pathId === 'xla'
+      ? { id: 'xla', home: '/xla', label: 'the xla path', chapters: XLA_PATH, breakAt: 11 }
+      : { id: 'kernels', home: '/', label: 'the path', chapters: PATH, breakAt: 10 }
+const scoped = strip.id === 'kernels' ? '' : strip.id
 ---
 
 <div class="path-strip">
   <div class="wrap strip-row">
     <a href={strip.home} class="mono-label strip-label">
-      {strip.label} · <span data-path-progress={onJax ? 'jax' : ''}>0/{strip.chapters.length}</span>
+      {strip.label} · <span data-path-progress={scoped}>0/{strip.chapters.length}</span>
     </a>
     <ol class="ticks" aria-label="Chapters">
       {
@@ -35,7 +42,7 @@ const strip = onJax
         ))
       }
     </ol>
-    <a class="mono-label strip-continue" data-continue={onJax ? 'jax' : ''} href={strip.home}>
+    <a class="mono-label strip-continue" data-continue={scoped} href={strip.home}>
       <span data-continue-label>start the path</span>
     </a>
   </div>

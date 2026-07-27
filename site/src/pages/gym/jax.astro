@@ -1,0 +1,77 @@
+---
+import Base from '../../layouts/Base.astro'
+import Exhibit from '../../components/Exhibit.astro'
+import ShapeOracle from '../../exhibits/ShapeOracle'
+import TransformDrill from '../../exhibits/TransformDrill'
+import CorpusXray from '../../exhibits/CorpusXray'
+---
+
+<Base
+  title="The reading gym · the JAX floor — Rudrite Kernels"
+  description="The JAX path's stations: predict shapes before the reveal, name the transform from its jaxpr, and read seventeen real programs at three layers."
+>
+  <div class="ws-ground">
+    <section class="wband">
+      <div class="wrap wgrid">
+        <span class="wtag">the gym<br />jax floor</span>
+        <div>
+          <p class="mono-label serves">serves jax-path chapters 02 · 05 · streaks check themselves off; the same skill counts on every floor that drills it · <a class="wing-link" href="/gym">all floors</a></p>
+          <h1 class="wh1">Read the recording until it is boring.</h1>
+          <p class="wlede">
+            The jax path's claim is that a jaxpr is readable on sight, and reading is a
+            drilled skill. These stations run on the same generated corpus the kernel floor
+            uses: seventeen real programs, traced and dumped, answers computed from the
+            structured facts, never invented. Streaks persist in your browser and nowhere else.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="wband" id="drills">
+      <div class="wrap wgrid">
+        <span class="wtag">drills</span>
+        <div>
+          <h2 class="wh2">Active recall, one tap</h2>
+          <div class="drill-wide">
+            <Exhibit designator="GYM·02" title="the shape oracle" provenance="equations sampled from 278 real eqns · distractors computed, never invented · assigned in jax chapter 02">
+              <ShapeOracle client:visible />
+            </Exhibit>
+          </div>
+          <div class="drill-wide">
+            <Exhibit designator="GYM·06" title="name the transform" provenance="one function traced under six transforms · loud primitive names redacted for the game · assigned in jax chapter 05">
+              <TransformDrill client:visible />
+            </Exhibit>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="wband" id="xray">
+      <div class="wrap wgrid">
+        <span class="wtag">the corpus<br />x-rayed</span>
+        <div>
+          <h2 class="wh2">Seventeen real programs, wired together</h2>
+          <p class="wlede narrow">
+            Pick a program and hover any column: the source line, the jaxpr it traced to, and
+            the StableHLO it lowered to light up as one. This is jax chapter 02's mastery bar
+            made physical: narrate a program you have not seen, then another. When the middle
+            column stops surprising you, the chapter has done its work.
+          </p>
+          <Exhibit designator="GYM·04" title="the corpus x-ray" provenance="17 programs, 236 sync groups, all derived by the mapping script · nothing hand-drawn">
+            <CorpusXray client:visible />
+          </Exhibit>
+        </div>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .serves { margin-bottom: 1rem; letter-spacing: 0.04em; }
+  .wing-link { color: var(--copper); text-decoration: none; }
+  .wing-link:hover { text-decoration: underline; }
+  .wh1 + .wlede { margin-top: 1rem; }
+  .wlede.narrow { margin-bottom: 1.25rem; }
+  h2.wh2 { margin-bottom: 1rem; }
+  .drill-wide { margin-top: 1.25rem; }
+</style>

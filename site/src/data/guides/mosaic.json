@@ -22,7 +22,7 @@
     {
      "kind": "callout",
      "label": "museum",
-     "href": "/mistakes#lattice-violation",
+     "href": "/mistakes/kernels#lattice-violation",
      "text": "See the lattice-violation entry in the mistakes museum for the exact error text Mosaic prints when a bitcast breaks the tile-packing rule."
     },
     {
@@ -53,7 +53,7 @@
     {
      "kind": "callout",
      "label": "lab",
-     "href": "/gym#mosaic",
+     "href": "/gym/kernels#mosaic",
      "text": "Open GYM 05 to practice spotting these three signatures inside a real captured module."
     },
     {

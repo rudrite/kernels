@@ -81,7 +81,7 @@
     {
      "kind": "callout",
      "label": "instrument",
-     "href": "/gym#xray",
+     "href": "/gym/kernels#xray",
      "text": "GYM 04's corpus x-ray runs these same transforms against real traced programs so you can see grad, vmap, and scan rewrites at scale, not just on one small function."
     }
    ]
@@ -109,7 +109,7 @@
     {
      "kind": "callout",
      "label": "instrument",
-     "href": "/gym#mosaic",
+     "href": "/gym/kernels#mosaic",
      "text": "GYM 05's mosaic x-ray shows real kernel jaxprs nested the same way, so you can practice reading them a level deeper."
     }
    ]
@@ -132,13 +132,13 @@
     {
      "kind": "callout",
      "label": "lab",
-     "href": "/gym#drills",
+     "href": "/gym/kernels#drills",
      "text": "The GYM drills, decoder, oracle, spot-the-decision, drill exactly this: predicting an equation's behavior from its params."
     },
     {
      "kind": "callout",
      "label": "instrument",
-     "href": "/gym#xray",
+     "href": "/gym/kernels#xray",
      "text": "GYM 04's corpus x-ray lets you page through params across many real traced programs instead of one example at a time."
     },
     {

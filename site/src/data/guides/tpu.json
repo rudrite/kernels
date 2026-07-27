@@ -30,7 +30,7 @@
     {
      "kind": "callout",
      "label": "museum",
-     "href": "/mistakes#lattice-violation",
+     "href": "/mistakes/kernels#lattice-violation",
      "text": "The museum entry on lattice violations shows the actual error text and the shapes that trigger it."
     }
    ]
@@ -193,7 +193,7 @@
     {
      "kind": "callout",
      "label": "instrument",
-     "href": "/gym#timeline",
+     "href": "/gym/kernels#timeline",
      "text": "GYM\u00b708 renders this exact trace, op by op, with the discovery sitting in plain view."
     },
     {
@@ -228,7 +228,7 @@
     {
      "kind": "callout",
      "label": "instrument",
-     "href": "/gym#timeline",
+     "href": "/gym/kernels#timeline",
      "text": "Hover every op in GYM\u00b708 until each one explains itself back to you."
     }
    ]
@@ -251,7 +251,7 @@
     {
      "kind": "callout",
      "label": "instrument",
-     "href": "/gym#timeline",
+     "href": "/gym/kernels#timeline",
      "text": "GYM\u00b708: the parsed device plane of a real capture, op by op."
     }
    ]

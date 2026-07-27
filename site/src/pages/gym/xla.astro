@@ -1,0 +1,93 @@
+---
+import Base from '../../layouts/Base.astro'
+import Exhibit from '../../components/Exhibit.astro'
+import SpotDecision from '../../exhibits/SpotDecision'
+import FusionXray from '../../exhibits/FusionXray'
+import TimelineXray from '../../exhibits/TimelineXray'
+---
+
+<Base
+  title="The reading gym · the XLA floor — Rudrite Kernels"
+  description="The XLA path's stations: spot the compiler's decisions in real dumps, read fusion before/after pairs from a TPU, and read a real profile op by op."
+>
+  <div class="ws-ground">
+    <section class="wband">
+      <div class="wrap wgrid">
+        <span class="wtag">the gym<br />xla floor</span>
+        <div>
+          <p class="mono-label serves">serves xla-path chapters 04 · 05 · 10 · streaks check themselves off; the same skill counts on every floor that drills it · <a class="wing-link" href="/gym">all floors</a></p>
+          <h1 class="wh1">The compiler's decisions, drilled.</h1>
+          <p class="wlede">
+            The xla path teaches you to read what the compiler did and why. These stations hold
+            the evidence: decisions the framework made silently, fusion plans captured from a real
+            TPU compile, and a hardware profile with an op nobody in the program wrote. Everything
+            here is generated or captured, never retyped.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="wband" id="drills">
+      <div class="wrap wgrid">
+        <span class="wtag">drills</span>
+        <div>
+          <h2 class="wh2">Spot the decision</h2>
+          <div class="drill-wide">
+            <Exhibit designator="GYM·03" title="spot the decision" provenance="find the line the framework wrote for you: upcasts, hidden broadcasts, remat marks · targets computed by scanning the real dumps · assigned in xla chapter 04">
+              <SpotDecision client:visible />
+            </Exhibit>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="wband" id="fusion">
+      <div class="wrap wgrid">
+        <span class="wtag">before /<br />after</span>
+        <div>
+          <h2 class="wh2">Fusion, side by side</h2>
+          <p class="wlede narrow">
+            The StableHLO XLA received on the left, the optimized HLO it decided on the right,
+            captured on a real TPU. Fusion ops light up in copper, and the lines still carrying
+            each program's big intermediate are underlined: in the attention program that is the
+            spill, sitting in the compiler's own plan. Chapter 05 teaches the policy that drew
+            these boundaries.
+          </p>
+          <Exhibit designator="GYM·07" title="the fusion x-ray" provenance="three programs captured by labs/capture-hlo.ipynb on v6e-1 · ops verbatim, frame tables trimmed, runtime paths scrubbed">
+            <FusionXray client:visible />
+          </Exhibit>
+        </div>
+      </div>
+    </section>
+
+    <section class="wband" id="timeline">
+      <div class="wrap wgrid">
+        <span class="wtag">the machine's<br />own account</span>
+        <div>
+          <h2 class="wh2">A real profile, read op by op</h2>
+          <p class="wlede narrow">
+            Twenty iterations of naive attention, traced on a v6e-1 and aggregated from the device
+            plane: hardware time, not a cost model. Two things to find. The envelope equals the two
+            compute ops alone, so the 89.6 µs copy hid entirely behind compute. And the
+            second-largest op is a custom call nobody wrote: XLA:TPU pattern-matched the softmax
+            and dispatched its own online-softmax kernel, exactly the escape hatch chapter 09
+            teaches and the measurement habit chapter 10 closes on.
+          </p>
+          <Exhibit designator="GYM·08" title="the timeline x-ray" provenance="captured by labs/profile-bytes.ipynb on v6e-1, jax 0.11 · durations from the device plane, verbatim">
+            <TimelineXray client:visible />
+          </Exhibit>
+        </div>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .serves { margin-bottom: 1rem; letter-spacing: 0.04em; }
+  .wing-link { color: var(--copper); text-decoration: none; }
+  .wing-link:hover { text-decoration: underline; }
+  .wh1 + .wlede { margin-top: 1rem; }
+  .wlede.narrow { margin-bottom: 1.25rem; }
+  h2.wh2 { margin-bottom: 1rem; }
+  .drill-wide { margin-top: 1.25rem; }
+</style>

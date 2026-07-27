@@ -30,7 +30,7 @@
     {
      "kind": "callout",
      "which": "museum",
-     "href": "/mistakes#dtype-accumulation-mismatch",
+     "href": "/mistakes/kernels#dtype-accumulation-mismatch",
      "text": "Walk through a real dtype-accumulation mismatch in the mistakes museum, traced down to where the fix lives."
     }
    ]
@@ -69,7 +69,7 @@
     {
      "kind": "callout",
      "which": "instrument",
-     "href": "/gym#xray",
+     "href": "/gym/kernels#xray",
      "text": "Open the corpus x-ray and see tracing output across seventeen real programs at once."
     }
    ]

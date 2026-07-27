@@ -1,16 +1,16 @@
 ---
-import Base from '../layouts/Base.astro'
-import Exhibit from '../components/Exhibit.astro'
-import Rich from '../components/Rich.astro'
-import DotDecoder from '../exhibits/DotDecoder'
-import ShapeOracle from '../exhibits/ShapeOracle'
-import SpotDecision from '../exhibits/SpotDecision'
-import CorpusXray from '../exhibits/CorpusXray'
-import MosaicXray from '../exhibits/MosaicXray'
-import TransformDrill from '../exhibits/TransformDrill'
-import FusionXray from '../exhibits/FusionXray'
-import TimelineXray from '../exhibits/TimelineXray'
-import opCards from '../data/op-cards.json'
+import Base from '../../layouts/Base.astro'
+import Exhibit from '../../components/Exhibit.astro'
+import Rich from '../../components/Rich.astro'
+import DotDecoder from '../../exhibits/DotDecoder'
+import ShapeOracle from '../../exhibits/ShapeOracle'
+import SpotDecision from '../../exhibits/SpotDecision'
+import CorpusXray from '../../exhibits/CorpusXray'
+import MosaicXray from '../../exhibits/MosaicXray'
+import TransformDrill from '../../exhibits/TransformDrill'
+import FusionXray from '../../exhibits/FusionXray'
+import TimelineXray from '../../exhibits/TimelineXray'
+import opCards from '../../data/op-cards.json'
 
 const cards = Object.entries(opCards as Record<string, string>)
 
@@ -28,15 +28,15 @@ const CATEGORIES = ['all', 'compute', 'reduction', 'shape', 'control', 'distribu
 ---
 
 <Base
-  title="The reading gym — Rudrite Kernels"
+  title="The reading gym · the kernels floor — Rudrite Kernels"
   description="Drills over a corpus of seventeen real programs: decode dimension_numbers on sight, predict shapes before the reveal, and read jaxpr and StableHLO until fluency."
 >
   <div class="ws-ground">
     <section class="wband">
       <div class="wrap wgrid">
-        <span class="wtag">the gym</span>
+        <span class="wtag">the gym<br />kernels floor</span>
         <div>
-          <p class="mono-label serves">serves chapters 02 · 03 · 04 · 07 · 08 · 12 — the path assigns each drill with a streak target; the streaks check themselves off</p>
+          <p class="mono-label serves">serves kernel-path chapters 02 · 03 · 04 · 07 · 08 · 12 · the path assigns each drill with a streak target; the streaks check themselves off · <a class="wing-link" href="/gym">all floors</a></p>
           <h1 class="wh1">Fluency is drills, not prose.</h1>
           <p class="wlede">
             Seventeen real programs, traced and dumped: every jaxpr and StableHLO here was generated,
@@ -219,6 +219,8 @@ const CATEGORIES = ['all', 'compute', 'reduction', 'shape', 'control', 'distribu
 
 <style>
   .serves { margin-bottom: 1rem; letter-spacing: 0.04em; }
+  .wing-link { color: var(--copper); text-decoration: none; }
+  .wing-link:hover { text-decoration: underline; }
   .wh1 + .wlede { margin-top: 1rem; }
   .wlede.narrow { margin-bottom: 1.25rem; }
   h2.wh2 { margin-bottom: 1rem; }

@@ -77,7 +77,7 @@
     {
      "kind": "callout",
      "label": "instrument",
-     "href": "/gym#fusion",
+     "href": "/gym/kernels#fusion",
      "text": "GYM\u00b707 holds all three captured programs open before and after the compiler, fusion ops lit and the spill underlined."
     }
    ]
@@ -112,7 +112,7 @@
     {
      "kind": "callout",
      "label": "instrument",
-     "href": "/gym#xray",
+     "href": "/gym/kernels#xray",
      "text": "The corpus x-ray in GYM 04 lets you scan real compiled dumps for layout annotations and copy ops directly."
     }
    ]
@@ -148,7 +148,7 @@
     {
      "kind": "callout",
      "label": "museum",
-     "href": "/mistakes#vmem-overflow",
+     "href": "/mistakes/kernels#vmem-overflow",
      "text": "The full overflow report lives in the museum, along with the fix that got it back under budget."
     }
    ]

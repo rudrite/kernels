@@ -38,19 +38,19 @@
     {
      "kind": "callout",
      "label": "museum",
-     "href": "/mistakes#blockspec-index-rank",
+     "href": "/mistakes/kernels#blockspec-index-rank",
      "text": "See the failure where an index map's return rank does not match the block shape's rank."
     },
     {
      "kind": "callout",
      "label": "museum",
-     "href": "/mistakes#grid-index-map-rank",
+     "href": "/mistakes/kernels#grid-index-map-rank",
      "text": "See the failure where an index map takes a different number of arguments than the grid has axes."
     },
     {
      "kind": "callout",
      "label": "museum",
-     "href": "/mistakes#lattice-violation",
+     "href": "/mistakes/kernels#lattice-violation",
      "text": "See a block shape that breaks the divisibility rule against its dtype's register tile."
     },
     {
@@ -187,7 +187,7 @@
     {
      "kind": "callout",
      "label": "museum",
-     "href": "/mistakes#wrong-rank-indexing",
+     "href": "/mistakes/kernels#wrong-rank-indexing",
      "text": "See a mask built with an index of the wrong rank, one dimension short of what the block actually needs."
     }
    ]
@@ -312,13 +312,13 @@
     {
      "kind": "callout",
      "label": "museum",
-     "href": "/mistakes#vmem-overflow",
+     "href": "/mistakes/kernels#vmem-overflow",
      "text": "See a kernel whose blocks do not fit in VMEM, a failure interpret mode cannot reproduce."
     },
     {
      "kind": "callout",
      "label": "museum",
-     "href": "/mistakes#lattice-violation",
+     "href": "/mistakes/kernels#lattice-violation",
      "text": "See the same divisibility failure from section one, now in the context of what interpret mode misses."
     },
     {
@@ -342,7 +342,7 @@
     {
      "kind": "callout",
      "label": "museum",
-     "href": "/mistakes",
+     "href": "/mistakes/kernels",
      "text": "Browse the full error index before you hit these failures yourself."
     }
    ]

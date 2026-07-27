@@ -1,0 +1,36 @@
+---
+import Base from '../../layouts/Base.astro'
+import MistakeExhibits from '../../components/MistakeExhibits.astro'
+import mistakes from '../../data/jax-mistakes.json'
+---
+
+<Base
+  title="The mistake museum · the JAX wing — Rudrite Kernels"
+  description="Six real JAX failures, reproduced and captured on CPU: the failing code, the exact error text, the fix, and the chapter that makes each impossible."
+>
+  <div class="ws-ground">
+    <section class="wband">
+      <div class="wrap wgrid">
+        <span class="wtag">the museum<br />jax wing</span>
+        <div>
+          <p class="mono-label serves">serves the jax path · every error reproduced on this machine (jax 0.4.38, CPU, 2026-07-27), fixes run and proven · <a class="wing-link" href="/mistakes">all wings</a></p>
+          <h1 class="wh1">Every JAX surprise, met as an exhibit.</h1>
+          <p class="wlede">
+            Six failures every JAX engineer meets in the first month, each one a chapter invariant
+            wearing an error message. The snippet ran and failed; the error is verbatim (paths
+            shortened); the fix ran and passed. Each caption names the rule, and the jax path
+            teaches the rule before the error can find you.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <MistakeExhibits entries={mistakes} />
+  </div>
+</Base>
+
+<style>
+  .serves { margin-bottom: 1rem; letter-spacing: 0.04em; }
+  .wing-link { color: var(--copper); text-decoration: none; }
+  .wing-link:hover { text-decoration: underline; }
+</style>

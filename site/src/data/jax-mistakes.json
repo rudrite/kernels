@@ -1,0 +1,50 @@
+[
+  {
+    "id": "inplace-assign",
+    "title": "Writing into an array like it is memory",
+    "snippet": "import jax.numpy as jnp\n\nx = jnp.zeros(3)\nx[0] = 1.0  # NumPy habit: update the array in place",
+    "error": "TypeError: JAX arrays are immutable and do not support in-place item assignment. Instead of x[idx] = y, use x = x.at[idx].set(y) or another .at[] method: https://jax.readthedocs.io/en/latest/_autosummary/jax.numpy.ndarray.at.html",
+    "fix": "import jax.numpy as jnp\n\nx = jnp.zeros(3)\nx = x.at[0].set(1.0)  # a new array; under jit the copy is usually elided",
+    "why": "Chapter 01's first invariant, met as an error message. A `jnp` array is a value, not a place, so there is nothing to write into. `.at[...].set` expresses the same intent as a pure function, and XLA reuses the old buffer when the old value is dead."
+  },
+  {
+    "id": "tracer-bool",
+    "title": "Branching on a value the trace cannot see",
+    "snippet": "import jax\nimport jax.numpy as jnp\n\n@jax.jit\ndef f(x):\n    if x.sum() > 0:  # the tracer has no value to branch on\n        return x\n    return -x\n\nf(jnp.ones(3))",
+    "error": "TracerBoolConversionError: Attempted boolean conversion of traced array with shape bool[].\nThe error occurred while tracing the function f at <string>:5 for jit. This concrete value was not available in Python because it depends on the value of the argument x.\nSee https://jax.readthedocs.io/en/latest/errors.html#jax.errors.TracerBoolConversionError",
+    "fix": "import jax\nimport jax.numpy as jnp\n\n@jax.jit\ndef f(x):\n    return jax.lax.cond(x.sum() > 0, lambda v: v, lambda v: -v, x)\n\nf(jnp.ones(3))",
+    "why": "Tracing runs your Python once with stand-ins that carry shape and dtype but no values, so a Python `if` on data has nothing to decide with. `lax.cond` stages both branches into the program and picks at run time, which is what you meant."
+  },
+  {
+    "id": "boolean-mask",
+    "title": "A boolean mask whose output shape depends on data",
+    "snippet": "import jax\nimport jax.numpy as jnp\n\n@jax.jit\ndef positives(x):\n    return x[x > 0]  # output length depends on the values\n\npositives(jnp.array([-1.0, 2.0, 3.0]))",
+    "error": "NonConcreteBooleanIndexError: Array boolean indices must be concrete; got ShapedArray(bool[3])\n\nSee https://jax.readthedocs.io/en/latest/errors.html#jax.errors.NonConcreteBooleanIndexError",
+    "fix": "import jax\nimport jax.numpy as jnp\n\n@jax.jit\ndef positives(x):\n    return jnp.where(x > 0, x, 0.0)  # same shape out, masked values\n\npositives(jnp.array([-1.0, 2.0, 3.0]))",
+    "why": "Shapes are fixed at trace time, and `x[x > 0]` has a length only the data knows. `jnp.where` keeps the shape and masks instead; when you truly need compaction, do it outside jit or with a static bound and padding."
+  },
+  {
+    "id": "grad-nonscalar",
+    "title": "Asking grad for the derivative of a vector",
+    "snippet": "import jax\nimport jax.numpy as jnp\n\ng = jax.grad(lambda x: x * 2.0)(jnp.ones(3))",
+    "error": "TypeError: Gradient only defined for scalar-output functions. Output had shape: (3,).",
+    "fix": "import jax\nimport jax.numpy as jnp\n\ng = jax.grad(lambda x: jnp.sum(x * 2.0))(jnp.ones(3))\nJ = jax.jacrev(lambda x: x * 2.0)(jnp.ones(3))  # the full Jacobian, if that was the ask",
+    "why": "Reverse mode pulls one cotangent backward, so `grad` is defined for scalar outputs. Reduce to a scalar if you meant a loss; ask `jacrev` or `jacfwd` if you meant the whole Jacobian, and pick by the Jacobian's aspect ratio."
+  },
+  {
+    "id": "vmap-axes",
+    "title": "vmap told to batch an argument that has no batch axis",
+    "snippet": "import jax\nimport jax.numpy as jnp\n\ndef dot(a, b):\n    return a @ b\n\na = jnp.ones((32, 8))\nb = jnp.ones(8)\njax.vmap(dot)(a, b)  # default in_axes=0 tries to split b too",
+    "error": "ValueError: vmap got inconsistent sizes for array axes to be mapped:\n  * one axis had size 32: axis 0 of argument a of type float32[32,8];\n  * one axis had size 8: axis 0 of argument b of type float32[8]",
+    "fix": "import jax\nimport jax.numpy as jnp\n\ndef dot(a, b):\n    return a @ b\n\na = jnp.ones((32, 8))\nb = jnp.ones(8)\nout = jax.vmap(dot, in_axes=(0, None))(a, b)  # b broadcast to every row",
+    "why": "`in_axes` defaults to 0 for every argument, and `b` has no axis of size 32 to give. Say which arguments carry the batch (`0`) and which ride along whole (`None`); the error names the sizes it saw, and they disagree for a reason."
+  },
+  {
+    "id": "static-nonhashable",
+    "title": "A static argument that cannot be a cache key",
+    "snippet": "import jax\nfrom functools import partial\n\n@partial(jax.jit, static_argnames=\"dims\")\ndef reduce_dims(x, dims):\n    return x.sum(dims)\n\nimport jax.numpy as jnp\nreduce_dims(jnp.ones((2, 3)), [0])  # a list cannot go in the cache key",
+    "error": "ValueError: Non-hashable static arguments are not supported. An error occurred while trying to hash an object of type <class 'list'>, [0]. The error was:\nTypeError: unhashable type: 'list'",
+    "fix": "import jax\nfrom functools import partial\n\n@partial(jax.jit, static_argnames=\"dims\")\ndef reduce_dims(x, dims):\n    return x.sum(dims)\n\nimport jax.numpy as jnp\nreduce_dims(jnp.ones((2, 3)), (0,))  # tuples hash; the key is the value itself",
+    "why": "A static argument becomes part of the compilation cache key, so it must hash. Lists do not; tuples do. The chapter 03 rule applies twice here: statics are baked into the key, and every distinct value compiles its own executable."
+  }
+]

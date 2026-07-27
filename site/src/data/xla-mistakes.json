@@ -1,0 +1,26 @@
+[
+  {
+    "id": "uneven-shard",
+    "title": "A sharding the array's shape cannot satisfy",
+    "snippet": "import jax\nimport jax.numpy as jnp\nimport numpy as np\nfrom jax.sharding import Mesh, NamedSharding, PartitionSpec as P\n\nmesh = Mesh(np.array(jax.devices()[:8]).reshape(4, 2), (\"data\", \"model\"))\n\nx = jax.device_put(jnp.ones((10, 16)), NamedSharding(mesh, P(\"data\", \"model\")))",
+    "error": "ValueError: One of device_put args was given the sharding of NamedSharding(mesh=Mesh('data': 4, 'model': 2), spec=PartitionSpec('data', 'model'), memory_kind=unpinned_host), which implies that the global size of its dimension 0 should be divisible by 4, but it is equal to 10 (full shape: (10, 16))",
+    "fix": "import jax\nimport jax.numpy as jnp\nimport numpy as np\nfrom jax.sharding import Mesh, NamedSharding, PartitionSpec as P\n\nmesh = Mesh(np.array(jax.devices()[:8]).reshape(4, 2), (\"data\", \"model\"))\n\nx = jax.device_put(jnp.ones((12, 16)), NamedSharding(mesh, P(\"data\", \"model\")))",
+    "why": "A PartitionSpec is a promise that each named mesh axis divides its array dimension. Ten rows over four data shards leaves a remainder, and the runtime refuses rather than silently pad. Pad or reshape to a multiple, or shard a different dimension."
+  },
+  {
+    "id": "unbound-axis",
+    "title": "A constraint naming an axis the mesh does not have",
+    "snippet": "import jax\nimport jax.numpy as jnp\nimport numpy as np\nfrom jax.sharding import Mesh, NamedSharding, PartitionSpec as P\n\nmesh = Mesh(np.array(jax.devices()[:8]).reshape(4, 2), (\"data\", \"model\"))\n\n@jax.jit\ndef f(x):\n    return jax.lax.with_sharding_constraint(x, NamedSharding(mesh, P(\"batch\")))\n\nf(jnp.ones((8, 16)))",
+    "error": "ValueError: Resource axis: batch of PartitionSpec('batch',) is not found in mesh: ('data', 'model').",
+    "fix": "import jax\nimport jax.numpy as jnp\nimport numpy as np\nfrom jax.sharding import Mesh, NamedSharding, PartitionSpec as P\n\nmesh = Mesh(np.array(jax.devices()[:8]).reshape(4, 2), (\"data\", \"model\"))\n\n@jax.jit\ndef f(x):\n    return jax.lax.with_sharding_constraint(x, NamedSharding(mesh, P(\"data\")))\n\nf(jnp.ones((8, 16)))",
+    "why": "Sharding constraints are resolved against the mesh's axis names, and this mesh knows `data` and `model`, not `batch`. The partitioner cannot invent an axis; the fix is spelling the mesh's own vocabulary."
+  },
+  {
+    "id": "psum-no-axis",
+    "title": "A collective called outside any mesh context",
+    "snippet": "import jax\nimport jax.numpy as jnp\n\njax.lax.psum(jnp.ones(4), axis_name=\"data\")",
+    "error": "NameError: unbound axis name: data",
+    "fix": "import jax\nimport jax.numpy as jnp\nimport numpy as np\nfrom jax.sharding import Mesh, NamedSharding, PartitionSpec as P\n\nmesh = Mesh(np.array(jax.devices()[:8]).reshape(4, 2), (\"data\", \"model\"))\n\nfrom functools import partial\nfrom jax.experimental.shard_map import shard_map\n\n@partial(shard_map, mesh=mesh, in_specs=P(\"data\", None), out_specs=P())\ndef total(block):\n    return jax.lax.psum(block.sum(), axis_name=\"data\")\n\nout = total(jnp.ones((8, 16)))",
+    "why": "psum sums across a named mesh axis, and axis names only exist inside a mapped context: shard_map, pmap, or a mesh-aware jit. On its own the name is unbound. Collectives are kernels over the mesh, not array ops; give them the mesh."
+  }
+]

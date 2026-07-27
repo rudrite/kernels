@@ -1,0 +1,62 @@
+---
+// One museum wing's exhibits: the failing code, the verbatim error, the
+// fix, and the rule. Every wing page renders its own header band and hands
+// the captured entries here; the schema is shared across wings.
+import { Code } from 'astro:components'
+import Rich from './Rich.astro'
+
+export interface Mistake {
+  id: string
+  title: string
+  snippet: string
+  error: string
+  fix: string
+  why: string
+}
+
+interface Props {
+  entries: Mistake[]
+}
+const { entries } = Astro.props
+const pad = (n: number) => String(n).padStart(2, '0')
+---
+
+{
+  entries.map((m, i) => (
+    <section class={`wband ${i % 2 === 1 ? 'alt' : ''}`} id={m.id}>
+      <div class="wrap wgrid">
+        <span class="wtag">exhibit<br />{pad(i + 1)}/{pad(entries.length)}</span>
+        <article>
+          <h2 class="wh2">{m.title}</h2>
+          <p class="why"><Rich text={m.why} /></p>
+          <div class="pair">
+            <figure class="panel half">
+              <figcaption class="provenance top fail">the failing code</figcaption>
+              <div class="codebody"><Code code={m.snippet} lang="python" theme="vesper" /></div>
+              <figcaption class="errbox"><span class="err-label">the error, verbatim</span><span class="err-text">{m.error}</span></figcaption>
+            </figure>
+            <figure class="panel half">
+              <figcaption class="provenance top pass">the fix</figcaption>
+              <div class="codebody"><Code code={m.fix} lang="python" theme="vesper" /></div>
+            </figure>
+          </div>
+        </article>
+      </div>
+    </section>
+  ))
+}
+
+<style>
+  h2.wh2 { margin-bottom: 0.75rem; }
+  .why { font-family: var(--serif); font-size: 1rem; line-height: 1.7; color: var(--ink); max-width: 66ch; margin-bottom: 1.25rem; }
+  .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; align-items: start; }
+  @media (max-width: 1100px) { .pair { grid-template-columns: 1fr; } }
+  .half { margin: 0; min-width: 0; }
+  .half .top { border-top: none; border-bottom: 1px solid var(--panel-rule); }
+  .half .top.fail { color: var(--fail); }
+  .half .top.pass { color: var(--pass); }
+  .codebody :global(pre) { margin: 0; padding: 0.875rem 1rem; overflow-x: auto; font-size: 0.8125rem; line-height: 1.65; background: transparent !important; }
+  .errbox { display: flex; flex-direction: column; gap: 0.45rem; border-top: 1px solid var(--panel-rule); padding: 0.75rem 1rem 0.875rem; }
+  .err-label { font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fail); }
+  .err-text { font-family: var(--mono); font-size: 0.75rem; line-height: 1.65; color: #d99a90; white-space: pre-wrap; }
+</style>

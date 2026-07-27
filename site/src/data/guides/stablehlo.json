@@ -81,7 +81,7 @@
     {
      "kind": "callout",
      "label": "lab",
-     "href": "/gym#xray",
+     "href": "/gym/kernels#xray",
      "text": "GYM 04 corpus x-ray works through real StableHLO dumps, including while and if regions, line by line."
     }
    ]
@@ -104,7 +104,7 @@
     {
      "kind": "callout",
      "label": "museum",
-     "href": "/mistakes#vmem-overflow",
+     "href": "/mistakes/kernels#vmem-overflow",
      "text": "The VMEM overflow entry shows the exact custom_call_target label this section describes, captured from a real failing kernel."
     },
     {

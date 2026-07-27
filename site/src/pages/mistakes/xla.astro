@@ -1,0 +1,38 @@
+---
+import Base from '../../layouts/Base.astro'
+import MistakeExhibits from '../../components/MistakeExhibits.astro'
+import mistakes from '../../data/xla-mistakes.json'
+---
+
+<Base
+  title="The mistake museum · the XLA wing — Rudrite Kernels"
+  description="Real failures at the SPMD seam, reproduced and captured on eight host devices: uneven shardings, unbound mesh axes, collectives without a mesh."
+>
+  <div class="ws-ground">
+    <section class="wband">
+      <div class="wrap wgrid">
+        <span class="wtag">the museum<br />xla wing</span>
+        <div>
+          <p class="mono-label serves">serves the xla path · reproduced on 8 host-platform devices (jax 0.4.38, CPU, 2026-07-27), fixes run and proven · <a class="wing-link" href="/mistakes">all wings</a></p>
+          <h1 class="wh1">The partitioner says no, and it means something.</h1>
+          <p class="wlede">
+            Three exhibits from the SPMD seam, where your sharding meets the compiler's rules:
+            a spec the shape cannot satisfy, an axis the mesh does not have, and a collective
+            called with no mesh in sight. All three reproduce on a laptop with eight fake host
+            devices. The wing is young on purpose: compile-side failures worth exhibiting (memory
+            exhaustion, layout conflicts) only speak truthfully from a real chip, and they join
+            this wing when the XLA path's labs land.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <MistakeExhibits entries={mistakes} />
+  </div>
+</Base>
+
+<style>
+  .serves { margin-bottom: 1rem; letter-spacing: 0.04em; }
+  .wing-link { color: var(--copper); text-decoration: none; }
+  .wing-link:hover { text-decoration: underline; }
+</style>

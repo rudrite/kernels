@@ -4,6 +4,9 @@ import { PATH } from './path'
 import { LAYER_DOCS } from '../data/layers'
 import { STAGES } from '../data/track'
 import { JAX_CHAPTERS } from '../data/jax/track'
+import { XLA_CHAPTERS } from '../data/xla/track'
+import jaxMistakes from '../data/jax-mistakes.json'
+import xlaMistakes from '../data/xla-mistakes.json'
 import mistakes from '../data/mistakes.json'
 import opCards from '../data/op-cards.json'
 
@@ -66,7 +69,7 @@ const walks: SearchEntry[] = [
 const mistakeEntries: SearchEntry[] = (mistakes as { id: string; title: string }[]).map((m) => ({
   kind: 'mistake',
   title: `mistake · ${m.title}`,
-  href: `/mistakes#${m.id}`,
+  href: `/mistakes/kernels#${m.id}`,
   hint: 'the museum',
   keywords: 'error failure fix pallas',
 }))
@@ -80,12 +83,12 @@ const drills: SearchEntry[] = [
   { t: 'GYM·06 name the transform', k: 'grad vmap scan remat shard_map jaxpr quiz' },
   { t: 'GYM·07 the fusion x-ray', k: 'before after optimized hlo fusion spill' },
   { t: 'GYM·08 the timeline x-ray', k: 'xprof profile device plane online-softmax copies hidden' },
-].map((x) => ({ kind: 'drill' as const, title: x.t, href: '/gym#drills', hint: 'the gym', keywords: x.k }))
+].map((x) => ({ kind: 'drill' as const, title: x.t, href: '/gym/kernels#drills', hint: 'the gym', keywords: x.k }))
 
 const ops: SearchEntry[] = Object.keys(opCards as Record<string, string>).map((op) => ({
   kind: 'op',
   title: op,
-  href: '/gym#ops',
+  href: '/gym/kernels#ops',
   hint: 'op reference',
   keywords: 'primitive op card',
 }))
@@ -98,17 +101,45 @@ const jaxChapters: SearchEntry[] = JAX_CHAPTERS.map((c) => ({
   keywords: `jax ${c.lede}`,
 }))
 
+const xlaChapters: SearchEntry[] = XLA_CHAPTERS.map((c) => ({
+  kind: 'chapter',
+  title: `xla ${pad(c.num)} · ${c.title}`,
+  href: `/xla/${c.id}`,
+  hint: c.part === 'i' ? 'xla path · part i, the compiler' : 'xla path · part ii, the runtime',
+  keywords: `xla ${c.lede}`,
+}))
+
+const newWingMistakes: SearchEntry[] = [
+  ...(jaxMistakes as { id: string; title: string }[]).map((m) => ({ wing: 'jax', m })),
+  ...(xlaMistakes as { id: string; title: string }[]).map((m) => ({ wing: 'xla', m })),
+].map(({ wing, m }) => ({
+  kind: 'mistake' as const,
+  title: `mistake · ${m.title}`,
+  href: `/mistakes/${wing}#${m.id}`,
+  hint: `the museum · ${wing} wing`,
+  keywords: `error failure fix ${wing}`,
+}))
+
 const pages: SearchEntry[] = [
-  { t: 'the path', h: '/', k: 'home chapters map' },
+  { t: 'the path', h: '/', k: 'home chapters map kernels' },
   { t: 'the jax path', h: '/jax', k: 'jax mastery course transformations' },
-  { t: 'the gym', h: '/gym', k: 'drills corpus reference' },
-  { t: 'the mistake museum', h: '/mistakes', k: 'errors failures' },
+  { t: 'the xla path', h: '/xla', k: 'xla mastery course compiler pjrt ifrt pathways' },
+  { t: 'the gym', h: '/gym', k: 'drills corpus reference floors' },
+  { t: 'the gym · kernels floor', h: '/gym/kernels', k: 'drills corpus ops mosaic' },
+  { t: 'the gym · jax floor', h: '/gym/jax', k: 'shape oracle transform corpus x-ray' },
+  { t: 'the gym · xla floor', h: '/gym/xla', k: 'spot decision fusion timeline profile' },
+  { t: 'the mistake museum', h: '/mistakes', k: 'errors failures wings' },
+  { t: 'the museum · kernels wing', h: '/mistakes/kernels', k: 'pallas errors failures' },
+  { t: 'the museum · jax wing', h: '/mistakes/jax', k: 'jax errors tracer immutable' },
+  { t: 'the museum · xla wing', h: '/mistakes/xla', k: 'sharding spmd mesh errors' },
   { t: 'the bench', h: '/bench', k: 'numbers provenance records compare' },
 ].map((x) => ({ kind: 'page' as const, title: x.t, href: x.h, hint: 'page', keywords: x.k }))
 
 export const SEARCH_INDEX: SearchEntry[] = [
   ...chapters,
   ...jaxChapters,
+  ...xlaChapters,
+  ...newWingMistakes,
   ...instruments,
   ...labs,
   ...walks,

@@ -1,9 +1,9 @@
 // The JAX path: twelve chapters across the language, from arrays to the
 // training run. Content blueprint and code snippets were authored and
 // verified first (every snippet ran on jax 0.4.38, CPU, 2026-07-27; eight
-// host-platform devices for the sharding chapter); the prose was then
-// written to the humanized-writing standard. The mastery ledger here is
-// manual-only until the JAX gym and labs land (docs/plans/jax-mastery-path.md).
+// host-platform devices for the sharding chapter). Mastery is manual work
+// plus streak items served by the jax gym floor; Colab labs are still to
+// come (docs/plans/jax-mastery-path.md).
 import type { WorkItem } from '../mastery'
 
 export interface JaxCode {
@@ -847,6 +847,12 @@ export const JAX_MASTERY: Record<string, WorkItem[]> = {
       "label": "trace two of your own functions with make_jaxpr and annotate every equation in writing"
     },
     {
+      "id": "oracle",
+      "label": "shape oracle: streak of 5",
+      "href": "/gym/jax#drills",
+      "auto": { "type": "streak", "key": "gym.shape.streak", "goal": 5 }
+    },
+    {
       "id": "fix-twice",
       "label": "take a function that fails under jit and fix it twice: once with debug.print, once by restructuring"
     }
@@ -891,6 +897,12 @@ export const JAX_MASTERY: Record<string, WorkItem[]> = {
     {
       "id": "predict-shapes",
       "label": "predict shapes for five vmap compositions in writing, then run them"
+    },
+    {
+      "id": "transform",
+      "label": "name the transform: streak of 5",
+      "href": "/gym/jax#drills",
+      "auto": { "type": "streak", "key": "gym.transform.streak", "goal": 5 }
     },
     {
       "id": "per-sample-clipping",

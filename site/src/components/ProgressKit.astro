@@ -5,13 +5,15 @@
 // rendering the data attributes; without JS the decorations stay absent.
 import { PATH } from '../lib/path'
 import { JAX_PATH } from '../data/jax/track'
+import { XLA_PATH } from '../data/xla/track'
 import { ALL_MASTERY } from '../data/mastery-index'
 
 // Per-path chapter lists; 'kernels' is the default so every attribute that
-// predates the second path keeps its meaning unchanged.
+// predates the sibling paths keeps its meaning unchanged.
 const PATHS = {
   kernels: PATH.map((c) => ({ key: c.key, href: c.href, label: c.title })),
   jax: JAX_PATH.map((c) => ({ key: c.key, href: c.href, label: c.title })),
+  xla: XLA_PATH.map((c) => ({ key: c.key, href: c.href, label: c.title })),
 }
 const MASTERY = ALL_MASTERY
 ---
@@ -36,7 +38,7 @@ const MASTERY = ALL_MASTERY
   }
 
   // ---- chapter visit marking ----
-  const m = location.pathname.match(/^\/(l|s|jax)\/([a-z-]+)$/)
+  const m = location.pathname.match(/^\/(l|s|jax|xla)\/([a-z-]+)$/)
   const visited = store.get('path.visited', {})
   if (m) {
     const key = `${m[1]}:${m[2]}`
