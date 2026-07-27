@@ -260,6 +260,14 @@ export const XLA_CHAPTERS: XlaChapter[] = [
           "The habit worth building here is simpler than any one fact: when a decision in an optimized module looks mysterious, the dump usually already explains it. The file where an instruction first appears, set against the file just before it where the instruction did not yet exist, is the compiler showing its own reasoning, and reading that pair of files is very often faster than guessing.",
           ">> The compiler will show you every decision, if you ask for the dump."
         ]
+      },
+      {
+        "h": "measured: the same program, two backends",
+        "ps": [
+          "The driver above ran on both a CPU and a Colab TPU v6e, and the dumps disagree about almost everything. CPU produced 42 files for this program; the TPU produced 88. That difference is not a deeper pipeline in any interesting sense, it is a different pipeline, built for different hardware, as the section on hardware-aware passes claimed and the file names now prove.",
+          "The names are where it gets specific. The TPU dump carries stages a CPU compile has no reason to own: `hlo_device_type_async_wrapper`, `Before_X64_rewriter`, `X64_elimination`, `Phase_1_pre_layout_assignment_passes`, and targets like `add-random-host-offloading` and `tpu-embedding-thread-annotator`. Read that list next to chapter 9 and the shape of the backend shows through: host offloading, embedding hardware, and a 64-bit rewrite the TPU wants handled before layout assignment ever runs.",
+          "One practical detail costs an afternoon if you meet it cold. TPU dump files insert a build id between the module name and the step number, as in `module_0007.jit_attend.cl_948136882.0000.hlo_device_type_async_wrapper`, while CPU files go straight from the module to the step. A pattern written against one backend silently matches nothing on the other, and a diff of nothing against something looks exactly like a real answer. Print the filenames before you parse them."
+        ]
       }
     ],
     "readings": [

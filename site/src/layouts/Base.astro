@@ -20,8 +20,18 @@ interface Props {
 }
 const { title, description } = Astro.props
 
-const path = Astro.url.pathname
-const ogSlug = path === '/' ? 'home' : path === '/bench' ? 'bench' : path.startsWith('/s/') ? path.split('/')[2]! : 'home'
+// build format 'file' can surface index pages as /jax.html at render time
+const path = Astro.url.pathname.replace(/\.html$/, '').replace(/\/+$/, '') || '/'
+const seg = path.split('/').filter(Boolean)
+// A card per surface, falling back to the site card. Stages keep their own;
+// the sibling paths and the workshop share one card each, and their
+// sub-pages inherit it (a jax chapter shows the jax card).
+const ogSlug =
+  path === '/' ? 'home'
+  : seg[0] === 'bench' ? 'bench'
+  : seg[0] === 's' ? seg[1]!
+  : ['jax', 'xla', 'pytorch', 'gym', 'mistakes'].includes(seg[0]!) ? seg[0]!
+  : 'home'
 const ogImage = new URL(`/og/${ogSlug}.png`, Astro.site)
 ---
 
