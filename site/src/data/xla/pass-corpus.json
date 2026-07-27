@@ -1,0 +1,91 @@
+{
+  "cpu": "jax 0.4.38, CPU, the course machine",
+  "tpu": "jax 0.11, Colab TPU v6e, LAB\u00b7X2 and LAB\u00b7X4",
+  "items": [
+    {
+      "name": "add-random-host-offloading",
+      "origin": "tpu",
+      "why": "host offloading is a TPU concern; a CPU compile has nowhere to offload to"
+    },
+    {
+      "name": "legalize-scheduling-annotations",
+      "origin": "tpu",
+      "why": "scheduling annotations get legalized for the TPU's own scheduler"
+    },
+    {
+      "name": "tpu-embedding-thread-annotator",
+      "origin": "tpu",
+      "why": "embedding hardware exists on TPU and nowhere else in this comparison"
+    },
+    {
+      "name": "tpu_fusion",
+      "origin": "tpu",
+      "why": "one of five fusion stages the TPU pipeline registers"
+    },
+    {
+      "name": "main_fusion",
+      "origin": "tpu",
+      "why": "another of them, which is why disabling one name changed nothing"
+    },
+    {
+      "name": "tpu_multi_output_fusion",
+      "origin": "tpu",
+      "why": "multi-output fusion, filed separately on TPU"
+    },
+    {
+      "name": "async-collective-fusion",
+      "origin": "tpu",
+      "why": "fusing collectives with compute is a fleet concern, not a CPU one"
+    },
+    {
+      "name": "tree_reduction_rewriter",
+      "origin": "cpu",
+      "why": "the CPU pipeline rewrites reductions into trees before simplification"
+    },
+    {
+      "name": "transpose-folding",
+      "origin": "cpu",
+      "why": "folding transposes into their consumers, filed under this name on CPU"
+    },
+    {
+      "name": "cse_barrier_expander",
+      "origin": "cpu",
+      "why": "a CPU-side barrier expansion around common subexpression elimination"
+    },
+    {
+      "name": "gather_scatter_normalizer",
+      "origin": "cpu",
+      "why": "normalizing gathers and scatters, named plainly in the CPU dump"
+    },
+    {
+      "name": "zero_sized_hlo_elimination",
+      "origin": "cpu",
+      "why": "dropping zero-sized work, a CPU pipeline stage here"
+    },
+    {
+      "name": "sharding-remover",
+      "origin": "cpu",
+      "why": "with one device there is nothing to shard, so the CPU pipeline strips it"
+    },
+    {
+      "name": "simplify-sorts",
+      "origin": "cpu",
+      "why": "sort simplification, part of the CPU simplification loop"
+    },
+    {
+      "name": "sub-byte-size-setter",
+      "origin": "cpu",
+      "why": "sub-byte packing, filed in the CPU pipeline under this name"
+    },
+    {
+      "name": "fusion",
+      "origin": "both",
+      "why": "both pipelines register a pass called exactly this, which is why a flag naming it looked like it should work on either"
+    },
+    {
+      "name": "bitcast_dtypes_expander",
+      "origin": "both",
+      "why": "the same expander appears in both dumps under the same name"
+    }
+  ]
+}

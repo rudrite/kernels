@@ -335,7 +335,9 @@ export const XLA_CHAPTERS: XlaChapter[] = [
           "The question is now closed, and not in the direction anyone expected. Compiling both versions and reading what each one emitted returned the same module twice: 66 instructions either way, seven fusions either way, no custom calls in either, and the same fusion at the root. The flag changed nothing. XLA accepted a pass name, found nothing registered under it in this backend's pipeline, and carried on without a word. Both timings measured the same program, so the ratio was never about fusion at all.",
           ">> A flag that names a pass the backend does not have is not an experiment. It is a typo the compiler agreed to.",
           "Pass names are backend-specific, which chapter 4's dump shows plainly: the TPU pipeline files its work under names like `Phase_1_pre_layout_assignment_passes` and `X64_elimination` that a CPU compile never mentions. A name lifted from one backend's vocabulary can be silently absent from another's, and nothing in the output distinguishes a disabled pass from a misspelled one. The habit that costs ten seconds and would have caught this before it was published: compile both ways, diff the modules, and only time them once you have proof the flag moved something.",
-          "What remains open is smaller and better posed. The `26%` gap between two identical compilations is still unexplained, though it is now a question about measurement rather than about fusion, and the first thing to try is running the two processes in the opposite order to see whether the gap follows the order rather than the flag. Beyond that sits the original question, which was never actually asked on this hardware: find what the fusion stage is called in the TPU pipeline, disable that, and measure again."
+          "The follow-up run answered the measurement half. Six identical processes, no flags anywhere, timing the same program on the same chip came back `170.2`, `147.6`, `147.6`, `182.7`, `166.5`, and `200.4` microseconds. The first process sat within two percent of the median of the rest, so position was never the issue, but the spread across identical work is roughly `35%`. A single pair of process timings on this hardware cannot resolve a `26%` difference, which is all the retracted measurement ever was.",
+          ">> If the same work twice spans 35 percent, a single pair of numbers is not a measurement.",
+          "The vocabulary half turned up something the flag hunt had missed. Grepping the dumped pass names for fusion returns not one stage but five: `tpu_fusion`, `main_fusion`, `tpu_multi_output_fusion`, `fusion`, and `async-collective-fusion`. That reframes the original silence. `fusion` does exist here, so disabling it may well have worked exactly as asked while the other four stages carried on fusing, which would leave the module unchanged without the flag being ignored at all. Confirming that needs a clean run of the candidate check, since the first attempt starved its own subprocesses of the chip."
         ]
       }
     ],
@@ -920,13 +922,23 @@ export const XLA_MASTERY: Record<string, WorkItem[]> = {
     },
     {
       "id": "labs",
-      "label": "run LAB·X1",
+      "label": "run LAB\u00b7X1",
       "href": "#labs",
       "auto": {
         "type": "labs",
         "ids": [
-          "LAB·X1"
+          "LAB\u00b7X1"
         ]
+      }
+    },
+    {
+      "id": "passnames",
+      "label": "which pipeline filed this pass: streak of 5",
+      "href": "/gym/xla#drills",
+      "auto": {
+        "type": "streak",
+        "key": "gym.pass.streak",
+        "goal": 5
       }
     }
   ],
@@ -950,12 +962,12 @@ export const XLA_MASTERY: Record<string, WorkItem[]> = {
     },
     {
       "id": "labs",
-      "label": "run LAB·X2",
+      "label": "run LAB\u00b7X2",
       "href": "#labs",
       "auto": {
         "type": "labs",
         "ids": [
-          "LAB·X2"
+          "LAB\u00b7X2"
         ]
       }
     }
@@ -997,12 +1009,12 @@ export const XLA_MASTERY: Record<string, WorkItem[]> = {
     },
     {
       "id": "labs",
-      "label": "run LAB·X3",
+      "label": "run LAB\u00b7X3",
       "href": "#labs",
       "auto": {
         "type": "labs",
         "ids": [
-          "LAB·X3"
+          "LAB\u00b7X3"
         ]
       }
     }

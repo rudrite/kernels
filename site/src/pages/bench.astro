@@ -28,12 +28,14 @@ const records = results as BenchRecord[]
       <div class="wrap wgrid">
         <span class="wtag">the bench</span>
         <div>
-          <p class="mono-label serves">where the gates land · rows marked predicted or computed are roofline-derived · cpu-interpret and simulated rows are verified off-chip · hardware rows replace both</p>
+          <p class="mono-label serves">where the gates land · rows marked predicted or computed are roofline-derived · cpu-interpret and simulated rows are verified off-chip · hardware rows replace both · L-rows come from the path labs, and one of them is retracted in public</p>
           <h1 class="wh1">Every number, with provenance.</h1>
           <p class="wlede">
             Nothing quantitative appears on this site outside an instrument, and every value states what
             it is. Each record carries chip, dtype, shapes, date, and the lab that produced it; gate
-            verdicts on the chapter pages resolve to rows here.
+            verdicts on the chapter pages resolve to rows here. The L-rows are what the JAX, XLA, and
+            PyTorch labs measured, including one row that says RETRACTED, because a number this site
+            published and later disproved belongs in the same table as the ones that held.
           </p>
         </div>
       </div>

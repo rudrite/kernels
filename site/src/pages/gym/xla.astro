@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro'
 import Exhibit from '../../components/Exhibit.astro'
 import SpotDecision from '../../exhibits/SpotDecision'
+import NameThePass from '../../exhibits/NameThePass'
 import FusionXray from '../../exhibits/FusionXray'
 import TimelineXray from '../../exhibits/TimelineXray'
 ---
@@ -15,7 +16,7 @@ import TimelineXray from '../../exhibits/TimelineXray'
       <div class="wrap wgrid">
         <span class="wtag">the gym<br />xla floor</span>
         <div>
-          <p class="mono-label serves">serves xla-path chapters 04 · 05 · 10 · streaks check themselves off; the same skill counts on every floor that drills it · <a class="wing-link" href="/gym">all floors</a></p>
+          <p class="mono-label serves">serves xla-path chapters 04 · 05 · 08 · 10 · streaks check themselves off; the same skill counts on every floor that drills it · <a class="wing-link" href="/gym">all floors</a></p>
           <h1 class="wh1">The compiler's decisions, drilled.</h1>
           <p class="wlede">
             The xla path teaches you to read what the compiler did and why. These stations hold
@@ -31,10 +32,15 @@ import TimelineXray from '../../exhibits/TimelineXray'
       <div class="wrap wgrid">
         <span class="wtag">drills</span>
         <div>
-          <h2 class="wh2">Spot the decision</h2>
+          <h2 class="wh2">Active recall, one tap</h2>
           <div class="drill-wide">
             <Exhibit designator="GYM·03" title="spot the decision" provenance="find the line the framework wrote for you: upcasts, hidden broadcasts, remat marks · targets computed by scanning the real dumps · assigned in xla chapter 04">
               <SpotDecision client:visible />
+            </Exhibit>
+          </div>
+          <div class="drill-wide">
+            <Exhibit designator="GYM·12" title="which pipeline filed this pass?" provenance="17 names read out of two real dumps: this course's CPU compile and a Colab v6e · the shared names are the interesting ones · serves chapters 04 and 05">
+              <NameThePass client:visible />
             </Exhibit>
           </div>
         </div>
