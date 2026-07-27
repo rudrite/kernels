@@ -1,12 +1,32 @@
 # kernels
 
-Rudrite's TPU kernel wing: a public, lab-driven curriculum for learning to write fast TPU kernels, from the machine's first principles to distributed Pallas, built while learning it, in the open; checkpoints only count when a real chip measured them.
+Rudrite's accelerator wing: four public, lab-driven mastery courses for the stack that runs machine learning on TPUs, built while learning it, in the open. Numbers count only when a real chip measured them, and the ones that turned out to be wrong stay published with their corrections.
 
 Site: **live** at [kernels.rudrite.com](https://kernels.rudrite.com) · Cloudflare Pages, deploys on every push to main
 
-- `CURRICULUM.md`: the 14-week track. Six stages, each gated by a measurable checkpoint.
-- `labs/`: runnable notebooks, one per lab. Open directly in Colab from GitHub (each notebook carries an Open in Colab badge); save a copy to your own account to keep your work.
-- `bench/`: every number the site shows, with provenance (chip generation, dtype, shapes, date, commit).
+## The four paths
+
+| path | what it teaches | chapters |
+|---|---|---|
+| [kernels](https://kernels.rudrite.com/) | down the stack to the machine: Pallas, the IR layers, flash attention derived, distributed kernels | 15 |
+| [jax](https://kernels.rudrite.com/jax) | across the language: tracing, the jit cache, autodiff, vmap, pytrees, sharding, the training run | 12 |
+| [xla](https://kernels.rudrite.com/xla) | through the compiler: PJRT, HLO, the pass pipeline, fusion, SPMD, codegen, then IFRT and Pathways | 14 |
+| [pytorch](https://kernels.rudrite.com/pytorch) | the eager world and its bridges: storage and strides, the tape, dynamo, then torch on TPU | 12 |
+
+Each chapter carries a diagram, its assigned readings, and tracked mastery work. The JAX, XLA, and PyTorch paths cite every page of their framework's official tutorial series and go past it; a test enforces that.
+
+## The workshop
+
+- **The gym** ([/gym](https://kernels.rudrite.com/gym)): one floor per path, 13 drill stations. Every answer is computed from generated dumps or real runs, never written by hand. Streaks live in your browser.
+- **The museum** ([/mistakes](https://kernels.rudrite.com/mistakes)): one wing per path, 27 exhibits. Each is a failure that was reproduced, with its verbatim error and a fix that was run.
+- **Instruments**: 15 live surfaces, from the roofline playground to the jit cache key, the view explorer, and the pass pipeline stepped from a real dump.
+
+## The repo
+
+- `CURRICULUM.md`: the kernel track's 14-week plan. Six stages, each gated by a measurable checkpoint.
+- `labs/`: 30 runnable notebooks. Open directly in Colab from GitHub, then save a copy to keep your work. The 18 kernel labs run off-chip (interpret mode, simulated devices); the 12 path labs cover JAX, XLA, and PyTorch, and the four that need real hardware say so.
+- `bench/`: 39 records, every number the site shows with its provenance (chip, dtype, shapes, date, commit). One row reads RETRACTED, because a number published and later disproved belongs in the same table as the ones that held.
+- `docs/plans/`: how each path was built, and what remains.
 - `site/`: kernels.rudrite.com, the presentation layer. The repo stands alone without it.
 
-Status: Stage 0 in progress. All 13 labs are authored, runnable, and Colab-linked (every notebook executes end to end off-chip: interpret mode for kernels, simulated devices for the distributed labs). Bench holds roofline predictions and off-chip verification records; hardware rows replace them as gates are attempted.
+Status: all four paths are live with labs, drills, exhibits, and instruments. Kernel-track gates 0 through 3 have passed on a v6e-1; gate 4 awaits a slice. Every lab has been executed end to end, ten of them here and the TPU ones on a Colab v6e.
