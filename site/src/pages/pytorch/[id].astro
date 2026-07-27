@@ -37,7 +37,13 @@ const { prev, next } = ptChapterAt(key)
 const pad = (n: number) => String(n).padStart(2, '0')
 const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 const partLabel = chapter.part === 'i' ? 'part i, the model' : 'part ii, the practice'
-const diagram = chapter.diagram ? PT_DIAGRAMS[chapter.diagram.id] : undefined
+// Presentation-owned diagram slots for chapters whose data carries none.
+const EXTRA_DIAGRAMS: Record<string, { id: string; after: number }> = {
+  'the-loop': { id: 'pt-loop', after: 0 },
+  distributed: { id: 'pt-ddp-fsdp', after: 1 },
+}
+const slot = chapter.diagram ?? EXTRA_DIAGRAMS[chapter.id]
+const diagram = slot ? PT_DIAGRAMS[slot.id] : undefined
 ---
 
 <Base
@@ -103,7 +109,7 @@ const diagram = chapter.diagram ? PT_DIAGRAMS[chapter.diagram.id] : undefined
                 </div>
               </figure>
             )}
-            {diagram && chapter.diagram!.after === si && (
+            {diagram && slot!.after === si && (
               <figure class="panel codefig">
                 <figcaption class="provenance top">{diagram.caption}</figcaption>
                 <BlockDiagram spec={diagram} />

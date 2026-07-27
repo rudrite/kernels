@@ -84,6 +84,43 @@ export const XLA_DIAGRAMS: Record<string, DiagramSpec> = {
     ],
   },
 
+  'xla-pjrt': {
+    w: 720,
+    h: 250,
+    alt: 'The PJRT objects a single jit-and-run touches: the client owns devices and compiles StableHLO into a loaded executable; buffers hold per-device memory; execute takes buffers and returns buffers',
+    caption: 'the objects one jit-and-run touches, in order',
+    els: [
+      { k: 'box', x: 24, y: 90, w: 150, h: 70, t: 'PjRtClient', s: 'owns the devices\ncompiles programs', tone: 'copper' },
+      { k: 'line', x1: 174, y1: 108, x2: 250, y2: 108, a: 'end', tone: 'steel', t: 'compile(StableHLO)', lx: 300, ly: 96 },
+      { k: 'box', x: 396, y: 84, w: 176, h: 56, t: 'PjRtLoadedExecutable', s: 'ready to run', tone: 'copper' },
+      { k: 'box', x: 24, y: 186, w: 150, h: 48, t: 'PjRtBuffer', s: 'one per device', tone: 'steel' },
+      { k: 'line', x1: 174, y1: 210, x2: 484, y2: 210, a: 'end', tone: 'steel', t: 'execute(buffers)', lx: 300, ly: 200 },
+      { k: 'line', x1: 484, y1: 210, x2: 484, y2: 140, a: 'end', tone: 'steel' },
+      { k: 'line', x1: 572, y1: 112, x2: 648, y2: 112, a: 'end', tone: 'steel' },
+      { k: 'box', x: 648, y: 84, w: 62, h: 56, t: 'out', s: 'buffers', tone: 'steel' },
+      { k: 'text', x: 24, y: 46, t: 'one logical array sharded over 8 devices is 8 buffers here', size: 10, tone: 'mute' },
+      { k: 'text', x: 700, y: 242, t: 'chapter 11 puts one object back on top of these', anchor: 'end', size: 9.5 },
+    ],
+  },
+
+  'xla-spmd': {
+    w: 720,
+    h: 260,
+    alt: 'The SPMD partitioner: a global-shape module with sharding annotations goes in, propagation fills in the unannotated ops, and a per-device module comes out with collectives inserted where shardings meet',
+    caption: 'global shapes in, per-device shapes out, and the collectives the math implied',
+    els: [
+      { k: 'box', x: 24, y: 70, w: 170, h: 76, t: 'global module', s: 'f32[8192, 8192]\na few ops annotated', tone: 'mute' },
+      { k: 'line', x1: 194, y1: 108, x2: 258, y2: 108, a: 'end', tone: 'steel' },
+      { k: 'box', x: 258, y: 62, w: 180, h: 44, t: 'propagation', s: 'unannotated ops inherit', tone: 'steel' },
+      { k: 'box', x: 258, y: 118, w: 180, h: 44, t: 'partitioning', s: 'shapes rewritten per device', tone: 'copper' },
+      { k: 'line', x1: 348, y1: 106, x2: 348, y2: 118, a: 'end', tone: 'mute' },
+      { k: 'line', x1: 438, y1: 130, x2: 502, y2: 130, a: 'end', tone: 'steel' },
+      { k: 'box', x: 502, y: 96, w: 194, h: 70, t: 'per-device module', s: 'f32[2048, 8192]\nplus all-gather, all-reduce', tone: 'copper' },
+      { k: 'text', x: 40, y: 210, t: 'a collective appears wherever two neighbouring ops disagree about layout', size: 10 },
+      { k: 'text', x: 700, y: 250, t: 'the jax path writes the annotations; this pass keeps the promise', anchor: 'end', size: 9.5 },
+    ],
+  },
+
   'xla-runtime-ladder': {
     w: 720,
     h: 280,

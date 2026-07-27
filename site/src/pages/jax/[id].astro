@@ -40,6 +40,8 @@ const partLabel = chapter.part === 'i' ? 'part i, the model' : 'part ii, the pra
 // Presentation-owned diagram slots for chapters whose data carries none.
 const EXTRA_DIAGRAMS: Record<string, { id: string; after: number }> = {
   'control-flow': { id: 'jax-scan', after: 2 },
+  vmap: { id: 'jax-vmap', after: 0 },
+  state: { id: 'jax-state', after: 0 },
   pytrees: { id: 'jax-pytree', after: 0 },
   random: { id: 'jax-keys', after: 1 },
 }

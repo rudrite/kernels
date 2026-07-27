@@ -43,6 +43,8 @@ const partLabel = chapter.part === 'i' ? 'part i, the compiler' : 'part ii, the 
 // Presentation-owned diagram slots for chapters whose data carries none.
 const EXTRA_DIAGRAMS: Record<string, { id: string; after: number }> = {
   'layout-memory': { id: 'xla-layout', after: 0 },
+  pjrt: { id: 'xla-pjrt', after: 0 },
+  spmd: { id: 'xla-spmd', after: 1 },
   collectives: { id: 'xla-collective-async', after: 1 },
 }
 const slot = chapter.diagram ?? EXTRA_DIAGRAMS[chapter.id]

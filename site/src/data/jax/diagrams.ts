@@ -131,6 +131,44 @@ export const JAX_DIAGRAMS: Record<string, DiagramSpec> = {
     ],
   },
 
+  'jax-vmap': {
+    w: 720,
+    h: 250,
+    alt: 'vmap rewrites a program rather than looping it: each primitive is replaced by its batched form, so one matmul becomes a batched matmul and the whole thing compiles as a single program',
+    caption: 'no loop anywhere: every primitive was swapped for the version that already expects a batch',
+    els: [
+      { k: 'box', x: 24, y: 40, w: 190, h: 58, t: 'f, written for one', s: 'dot · add · tanh', tone: 'mute' },
+      { k: 'line', x1: 214, y1: 69, x2: 286, y2: 69, a: 'end', tone: 'steel', t: 'vmap', ly: 57 },
+      { k: 'box', x: 286, y: 40, w: 220, h: 58, t: 'the same program, rewritten', s: 'batched dot · add · tanh', tone: 'copper' },
+      { k: 'line', x1: 506, y1: 69, x2: 578, y2: 69, a: 'end', tone: 'steel' },
+      { k: 'box', x: 578, y: 40, w: 118, h: 58, t: 'one program', s: 'compiled once', tone: 'steel' },
+      { k: 'box', x: 24, y: 148, w: 190, h: 62, t: 'the loop you did not write', s: 'N calls, N dispatches', tone: 'mute', dash: true },
+      { k: 'line', x1: 214, y1: 179, x2: 286, y2: 179, a: 'end', tone: 'mute', dash: true, t: 'what vmap is not', lx: 330, ly: 200 },
+      { k: 'text', x: 700, y: 240, t: 'in_axes says which arguments carry the batch; None rides along whole', anchor: 'end', size: 9.5 },
+    ],
+  },
+
+  'jax-state': {
+    w: 720,
+    h: 230,
+    alt: 'The functional state pattern: state and a batch go into a pure step function, new state and metrics come out, and the new state is what feeds the next call',
+    caption: 'nothing is mutated: the step takes state and returns state, and the loop carries it forward',
+    els: [
+      { k: 'box', x: 24, y: 80, w: 150, h: 70, t: 'state', s: 'params · opt state\nstep · key', tone: 'copper' },
+      { k: 'line', x1: 174, y1: 100, x2: 262, y2: 100, a: 'end', tone: 'steel' },
+      { k: 'box', x: 24, y: 168, w: 150, h: 40, t: 'batch', tone: 'mute' },
+      { k: 'line', x1: 174, y1: 188, x2: 262, y2: 140, a: 'end', tone: 'mute' },
+      { k: 'box', x: 262, y: 74, w: 176, h: 82, t: 'step', s: 'jitted, pure\ngrads, update, apply', tone: 'steel' },
+      { k: 'line', x1: 438, y1: 100, x2: 526, y2: 100, a: 'end', tone: 'steel' },
+      { k: 'box', x: 526, y: 62, w: 170, h: 52, t: 'new state', s: 'the same treedef', tone: 'copper' },
+      { k: 'box', x: 526, y: 128, w: 170, h: 44, t: 'metrics', tone: 'mute' },
+      { k: 'line', x1: 611, y1: 62, x2: 611, y2: 34, tone: 'copper', dash: true },
+      { k: 'line', x1: 611, y1: 34, x2: 99, y2: 34, tone: 'copper', dash: true },
+      { k: 'line', x1: 99, y1: 34, x2: 99, y2: 80, a: 'end', tone: 'copper', dash: true, t: 'the next call', lx: 355, ly: 26 },
+      { k: 'text', x: 700, y: 222, t: 'checkpoint the whole left-hand box, not just the params', anchor: 'end', size: 9.5 },
+    ],
+  },
+
   'jax-sharding-ladder': {
     w: 720,
     h: 280,
