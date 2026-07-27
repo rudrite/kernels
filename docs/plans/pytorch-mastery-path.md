@@ -64,8 +64,14 @@ Part ii, the practice, aimed at TPU (this site's home ground):
 - [x] Mastery streak items wired to the stride oracle
 - [x] vitest green, build green, browser-checked
 
-## Later phases
+## The labs-and-stations phase (same day)
 
-- Colab labs for the JAX, XLA, and PyTorch paths (notebooks in labs/,
-  mark-as-run wiring, real-chip museum captures for XLA)
-- More PyTorch stations: guard-or-break drill, name-the-collective
+- [x] Eleven lab notebooks authored (labs/jax, labs/xla, labs/pytorch),
+      lab cards on their chapters, mark-as-run wired as labs auto-rules
+- [x] Guard-or-break station (GYM·10): eight scenarios verdicted by
+      dynamo's own counters, streak wired into the dynamo chapter
+- [x] Name-the-collective station (GYM·11): five collectives captured
+      from a real world-of-4 gloo run, streak wired into the pytorch
+      distributed chapter and the xla collectives chapter
+- [ ] Real-chip captures: LAB·X2's museum section and LAB·P4's numbers
+      await a Colab TPU run (reader-driven; paste-backs become exhibits)

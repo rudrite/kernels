@@ -610,7 +610,7 @@ export const PT_CHAPTERS: PtChapter[] = [
       {
         "h": "the jax bridge: torchax",
         "ps": [
-          "The second bridge, torchax, lives in the same pytorch/xla repository but takes an entirely different route. Instead of recording torch ops for a later sync, it maps them onto jax primitives directly: a torch tensor under torchax is backed by a real jax array underneath, not a lazy recording of one. Because that array genuinely is a jax array, everything the jax path spent nine chapters building, `jit`, `grad`, sharding over a named mesh, applies to a torch module exactly as it would to a jax function, with no separate torch-side reimplementation waiting to be written.",
+          "The second bridge, torchax, began inside the pytorch/xla repository and now lives in its own (google/torchax), and it takes an entirely different route. Instead of recording torch ops for a later sync, it maps them onto jax primitives directly: a torch tensor under torchax is backed by a real jax array underneath, not a lazy recording of one. Because that array genuinely is a jax array, everything the jax path spent nine chapters building, `jit`, `grad`, sharding over a named mesh, applies to a torch module exactly as it would to a jax function, with no separate torch-side reimplementation waiting to be written.",
           "The interop runs in both directions, and that detail is worth holding onto. A jax program can call a torch module the way it calls any other jax function, and torch code can reach into jax the same way back. Neither side has to pretend the other framework does not exist; torchax's whole job is making that pretending unnecessary."
         ]
       },
@@ -637,8 +637,8 @@ export const PT_CHAPTERS: PtChapter[] = [
       },
       {
         "label": "torchax",
-        "url": "https://github.com/pytorch/xla/tree/master/torchax",
-        "note": "the torch-on-jax bridge"
+        "url": "https://github.com/google/torchax",
+        "note": "the torch-on-jax bridge, in its own repo since late 2025"
       },
       {
         "label": "PyTorch/XLA docs",
@@ -785,7 +785,22 @@ export const PT_MASTERY: Record<string, WorkItem[]> = {
       "id": "stride-oracle",
       "label": "stride oracle: streak of 5",
       "href": "/gym/pytorch#drills",
-      "auto": { "type": "streak", "key": "gym.stride.streak", "goal": 5 }
+      "auto": {
+        "type": "streak",
+        "key": "gym.stride.streak",
+        "goal": 5
+      }
+    },
+    {
+      "id": "labs",
+      "label": "run LAB·P1",
+      "href": "#labs",
+      "auto": {
+        "type": "labs",
+        "ids": [
+          "LAB·P1"
+        ]
+      }
     }
   ],
   "pt:autograd": [
@@ -805,6 +820,17 @@ export const PT_MASTERY: Record<string, WorkItem[]> = {
     {
       "id": "custom-function",
       "label": "Write one custom Function with a checked backward"
+    },
+    {
+      "id": "labs",
+      "label": "run LAB·P2",
+      "href": "#labs",
+      "auto": {
+        "type": "labs",
+        "ids": [
+          "LAB·P2"
+        ]
+      }
     }
   ],
   "pt:modules": [
@@ -869,6 +895,27 @@ export const PT_MASTERY: Record<string, WorkItem[]> = {
     {
       "id": "name-every-guard",
       "label": "name every guard on one compiled function and trigger each miss deliberately"
+    },
+    {
+      "id": "labs",
+      "label": "run LAB·P3",
+      "href": "#labs",
+      "auto": {
+        "type": "labs",
+        "ids": [
+          "LAB·P3"
+        ]
+      }
+    },
+    {
+      "id": "guard",
+      "label": "guard or break: streak of 5",
+      "href": "/gym/pytorch#drills",
+      "auto": {
+        "type": "streak",
+        "key": "gym.guard.streak",
+        "goal": 5
+      }
     }
   ],
   "pt:graphs": [
@@ -905,6 +952,16 @@ export const PT_MASTERY: Record<string, WorkItem[]> = {
     {
       "id": "world-of-two-collective",
       "label": "run the same collective again as a world of two processes on one machine, and compare"
+    },
+    {
+      "id": "collective",
+      "label": "name the collective: streak of 5",
+      "href": "/gym/pytorch#collectives",
+      "auto": {
+        "type": "streak",
+        "key": "gym.collective.streak",
+        "goal": 5
+      }
     }
   ],
   "pt:performance": [
@@ -941,6 +998,17 @@ export const PT_MASTERY: Record<string, WorkItem[]> = {
     {
       "id": "torchax-readme",
       "label": "read the torchax README end to end"
+    },
+    {
+      "id": "labs",
+      "label": "run LAB·P4",
+      "href": "#labs",
+      "auto": {
+        "type": "labs",
+        "ids": [
+          "LAB·P4"
+        ]
+      }
     }
   ],
   "pt:tpu-practice": [

@@ -55,8 +55,12 @@ Part ii, the runtime stack above:
 - [x] Mastery ledger wired to the XLA gym stations
 - [x] vitest green, build green, browser-checked
 
-## Later phases
+## Later phases (updated as shipped)
 
-- XLA-specific drills (name the pass, predict the fusion) with auto rules
-- Real-chip captures for the museum (OOM, layout) alongside XLA labs
-- The PyTorch path
+- [x] Labs LAB·X1 through LAB·X3 with mark-as-run auto rules
+- [x] Spot-the-decision and name-the-collective streaks wired into the
+      pipeline and collectives chapters
+- [x] The PyTorch path (docs/plans/pytorch-mastery-path.md)
+- [ ] Real-chip museum captures: LAB·X2's paste-back section produces
+      them from a Colab TPU run
+- [ ] More XLA drills (name the pass, predict the fusion)

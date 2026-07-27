@@ -85,7 +85,7 @@ describe('superset of the official tutorials', () => {
     'https://blog.ezyang.com/2019/05/pytorch-internals/',
     // the TPU bridge canon: this path lands on the site's home ground
     'https://github.com/pytorch/xla',
-    'https://github.com/pytorch/xla/tree/master/torchax',
+    'https://github.com/google/torchax',
     'https://docs.pytorch.org/xla/',
     'https://cloud.google.com/tpu/docs/run-calculation-pytorch',
     'https://github.com/vllm-project/tpu-inference',
@@ -115,10 +115,10 @@ describe('the PyTorch mastery ledger', () => {
     }
   })
 
-  it('auto rules are streak-only and hrefs resolve to real shapes', () => {
+  it('auto rules are streak or labs only, hrefs resolve to real shapes', () => {
     for (const [key, items] of Object.entries(PT_MASTERY)) {
       for (const item of items) {
-        if (item.auto) expect(item.auto.type, `${key} · ${item.id}`).toBe('streak')
+        if (item.auto) expect(["streak", "labs"].includes(item.auto.type), `${key} · ${item.id}`).toBe(true)
         if (item.href) expect(item.href, `${key} · ${item.id}`).toMatch(/^(\/|#|https:\/\/)/)
       }
     }

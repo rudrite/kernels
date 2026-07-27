@@ -8,7 +8,8 @@ export interface Lab {
   designator: string
   title: string
   time: string
-  hardware: 'any machine (interpret mode)' | 'Colab TPU'
+  /** e.g. 'any machine (interpret mode)', 'any machine', 'Colab TPU' */
+  hardware: string
   colab: string | null
   notebook?: string
 }

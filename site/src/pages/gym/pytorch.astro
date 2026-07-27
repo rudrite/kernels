@@ -2,6 +2,8 @@
 import Base from '../../layouts/Base.astro'
 import Exhibit from '../../components/Exhibit.astro'
 import StrideOracle from '../../exhibits/StrideOracle'
+import GuardOrBreak from '../../exhibits/GuardOrBreak'
+import NameTheCollective from '../../exhibits/NameTheCollective'
 ---
 
 <Base
@@ -13,13 +15,13 @@ import StrideOracle from '../../exhibits/StrideOracle'
       <div class="wrap wgrid">
         <span class="wtag">the gym<br />pytorch floor</span>
         <div>
-          <p class="mono-label serves">serves pytorch-path chapter 01 · streaks check themselves off · <a class="wing-link" href="/gym">all floors</a></p>
-          <h1 class="wh1">Strides, until they are boring.</h1>
+          <p class="mono-label serves">serves pytorch-path chapters 01 · 06 · 08 (and the xla path's collectives chapter) · streaks check themselves off · <a class="wing-link" href="/gym">all floors</a></p>
+          <h1 class="wh1">Predict the machine, then look.</h1>
           <p class="wlede">
-            The tensors chapter claims a tensor is a storage plus a map, and this floor makes you
-            prove it: forty-eight view chains, every answer computed by running the code on real
-            torch (2.2.2, CPU), never invented. Predict the map before the reveal. More stations
-            (guard-or-break, name-the-collective) land with the path's labs.
+            Three stations, every answer measured, never invented: forty-eight view chains run on
+            real torch, eight compile scenarios verdicted by dynamo's own counters, and five
+            collectives captured from a real four-process gloo run. Predict before the reveal;
+            the streaks keep score in your browser only.
           </p>
         </div>
       </div>
@@ -29,12 +31,36 @@ import StrideOracle from '../../exhibits/StrideOracle'
       <div class="wrap wgrid">
         <span class="wtag">drills</span>
         <div>
-          <h2 class="wh2">The stride oracle</h2>
+          <h2 class="wh2">Active recall, one tap</h2>
           <div class="drill-wide">
-            <Exhibit designator="GYM·09" title="the stride oracle" provenance="48 view chains executed on torch 2.2.2 · shapes, strides, and contiguity read off the real tensors · streak of 5 is the chapter bar">
+            <Exhibit designator="GYM·09" title="the stride oracle" provenance="48 view chains executed on torch 2.2.2 · shapes, strides, and contiguity read off the real tensors · streak of 5 is the chapter 01 bar">
               <StrideOracle client:visible />
             </Exhibit>
           </div>
+          <div class="drill-wide">
+            <Exhibit designator="GYM·10" title="guard or break" provenance="8 compile scenarios verdicted by dynamo's own counters (torch 2.2.2, Python 3.11) · the reveal shows the measured graphs and breaks · serves chapter 06">
+              <GuardOrBreak client:visible />
+            </Exhibit>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="wband" id="collectives">
+      <div class="wrap wgrid">
+        <span class="wtag">the fleet<br />in a table</span>
+        <div>
+          <h2 class="wh2">Name the collective</h2>
+          <p class="wlede narrow">
+            Four ranks, their tensors before and after one collective, captured from a real
+            four-process gloo run on this machine. The skill is reading what moved: who ended
+            up equal, who kept a partial, who got a slice. It serves the pytorch distributed
+            chapter and the xla path's collectives chapter alike, because the contract does not
+            care which framework called it.
+          </p>
+          <Exhibit designator="GYM·11" title="name the collective" provenance="5 collectives captured from a real world-of-4 gloo run · before/after tensors verbatim · streak of 5">
+            <NameTheCollective client:visible />
+          </Exhibit>
         </div>
       </div>
     </section>

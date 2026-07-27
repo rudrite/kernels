@@ -102,10 +102,10 @@ describe('the XLA mastery ledger', () => {
     }
   })
 
-  it('auto rules are streak-only and hrefs resolve to real shapes', () => {
+  it('auto rules are streak or labs only, hrefs resolve to real shapes', () => {
     for (const [key, items] of Object.entries(XLA_MASTERY)) {
       for (const item of items) {
-        if (item.auto) expect(item.auto.type, `${key} · ${item.id}`).toBe('streak')
+        if (item.auto) expect(["streak", "labs"].includes(item.auto.type), `${key} · ${item.id}`).toBe(true)
         if (item.href) expect(item.href, `${key} · ${item.id}`).toMatch(/^(\/|#|https:\/\/)/)
       }
     }

@@ -886,7 +886,11 @@ export const XLA_MASTERY: Record<string, WorkItem[]> = {
       "id": "spot",
       "label": "spot the decision: streak of 3",
       "href": "/gym/xla#drills",
-      "auto": { "type": "streak", "key": "gym.spot.streak", "goal": 3 }
+      "auto": {
+        "type": "streak",
+        "key": "gym.spot.streak",
+        "goal": 3
+      }
     },
     {
       "id": "name-watershed",
@@ -895,6 +899,17 @@ export const XLA_MASTERY: Record<string, WorkItem[]> = {
     {
       "id": "explain-fixpoint",
       "label": "find one pass in your dump that ran more than once and explain the fixpoint loop that caused it"
+    },
+    {
+      "id": "labs",
+      "label": "run LAB·X1",
+      "href": "#labs",
+      "auto": {
+        "type": "labs",
+        "ids": [
+          "LAB·X1"
+        ]
+      }
     }
   ],
   "xla:fusion": [
@@ -914,6 +929,17 @@ export const XLA_MASTERY: Record<string, WorkItem[]> = {
       "id": "xray",
       "label": "work the fusion x-ray and check its calls against your own",
       "href": "/gym/xla#fusion"
+    },
+    {
+      "id": "labs",
+      "label": "run LAB·X2",
+      "href": "#labs",
+      "auto": {
+        "type": "labs",
+        "ids": [
+          "LAB·X2"
+        ]
+      }
     }
   ],
   "xla:layout-memory": [
@@ -950,6 +976,17 @@ export const XLA_MASTERY: Record<string, WorkItem[]> = {
     {
       "id": "match",
       "label": "name which collective each inserted op corresponds to and where in your Python the boundary that demanded it sits"
+    },
+    {
+      "id": "labs",
+      "label": "run LAB·X3",
+      "href": "#labs",
+      "auto": {
+        "type": "labs",
+        "ids": [
+          "LAB·X3"
+        ]
+      }
     }
   ],
   "xla:collectives": [
@@ -968,6 +1005,16 @@ export const XLA_MASTERY: Record<string, WorkItem[]> = {
     {
       "id": "trace",
       "label": "trace how a psum from the JAX path resolves down to a single participant's collective call"
+    },
+    {
+      "id": "collective",
+      "label": "name the collective: streak of 5",
+      "href": "/gym/pytorch#collectives",
+      "auto": {
+        "type": "streak",
+        "key": "gym.collective.streak",
+        "goal": 5
+      }
     }
   ],
   "xla:codegen": [

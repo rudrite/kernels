@@ -1,0 +1,61 @@
+{
+  "torch": "2.2.2",
+  "items": [
+    {
+      "id": "same-shape",
+      "code": "def f(x):\n    return torch.sin(x) + 1\n\ncf = torch.compile(f)\ncf(torch.randn(4))\ncf(torch.randn(4))",
+      "graphs": 1,
+      "breaks": 0,
+      "verdict": "one-graph"
+    },
+    {
+      "id": "new-shape",
+      "code": "def f(x):\n    return torch.sin(x) + 1\n\ncf = torch.compile(f)\ncf(torch.randn(4))\ncf(torch.randn(5))",
+      "graphs": 2,
+      "breaks": 0,
+      "verdict": "recompile"
+    },
+    {
+      "id": "new-dtype",
+      "code": "def f(x):\n    return x * 2\n\ncf = torch.compile(f)\ncf(torch.randn(4))\ncf(torch.randn(4, dtype=torch.float64))",
+      "graphs": 2,
+      "breaks": 0,
+      "verdict": "recompile"
+    },
+    {
+      "id": "data-branch",
+      "code": "def f(x):\n    if x.sum() > 0:\n        return x + 1\n    return x - 1\n\ncf = torch.compile(f)\ncf(torch.ones(3))",
+      "graphs": 2,
+      "breaks": 0,
+      "verdict": "graph-break"
+    },
+    {
+      "id": "python-bool-flag",
+      "code": "def f(x, flag):\n    if flag:\n        return x + 1\n    return x - 1\n\ncf = torch.compile(f)\ncf(torch.randn(4), True)\ncf(torch.randn(4), False)",
+      "graphs": 2,
+      "breaks": 0,
+      "verdict": "recompile"
+    },
+    {
+      "id": "print-inside",
+      "code": "def f(x):\n    y = x * 2\n    print('halfway')\n    return y + 1\n\ncf = torch.compile(f)\ncf(torch.randn(4))",
+      "graphs": 2,
+      "breaks": 1,
+      "verdict": "graph-break"
+    },
+    {
+      "id": "item-inside",
+      "code": "def f(x):\n    m = x.max().item()\n    return x / m\n\ncf = torch.compile(f)\ncf(torch.randn(4))",
+      "graphs": 2,
+      "breaks": 1,
+      "verdict": "graph-break"
+    },
+    {
+      "id": "same-closure",
+      "code": "scale = 3.0\ndef f(x):\n    return x * scale\n\ncf = torch.compile(f)\ncf(torch.randn(4))\ncf(torch.randn(4))",
+      "graphs": 1,
+      "breaks": 0,
+      "verdict": "one-graph"
+    }
+  ]
+}

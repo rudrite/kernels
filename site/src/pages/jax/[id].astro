@@ -6,8 +6,23 @@ import SectionHead from '../../components/SectionHead.astro'
 import ReadingRails from '../../components/ReadingRails.astro'
 import MasteryWork from '../../components/MasteryWork.astro'
 import BlockDiagram from '../../components/BlockDiagram.astro'
+import LabCard from '../../components/LabCard.astro'
 import { JAX_CHAPTERS, JAX_PATH, jaxChapterAt, type JaxChapter } from '../../data/jax/track'
 import { JAX_DIAGRAMS } from '../../data/jax/diagrams'
+import type { Lab } from '../../data/track'
+
+const COLAB = 'https://colab.research.google.com/github/rudrite/kernels/blob/main/'
+const lab = (designator: string, title: string, time: string, hardware: string, file: string): Lab => ({
+  designator, title, time, hardware, colab: COLAB + file, notebook: file,
+})
+// One runnable lab per chapter that has one; the mastery ledger's labs
+// auto-rule checks off when the card's mark-as-run is ticked.
+const LABS: Record<string, Lab[]> = {
+  tracing: [lab('LAB·J1', 'The trace, read raw', '~1.5 h', 'any machine', 'labs/jax/lab-j1-trace-read-raw.ipynb')],
+  jit: [lab('LAB·J2', 'The recompile hunt', '~1.5 h', 'any machine', 'labs/jax/lab-j2-recompile-hunt.ipynb')],
+  autodiff: [lab('LAB·J3', 'Own the derivative', '~2 h', 'any machine', 'labs/jax/lab-j3-own-the-derivative.ipynb')],
+  sharding: [lab('LAB·J4', 'Eight fake devices', '~2 h', 'any machine', 'labs/jax/lab-j4-eight-fake-devices.ipynb')],
+}
 
 export function getStaticPaths() {
   return JAX_CHAPTERS.map((chapter) => ({ params: { id: chapter.id }, props: { chapter } }))
@@ -119,6 +134,19 @@ const diagram = slot ? JAX_DIAGRAMS[slot.id] : undefined
         </ul>
       </section>
 
+      {
+        LABS[chapter.id] && (
+          <section class="block" id="labs">
+            <SectionHead id="labs-head" eyebrow="runnable" title="Labs" />
+            <div class="labgrid">
+              {LABS[chapter.id]!.map((l) => (
+                <LabCard lab={l} />
+              ))}
+            </div>
+          </section>
+        )
+      }
+
       <nav class="pathpager" aria-label="The JAX path">
         <div class="pp-left">
           {prev ? <a class="pp-prev" href={prev.href}>← ch {pad(prev.num)} · {prev.title}</a> : <a class="pp-prev" href="/jax">← the jax path</a>}
@@ -206,6 +234,7 @@ const diagram = slot ? JAX_DIAGRAMS[slot.id] : undefined
   .codefig .top { border-top: none; border-bottom: 1px solid var(--panel-rule); }
   .codebody :global(pre) { margin: 0; padding: 0.875rem; overflow-x: auto; font-size: 0.8125rem; line-height: 1.65; background: transparent !important; }
 
+  .labgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 1rem; }
   .readings { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.75rem; }
   .readings li { display: flex; flex-direction: column; gap: 0.2rem; border: 1px solid var(--rule); background: var(--paper-high); padding: 0.75rem 1rem; }
   .readings a { font-family: var(--mono); font-size: 0.8125rem; color: var(--ink); text-decoration: none; }

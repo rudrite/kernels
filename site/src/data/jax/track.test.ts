@@ -69,10 +69,10 @@ describe('the JAX mastery ledger', () => {
     }
   })
 
-  it('auto rules are streak-only (the jax gym floor drills them), no dead hrefs', () => {
+  it('auto rules are streak or labs only, no dead hrefs', () => {
     for (const [key, items] of Object.entries(JAX_MASTERY)) {
       for (const item of items) {
-        if (item.auto) expect(item.auto.type, `${key} · ${item.id}`).toBe('streak')
+        if (item.auto) expect(["streak", "labs"].includes(item.auto.type), `${key} · ${item.id}`).toBe(true)
         if (item.href) expect(item.href, `${key} · ${item.id}`).toMatch(/^(\/|#|https:\/\/)/)
       }
     }

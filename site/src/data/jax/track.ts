@@ -850,11 +850,26 @@ export const JAX_MASTERY: Record<string, WorkItem[]> = {
       "id": "oracle",
       "label": "shape oracle: streak of 5",
       "href": "/gym/jax#drills",
-      "auto": { "type": "streak", "key": "gym.shape.streak", "goal": 5 }
+      "auto": {
+        "type": "streak",
+        "key": "gym.shape.streak",
+        "goal": 5
+      }
     },
     {
       "id": "fix-twice",
       "label": "take a function that fails under jit and fix it twice: once with debug.print, once by restructuring"
+    },
+    {
+      "id": "labs",
+      "label": "run LAB·J1",
+      "href": "#labs",
+      "auto": {
+        "type": "labs",
+        "ids": [
+          "LAB·J1"
+        ]
+      }
     }
   ],
   "jax:jit": [
@@ -869,6 +884,17 @@ export const JAX_MASTERY: Record<string, WorkItem[]> = {
     {
       "id": "find-recompile-bug",
       "label": "find one real recompile bug in your own code or the chapter's examples and name which key component churned"
+    },
+    {
+      "id": "labs",
+      "label": "run LAB·J2",
+      "href": "#labs",
+      "auto": {
+        "type": "labs",
+        "ids": [
+          "LAB·J2"
+        ]
+      }
     }
   ],
   "jax:autodiff": [
@@ -887,6 +913,17 @@ export const JAX_MASTERY: Record<string, WorkItem[]> = {
     {
       "id": "remat-tradeoff",
       "label": "measure the memory/flops trade of jax.checkpoint on an 8-layer block, in writing"
+    },
+    {
+      "id": "labs",
+      "label": "run LAB·J3",
+      "href": "#labs",
+      "auto": {
+        "type": "labs",
+        "ids": [
+          "LAB·J3"
+        ]
+      }
     }
   ],
   "jax:vmap": [
@@ -902,7 +939,11 @@ export const JAX_MASTERY: Record<string, WorkItem[]> = {
       "id": "transform",
       "label": "name the transform: streak of 5",
       "href": "/gym/jax#drills",
-      "auto": { "type": "streak", "key": "gym.transform.streak", "goal": 5 }
+      "auto": {
+        "type": "streak",
+        "key": "gym.transform.streak",
+        "goal": 5
+      }
     },
     {
       "id": "per-sample-clipping",
@@ -985,6 +1026,17 @@ export const JAX_MASTERY: Record<string, WorkItem[]> = {
     {
       "id": "rewrite-shard-map",
       "label": "rewrite one of the three shardings in shard_map with an explicit psum"
+    },
+    {
+      "id": "labs",
+      "label": "run LAB·J4",
+      "href": "#labs",
+      "auto": {
+        "type": "labs",
+        "ids": [
+          "LAB·J4"
+        ]
+      }
     }
   ],
   "jax:performance": [

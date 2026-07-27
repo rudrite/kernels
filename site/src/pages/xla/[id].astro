@@ -7,8 +7,22 @@ import SectionHead from '../../components/SectionHead.astro'
 import ReadingRails from '../../components/ReadingRails.astro'
 import MasteryWork from '../../components/MasteryWork.astro'
 import BlockDiagram from '../../components/BlockDiagram.astro'
+import LabCard from '../../components/LabCard.astro'
 import { XLA_CHAPTERS, XLA_PATH, xlaChapterAt, type XlaChapter } from '../../data/xla/track'
 import { XLA_DIAGRAMS } from '../../data/xla/diagrams'
+import type { Lab } from '../../data/track'
+
+const COLAB = 'https://colab.research.google.com/github/rudrite/kernels/blob/main/'
+const lab = (designator: string, title: string, time: string, hardware: string, file: string): Lab => ({
+  designator, title, time, hardware, colab: COLAB + file, notebook: file,
+})
+// One runnable lab per chapter that has one; the mastery ledger's labs
+// auto-rule checks off when the card's mark-as-run is ticked.
+const LABS: Record<string, Lab[]> = {
+  pipeline: [lab('LAB·X1', 'Read your own dump', '~1.5 h', 'any machine', 'labs/xla/lab-x1-read-your-dump.ipynb')],
+  fusion: [lab('LAB·X2', 'The TPU pipeline, dumped', '~2 h', 'Colab TPU', 'labs/xla/lab-x2-tpu-pipeline.ipynb')],
+  spmd: [lab('LAB·X3', 'Collectives in the lowering', '~1.5 h', 'any machine', 'labs/xla/lab-x3-collectives-in-the-lowering.ipynb')],
+}
 
 export function getStaticPaths() {
   return XLA_CHAPTERS.map((chapter) => ({ params: { id: chapter.id }, props: { chapter } }))
@@ -123,6 +137,19 @@ const diagram = slot ? XLA_DIAGRAMS[slot.id] : undefined
         </ul>
       </section>
 
+      {
+        LABS[chapter.id] && (
+          <section class="block" id="labs">
+            <SectionHead id="labs-head" eyebrow="runnable" title="Labs" />
+            <div class="labgrid">
+              {LABS[chapter.id]!.map((l) => (
+                <LabCard lab={l} />
+              ))}
+            </div>
+          </section>
+        )
+      }
+
       <nav class="pathpager" aria-label="The XLA path">
         <div class="pp-left">
           {prev ? <a class="pp-prev" href={prev.href}>← ch {pad(prev.num)} · {prev.title}</a> : <a class="pp-prev" href="/xla">← the xla path</a>}
@@ -211,6 +238,7 @@ const diagram = slot ? XLA_DIAGRAMS[slot.id] : undefined
   .codefig .top { border-top: none; border-bottom: 1px solid var(--panel-rule); }
   .codebody :global(pre) { margin: 0; padding: 0.875rem; overflow-x: auto; font-size: 0.8125rem; line-height: 1.65; background: transparent !important; }
 
+  .labgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 1rem; }
   .readings { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.75rem; }
   .readings li { display: flex; flex-direction: column; gap: 0.2rem; border: 1px solid var(--rule); background: var(--paper-high); padding: 0.75rem 1rem; }
   .readings a { font-family: var(--mono); font-size: 0.8125rem; color: var(--ink); text-decoration: none; }

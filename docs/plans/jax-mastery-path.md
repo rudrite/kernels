@@ -71,10 +71,10 @@ Part ii, the practice: state, scale, and the training run.
 - [x] Home page lists the paths (kernels live, JAX live, PyTorch reserved)
 - [x] `vitest run` green, `astro build` green, output read
 
-## Later phases (not this one)
+## Later phases (updated as shipped)
 
-- JAX gym drills (pytree structure oracle, axis-spec drill, recompile
-  spotter) and auto rules for them
-- Colab labs per chapter with mark-as-run wiring
-- Instruments (trace explorer, sharding visualizer)
-- The PyTorch mastery path at `/pytorch/`
+- [x] Gym streaks: shape oracle and name-the-transform live on the jax
+      floor with auto rules
+- [x] Colab labs LAB·J1 through LAB·J4 with mark-as-run auto rules
+- [x] The PyTorch mastery path (docs/plans/pytorch-mastery-path.md)
+- [ ] Instruments (trace explorer, sharding visualizer)
