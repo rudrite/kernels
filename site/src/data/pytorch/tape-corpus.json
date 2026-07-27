@@ -1,0 +1,133 @@
+{
+ "torch": "2.2.2",
+ "items": [
+  {
+   "code": "y = (x * x).sum()",
+   "title": "one leaf, a multiply, a reduction",
+   "nodes": [
+    {
+     "name": "SumBackward0",
+     "depth": 0,
+     "children": [
+      "MulBackward0"
+     ],
+     "is_leaf_accumulator": false
+    },
+    {
+     "name": "MulBackward0",
+     "depth": 1,
+     "children": [
+      "AccumulateGrad",
+      "AccumulateGrad"
+     ],
+     "is_leaf_accumulator": false
+    },
+    {
+     "name": "AccumulateGrad",
+     "depth": 2,
+     "children": [],
+     "is_leaf_accumulator": true
+    }
+   ],
+   "why": "the tape reads backwards from the loss: sum first, then the multiply, then the accumulator that will fill x.grad",
+   "grad_fn": "SumBackward0"
+  },
+  {
+   "code": "y = torch.exp(x).sum()",
+   "title": "an op that saves its own output",
+   "nodes": [
+    {
+     "name": "SumBackward0",
+     "depth": 0,
+     "children": [
+      "ExpBackward0"
+     ],
+     "is_leaf_accumulator": false
+    },
+    {
+     "name": "ExpBackward0",
+     "depth": 1,
+     "children": [
+      "AccumulateGrad"
+     ],
+     "is_leaf_accumulator": false
+    },
+    {
+     "name": "AccumulateGrad",
+     "depth": 2,
+     "children": [],
+     "is_leaf_accumulator": true
+    }
+   ],
+   "why": "exp saves its result rather than its input, which is why writing into that result in place is what the museum's version-counter exhibit catches",
+   "grad_fn": "SumBackward0"
+  },
+  {
+   "code": "y = (a @ b).sum()",
+   "title": "two leaves feeding one matmul",
+   "nodes": [
+    {
+     "name": "SumBackward0",
+     "depth": 0,
+     "children": [
+      "MmBackward0"
+     ],
+     "is_leaf_accumulator": false
+    },
+    {
+     "name": "MmBackward0",
+     "depth": 1,
+     "children": [
+      "AccumulateGrad",
+      "AccumulateGrad"
+     ],
+     "is_leaf_accumulator": false
+    },
+    {
+     "name": "AccumulateGrad",
+     "depth": 2,
+     "children": [],
+     "is_leaf_accumulator": true
+    },
+    {
+     "name": "AccumulateGrad",
+     "depth": 2,
+     "children": [],
+     "is_leaf_accumulator": true
+    }
+   ],
+   "why": "a node with two children is where the tape branches: each parent gets its own gradient, and both accumulate independently",
+   "grad_fn": "SumBackward0"
+  },
+  {
+   "code": "y = mse_loss(w * x, target)",
+   "title": "a loss on top of a product",
+   "nodes": [
+    {
+     "name": "MseLossBackward0",
+     "depth": 0,
+     "children": [
+      "MulBackward0"
+     ],
+     "is_leaf_accumulator": false
+    },
+    {
+     "name": "MulBackward0",
+     "depth": 1,
+     "children": [
+      "AccumulateGrad"
+     ],
+     "is_leaf_accumulator": false
+    },
+    {
+     "name": "AccumulateGrad",
+     "depth": 2,
+     "children": [],
+     "is_leaf_accumulator": true
+    }
+   ],
+   "why": "a loss function is not special: it is one more node, and the chain below it is the model",
+   "grad_fn": "MseLossBackward0"
+  }
+ ]
+}

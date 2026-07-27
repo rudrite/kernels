@@ -1,0 +1,59 @@
+{
+ "jax": "0.4.38",
+ "devices": 8,
+ "mesh": "(4 data, 2 model)",
+ "shapes": "(512,256) x (256,512)",
+ "specs": {
+  "replicated": "PartitionSpec(None, None)",
+  "rows over data": "PartitionSpec('data', None)",
+  "cols over model": "PartitionSpec(None, 'model')",
+  "rows data, cols model": "PartitionSpec('data', 'model')"
+ },
+ "items": [
+  {
+   "a": "rows over data",
+   "b": "replicated",
+   "out": "rows over data",
+   "collectives": []
+  },
+  {
+   "a": "rows over data",
+   "b": "replicated",
+   "out": "replicated",
+   "collectives": [
+    "all-gather"
+   ]
+  },
+  {
+   "a": "cols over model",
+   "b": "rows over data",
+   "out": "replicated",
+   "collectives": [
+    "all-gather"
+   ]
+  },
+  {
+   "a": "replicated",
+   "b": "cols over model",
+   "out": "cols over model",
+   "collectives": []
+  },
+  {
+   "a": "rows data, cols model",
+   "b": "replicated",
+   "out": "rows over data",
+   "collectives": [
+    "all-gather"
+   ]
+  },
+  {
+   "a": "cols over model",
+   "b": "cols over model",
+   "out": "replicated",
+   "collectives": [
+    "all-gather",
+    "collective-permute"
+   ]
+  }
+ ]
+}

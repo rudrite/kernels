@@ -10,11 +10,17 @@ import BlockDiagram from '../../components/BlockDiagram.astro'
 import LabCard from '../../components/LabCard.astro'
 import Exhibit from '../../components/Exhibit.astro'
 import PipelineStepper from '../../exhibits/PipelineStepper'
+import CollectivePicker from '../../exhibits/CollectivePicker'
 import { XLA_CHAPTERS, XLA_PATH, xlaChapterAt, type XlaChapter } from '../../data/xla/track'
 import { XLA_DIAGRAMS } from '../../data/xla/diagrams'
 import type { Lab } from '../../data/track'
 
 const INSTRUMENTS: Record<string, { d: string; t: string; p: string }> = {
+  spmd: {
+    d: 'EX·16',
+    t: 'the collective the partitioner chose',
+    p: 'six sharding combinations compiled on eight devices · the collectives are read out of the module, not predicted',
+  },
   pipeline: {
     d: 'EX·15',
     t: 'the pass pipeline, stepped',
@@ -176,7 +182,7 @@ const diagram = slot ? XLA_DIAGRAMS[slot.id] : undefined
           <section class="block" id="instruments">
             <SectionHead id="instruments-head" eyebrow="live" title="Instrument" />
             <Exhibit designator={INSTRUMENTS[chapter.id]!.d} title={INSTRUMENTS[chapter.id]!.t} provenance={INSTRUMENTS[chapter.id]!.p}>
-              <PipelineStepper client:visible />
+              {chapter.id === 'spmd' ? <CollectivePicker client:visible /> : <PipelineStepper client:visible />}
             </Exhibit>
           </section>
         )

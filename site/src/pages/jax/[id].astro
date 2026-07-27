@@ -9,11 +9,17 @@ import BlockDiagram from '../../components/BlockDiagram.astro'
 import LabCard from '../../components/LabCard.astro'
 import Exhibit from '../../components/Exhibit.astro'
 import CacheKey from '../../exhibits/CacheKey'
+import TreeFlattener from '../../exhibits/TreeFlattener'
 import { JAX_CHAPTERS, JAX_PATH, jaxChapterAt, type JaxChapter } from '../../data/jax/track'
 import { JAX_DIAGRAMS } from '../../data/jax/diagrams'
 import type { Lab } from '../../data/track'
 
 const INSTRUMENTS: Record<string, { d: string; t: string; p: string }> = {
+  pytrees: {
+    d: 'EX·17',
+    t: 'the flattener',
+    p: 'change the tree and watch the leaves and the treedef move · the rules run exactly here, including None as an empty subtree',
+  },
   jit: {
     d: 'EX·13',
     t: 'the cache key, turned by hand',
@@ -168,7 +174,7 @@ const diagram = slot ? JAX_DIAGRAMS[slot.id] : undefined
           <section class="block" id="instruments">
             <SectionHead id="instruments-head" eyebrow="live" title="Instrument" />
             <Exhibit designator={INSTRUMENTS[chapter.id]!.d} title={INSTRUMENTS[chapter.id]!.t} provenance={INSTRUMENTS[chapter.id]!.p}>
-              <CacheKey client:visible />
+              {chapter.id === 'pytrees' ? <TreeFlattener client:visible /> : <CacheKey client:visible />}
             </Exhibit>
           </section>
         )

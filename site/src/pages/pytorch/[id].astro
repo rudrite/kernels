@@ -9,11 +9,17 @@ import BlockDiagram from '../../components/BlockDiagram.astro'
 import LabCard from '../../components/LabCard.astro'
 import Exhibit from '../../components/Exhibit.astro'
 import StrideExplorer from '../../exhibits/StrideExplorer'
+import TapeWalker from '../../exhibits/TapeWalker'
 import { PT_CHAPTERS, PT_PATH, ptChapterAt, type PtChapter } from '../../data/pytorch/track'
 import { PT_DIAGRAMS } from '../../data/pytorch/diagrams'
 import type { Lab } from '../../data/track'
 
 const INSTRUMENTS: Record<string, { d: string; t: string; p: string }> = {
+  autograd: {
+    d: 'EX·18',
+    t: 'the tape, walked',
+    p: 'four expressions run on torch 2.2.2, their grad_fn chains followed through next_functions · step backward the way backward does',
+  },
   tensors: {
     d: 'EX·14',
     t: 'the view explorer',
@@ -168,7 +174,7 @@ const diagram = slot ? PT_DIAGRAMS[slot.id] : undefined
           <section class="block" id="instruments">
             <SectionHead id="instruments-head" eyebrow="live" title="Instrument" />
             <Exhibit designator={INSTRUMENTS[chapter.id]!.d} title={INSTRUMENTS[chapter.id]!.t} provenance={INSTRUMENTS[chapter.id]!.p}>
-              <StrideExplorer client:visible />
+              {chapter.id === 'autograd' ? <TapeWalker client:visible /> : <StrideExplorer client:visible />}
             </Exhibit>
           </section>
         )
