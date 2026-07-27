@@ -13,16 +13,15 @@ import mistakes from '../../data/xla-mistakes.json'
       <div class="wrap wgrid">
         <span class="wtag">the museum<br />xla wing</span>
         <div>
-          <p class="mono-label serves">serves the xla path · reproduced on 8 host-platform devices (jax 0.4.38, CPU, 2026-07-27), fixes run and proven · <a class="wing-link" href="/mistakes">all wings</a></p>
+          <p class="mono-label serves">serves the xla path · three reproduced on 8 host-platform devices (jax 0.4.38, CPU), one captured on a Colab TPU v6e and labelled where it sits · fixes run and proven · <a class="wing-link" href="/mistakes">all wings</a></p>
           <h1 class="wh1">The partitioner says no, and it means something.</h1>
           <p class="wlede">
-            Three exhibits from the SPMD seam, where your sharding meets the compiler's rules:
-            a spec the shape cannot satisfy, an axis the mesh does not have, and a collective
-            called with no mesh in sight. All three reproduce on a laptop with eight fake host
-            devices. The wing is young on purpose: compile-side failures worth exhibiting (memory
-            exhaustion, layout conflicts) only speak truthfully from a real chip. LAB·X2 on the
-            fusion chapter captures exactly those on a Colab TPU, and its paste-backs become
-            this wing's next exhibits.
+            Three exhibits come from the SPMD seam, where your sharding meets the compiler's
+            rules: a spec the shape cannot satisfy, an axis the mesh does not have, and a
+            collective called with no mesh in sight. All three reproduce on a laptop with eight
+            fake host devices. The fourth could only come from real hardware, and it did: LAB·X2
+            asks a Colab TPU for more HBM than it has, and the refusal arrives with both numbers
+            attached. More of those land here as the lab gets run.
           </p>
         </div>
       </div>

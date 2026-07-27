@@ -22,5 +22,14 @@
     "error": "NameError: unbound axis name: data",
     "fix": "import jax\nimport jax.numpy as jnp\nimport numpy as np\nfrom jax.sharding import Mesh, NamedSharding, PartitionSpec as P\n\nmesh = Mesh(np.array(jax.devices()[:8]).reshape(4, 2), (\"data\", \"model\"))\n\nfrom functools import partial\nfrom jax.experimental.shard_map import shard_map\n\n@partial(shard_map, mesh=mesh, in_specs=P(\"data\", None), out_specs=P())\ndef total(block):\n    return jax.lax.psum(block.sum(), axis_name=\"data\")\n\nout = total(jnp.ones((8, 16)))",
     "why": "psum sums across a named mesh axis, and axis names only exist inside a mapped context: shard_map, pmap, or a mesh-aware jit. On its own the name is unbound. Collectives are kernels over the mesh, not array ops; give them the mesh."
+  },
+  {
+    "id": "hbm-exhausted",
+    "title": "Asking for more HBM than the chip has",
+    "snippet": "BIG = 300000\nhuge = jnp.ones((BIG, BIG), dtype=jnp.float32)\nout = jax.jit(lambda x: x + 1.0)(huge)",
+    "error": "RESOURCE_EXHAUSTED: Ran out of memory on HBM, the total memory required for HLO temporaries (335.31G) exceeds available HBM (31.24G).",
+    "fix": "# size the program to the budget the chip just told you about:\n# 31.24G of HBM, float32 at 4 bytes, and room for more than one temporary\nBIG = 40_000                       # 40000 * 40000 * 4 bytes = 6.4 GB\nhuge = jnp.ones((BIG, BIG), dtype=jnp.float32)\nout = jax.jit(lambda x: x + 1.0)(huge)",
+    "why": "Buffer assignment places every temporary before a single instruction runs, so a program that cannot fit is refused at compile time rather than discovered halfway through. Read the refusal as a measurement: it names what the program asked for and what the chip has, and the ratio between those two numbers is your first estimate of how much smaller the shapes need to be.",
+    "provenance": "captured on a Colab TPU v6e (reported as TPU v6 lite) during LAB\u00b7X2, 2026-07-27; the fix is the same program sized against the budget the error itself reports"
   }
 ]

@@ -83,7 +83,7 @@ export const XLA_CHAPTERS: XlaChapter[] = [
     ],
     "readings": [
       {
-        "label": "PJRT · openxla.org",
+        "label": "PJRT \u00b7 openxla.org",
         "url": "https://openxla.org/xla/pjrt",
         "note": "what PJRT is for, from the source"
       },
@@ -319,6 +319,16 @@ export const XLA_CHAPTERS: XlaChapter[] = [
           "text": "%fused_computation (param_0: f32[64,64], param_1.1: f32[64]) -> f32[64,64] {\n  %param_0 = f32[64,64]{1,0} parameter(0)\n  %param_1.1 = f32[64]{0} parameter(1)\n  %broadcast.3 = f32[64,64]{1,0} broadcast(f32[64]{0} %param_1.1), dimensions={0}, metadata={op_name=\"jit(attend)/jit(main)/div\"}\n  ROOT %divide.0 = f32[64,64]{1,0} divide(f32[64,64]{1,0} %param_0, f32[64,64]{1,0} %broadcast.3), metadata={op_name=\"jit(attend)/jit(main)/div\" source_file=\"attend.py\" source_line=12}\n}",
           "lang": "text"
         }
+      },
+      {
+        "h": "measured: a run that disagreed",
+        "ps": [
+          "The argument above says fusion earns its keep by keeping intermediates out of HBM, and the bench behind this site says so too. Then LAB\u00b7X2 ran on a Colab TPU v6e and reported the opposite. The program was the same attention the chapter has used throughout, `softmax(q k^T / sqrt(d)) v` at `2048` by `128` in bf16, timed as a median of twenty runs in a fresh process each time. With the pipeline untouched it took `187.5` microseconds. With `--xla_disable_hlo_passes=fusion` it took `139.3` microseconds, a ratio of `0.74x`. Turning the fusion pass off made this program faster.",
+          "The honest label for that number is unexplained, and it is published here rather than dropped because a course that only prints its confirmations is not measuring anything. What it does not mean is that fusion stopped keeping intermediates out of memory; the mechanism in the sections above is not in question. What it does mean is that the fusion pass is not the only thing setting this program's cost on this backend.",
+          "There is a thread worth pulling. The kernel path profiled this same attention shape on a TPU and found XLA:TPU pattern-matching it and dispatching its own online-softmax kernel, an op nobody in the program wrote (the timeline sits at `/gym/kernels#timeline`). A backend that recognizes a shape and substitutes its own implementation is a second decision layered on the first, and the two need not agree about what a fused module is worth. Whether that is what happened here is exactly the kind of question the capstone's fusion brief exists to settle: dump both versions, read what each one actually dispatched, and let the modules answer.",
+          ">> A course that only publishes its confirmations is not measuring anything.",
+          "One caveat before anyone quotes the ratio: this is one program, one shape, one chip, one afternoon. Run it on your own assigned chip before you believe it, and write down the disagreement if you find one."
+        ]
       }
     ],
     "readings": [
@@ -646,7 +656,7 @@ export const XLA_CHAPTERS: XlaChapter[] = [
         "note": "the interface, headers first"
       },
       {
-        "label": "PJRT · openxla.org",
+        "label": "PJRT \u00b7 openxla.org",
         "url": "https://openxla.org/xla/pjrt",
         "note": "the layer it abstracts over"
       }
