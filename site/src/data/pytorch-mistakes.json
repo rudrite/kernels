@@ -46,5 +46,32 @@
     "error": "RuntimeError: expected scalar type Long but found Float",
     "fix": "import torch\nfrom torch import nn\n\nlogits = torch.randn(4, 10)\ntargets = torch.tensor([1, 3, 2, 7])  # class indices are int64\nnn.functional.cross_entropy(logits, targets)",
     "why": "`cross_entropy` reads integer targets as class indices and float targets as probability rows, and a float vector of the wrong shape satisfies neither. Class labels travel as int64; the fix is the dtype, not the loss."
+  },
+  {
+    "id": "two-bridges-one-runtime",
+    "title": "Both bridges in one runtime",
+    "snippet": "import torchax\ntorchax.enable_globally()   # torch modes, installed process-wide\n\nimport torch_xla\nmodel = nn.Sequential(nn.Linear(8, 32), nn.ReLU(), nn.Linear(32, 1)).to('xla')\nopt = torch.optim.Adam(model.parameters(), lr=1e-2)\n\nwith torch_xla.step():\n    loss = nn.functional.mse_loss(model(x), y)\n    opt.zero_grad()\n    loss.backward()",
+    "error": "RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn",
+    "fix": "# one bridge per runtime. Take the modes down before switching:\nimport torchax\ntorchax.disable_globally()\n\n# or, the version that always works: a fresh runtime holding only torch_xla\nimport torch_xla\nwith torch_xla.step():\n    loss = nn.functional.mse_loss(model(x), y)\n    opt.zero_grad()\n    loss.backward()   # the graph is there again",
+    "why": "`torchax.enable_globally()` is literal: it installs torch modes for the whole process, and torch_xla claims the same dispatch. With torchax still on, the tensors torch_xla hands to autograd carry no graph, so backward has nothing to walk. The chapter 10 sentence about two bridges is a statement about ownership, and this error is what sharing costs.",
+    "provenance": "captured on a Colab TPU v6e-1 during LAB\u00b7P4, 2026-07-27; the fix ran green on the same hardware"
+  },
+  {
+    "id": "torchax-without-the-extra",
+    "title": "Installing torchax without its extra",
+    "snippet": "!pip install -q torchax\n\nimport torchax   # whatever jax is already here is the jax you get",
+    "error": "ImportError: cannot import name 'mutable_array' from 'jax.experimental'",
+    "fix": "!pip install -q 'torchax[tpu]'   # the extra pulls jax[tpu] and holds jax >= 0.6.2\n\nimport torchax\nfrom jax.experimental import mutable_array   # make the version check explicit",
+    "why": "Bare `torchax` declares no jax dependency at all; the requirement lives in its extras, where the tpu extra asks for `jax[tpu]` and `jax >= 0.6.2`. Install it plain and pip leaves whatever jax the machine already had, which on a TPU VM that another install has moved can be too old to carry the internals torchax imports.",
+    "provenance": "captured on a Colab TPU v6e-1 during LAB\u00b7P4, 2026-07-27; the fix ran green on the same hardware"
+  },
+  {
+    "id": "key-from-another-client",
+    "title": "A random tensor whose key belongs to another client",
+    "snippet": "inputs = torch.randn(4, 8, device='jax')   # torchax's own RNG makes this one",
+    "error": "XlaRuntimeError: INVALID_ARGUMENT: Unable to replace a PyArray with a PyArray from a different client.",
+    "fix": "inputs = torch.randn(4, 8).to('jax')   # build with plain torch, then move",
+    "why": "Creating straight onto the device routes through torchax's RNG, and its jax key belongs to whichever client was live when the key was made. On a machine carrying more than one jax or libtpu, the key and the array end up on different clients and the runtime says so. Building with plain torch and moving with `.to('jax')` never asks the question.",
+    "provenance": "captured on a Colab TPU v6e-1 during LAB\u00b7P4, 2026-07-27; the fix ran green on the same hardware"
   }
 ]

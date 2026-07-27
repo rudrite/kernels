@@ -596,7 +596,7 @@ export const PT_CHAPTERS: PtChapter[] = [
         "h": "two bridges, and an honest gap",
         "ps": [
           "Everything in this path so far runs on whatever device happens to sit under Python: a laptop CPU, the Intel chip this course was written on, maybe a GPU somewhere. None of it runs on a TPU without crossing first, and PyTorch itself does not build that crossing. Two separate projects do, and this chapter is about both of them at once, because knowing only one leaves you unable to read half of what you will find once you go looking.",
-          "Say this plainly, once, because it matters more here than it has anywhere earlier in the path: neither this chapter nor the next ran on a TPU. The machine that wrote this course has no TPU attached to it. Every fact below is checked against the current pytorch/xla repository and its official docs rather than printed from a real run, and the Colab lab pass later in this path is where these same facts turn into your own numbers, measured on real hardware.",
+          "Say this plainly, once, because it matters more here than it has anywhere earlier in the path: neither this chapter nor the next ran on a TPU. The machine that wrote this course has no TPU attached to it. Every fact below is checked against the current pytorch/xla repository and its official docs rather than printed from a real run, and the Colab lab pass later in this path is where these same facts turn into your own numbers, measured on real hardware. That pass has since been run: the numbers it produced live in chapter 12, and the three failures it produced on the way are exhibits in the museum's pytorch wing.",
           "That gap does not make the facts soft, but it does change what fluency looks like for these two chapters. Instead of predicting a printed value, the goal is reading two bridges well enough to know which one a given module would cross, and what is waiting for it on the other side."
         ]
       },
@@ -749,6 +749,15 @@ export const PT_CHAPTERS: PtChapter[] = [
         "h": "the report is part of the work",
         "ps": [
           "Write a half-page provenance report when the run is done, the same habit this whole path has been building one measured number at a time: which chip, which dtype, the shapes you trained at, which bridge and which method you used, and the overlaid curve itself as the proof. A number without that context is not a result. It is a claim nobody else can check, and this path has spent eleven chapters teaching you not to trust those either."
+        ]
+      },
+      {
+        "h": "measured: this capstone, closed once",
+        "ps": [
+          "The site publishes numbers with their provenance, so here is this one. The loop above ran on a Colab TPU v6e-1 through torch_xla, with jax 0.7.2 in the runtime and torch and torch_xla pinned as a matched 2.8.0 pair, two hundred steps of the chapter 4 MLP against `y = x.sum(dim=1)`. It finished at a loss of `0.00370`. The same loop on plain CPU torch 2.2.2, the machine this course was written on, finished at `0.00372`. Same seed, same shapes, two different runtimes, and the answers agree to the fourth decimal.",
+          "The capstone closed on that same runtime. The run checkpointed the whole state at step 99 with a loss of `0.01456`, dropped every reference it had built, rebuilt the model and the optimizer from scratch, restored from the checkpoint, and reported `0.01437` at step 100. That is the proof the bar asks for. A fresh model on this problem starts near `1.0`, so a resumed first loss sitting one ordinary step below the checkpointed one means the optimizer's moments came back with the weights rather than the weights arriving alone.",
+          ">> A resume you have not plotted is a resume you have not proven.",
+          "One caveat the honest version keeps: this run's data is fixed, so nothing in it depended on generator state and the checkpoint carried none. A loop with augmentation or dropout has to put its generator state into the same dictionary before its resume means what this one means."
         ]
       }
     ],
