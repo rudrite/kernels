@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro'
 import Exhibit from '../../components/Exhibit.astro'
 import SpotDecision from '../../exhibits/SpotDecision'
 import NameThePass from '../../exhibits/NameThePass'
+import CountTheFusions from '../../exhibits/CountTheFusions'
 import FusionXray from '../../exhibits/FusionXray'
 import TimelineXray from '../../exhibits/TimelineXray'
 ---
@@ -41,6 +42,15 @@ import TimelineXray from '../../exhibits/TimelineXray'
           <div class="drill-wide">
             <Exhibit designator="GYM·12" title="which pipeline filed this pass?" provenance="17 names read out of two real dumps: this course's CPU compile and a Colab v6e · the shared names are the interesting ones · serves chapters 04 and 05">
               <NameThePass client:visible />
+            </Exhibit>
+          </div>
+        </div>
+      </div>
+    </section>
+
+          <div class="drill-wide">
+            <Exhibit designator="GYM·13" title="count the fusions" provenance="eight programs compiled and counted on jax 0.4.38 CPU · the reveal shows what each fusion actually holds · serves chapter 05">
+              <CountTheFusions client:visible />
             </Exhibit>
           </div>
         </div>

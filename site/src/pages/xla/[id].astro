@@ -8,9 +8,19 @@ import ReadingRails from '../../components/ReadingRails.astro'
 import MasteryWork from '../../components/MasteryWork.astro'
 import BlockDiagram from '../../components/BlockDiagram.astro'
 import LabCard from '../../components/LabCard.astro'
+import Exhibit from '../../components/Exhibit.astro'
+import PipelineStepper from '../../exhibits/PipelineStepper'
 import { XLA_CHAPTERS, XLA_PATH, xlaChapterAt, type XlaChapter } from '../../data/xla/track'
 import { XLA_DIAGRAMS } from '../../data/xla/diagrams'
 import type { Lab } from '../../data/track'
+
+const INSTRUMENTS: Record<string, { d: string; t: string; p: string }> = {
+  pipeline: {
+    d: 'EX·15',
+    t: 'the pass pipeline, stepped',
+    p: 'twenty steps from one real compile · scrub the pipeline, watch the reruns, and find the watershed',
+  },
+}
 
 const COLAB = 'https://colab.research.google.com/github/rudrite/kernels/blob/main/'
 const lab = (designator: string, title: string, time: string, hardware: string, file: string): Lab => ({
@@ -157,6 +167,17 @@ const diagram = slot ? XLA_DIAGRAMS[slot.id] : undefined
                 <LabCard lab={l} />
               ))}
             </div>
+          </section>
+        )
+      }
+
+      {
+        INSTRUMENTS[chapter.id] && (
+          <section class="block" id="instruments">
+            <SectionHead id="instruments-head" eyebrow="live" title="Instrument" />
+            <Exhibit designator={INSTRUMENTS[chapter.id]!.d} title={INSTRUMENTS[chapter.id]!.t} provenance={INSTRUMENTS[chapter.id]!.p}>
+              <PipelineStepper client:visible />
+            </Exhibit>
           </section>
         )
       }

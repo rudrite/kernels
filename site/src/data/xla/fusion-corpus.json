@@ -1,0 +1,97 @@
+{
+ "jax": "0.4.38",
+ "backend": "cpu",
+ "items": [
+  {
+   "title": "one elementwise op",
+   "code": "y = jnp.exp(x)",
+   "fusions": 0,
+   "bodies": [],
+   "why": "a single op has nothing to merge with, so no fusion computation appears at all"
+  },
+  {
+   "title": "a chain of three elementwise ops",
+   "code": "y = jnp.tanh(jnp.exp(x) + 1.0)",
+   "fusions": 1,
+   "bodies": [
+    [
+     "exponential",
+     "broadcast",
+     "add",
+     "tanh"
+    ]
+   ],
+   "why": "the whole chain collapses into one pass over the data, which is the argument for fusion in one line"
+  },
+  {
+   "title": "a row broadcast and a multiply",
+   "code": "y = x * v[None, :]",
+   "fusions": 1,
+   "bodies": [
+    [
+     "broadcast",
+     "multiply"
+    ]
+   ],
+   "why": "the broadcast never materializes: it is computed inside the same loop as the multiply"
+  },
+  {
+   "title": "a reduction then elementwise",
+   "code": "y = jnp.sqrt(jnp.sum(x, axis=1))",
+   "fusions": 1,
+   "bodies": [
+    [
+     "reduce",
+     "sqrt"
+    ]
+   ],
+   "why": "the elementwise consumer rides along inside the reduction's own pass"
+  },
+  {
+   "title": "a matmul on its own",
+   "code": "y = x @ x",
+   "fusions": 0,
+   "bodies": [],
+   "why": "a dot is not a loop fusion candidate here; it is emitted as its own operation"
+  },
+  {
+   "title": "a matmul then elementwise",
+   "code": "y = jnp.tanh(x @ x)",
+   "fusions": 0,
+   "bodies": [],
+   "why": "the tanh cannot join the dot on this backend, and alone it is not worth a fusion computation either"
+  },
+  {
+   "title": "softmax over rows",
+   "code": "y = jax.nn.softmax(x, axis=1)",
+   "fusions": 2,
+   "bodies": [
+    [
+     "broadcast",
+     "divide"
+    ],
+    [
+     "broadcast",
+     "maximum",
+     "broadcast",
+     "subtract",
+     "exponential"
+    ]
+   ],
+   "why": "two passes, split by the reductions between them: the max-and-exponentiate pass and the divide pass. This split is the multi-pass shape the kernel path removes with a theorem"
+  },
+  {
+   "title": "two independent chains, added",
+   "code": "y = jnp.sin(x) + jnp.cos(x)",
+   "fusions": 1,
+   "bodies": [
+    [
+     "sine",
+     "cosine",
+     "add"
+    ]
+   ],
+   "why": "both chains and the add share a single pass, since each element's work is independent"
+  }
+ ]
+}

@@ -972,6 +972,16 @@ export const XLA_MASTERY: Record<string, WorkItem[]> = {
           "LAB\u00b7X2"
         ]
       }
+    },
+    {
+      "id": "countfusions",
+      "label": "count the fusions: streak of 5",
+      "href": "/gym/xla#drills",
+      "auto": {
+        "type": "streak",
+        "key": "gym.fusioncount.streak",
+        "goal": 5
+      }
     }
   ],
   "xla:layout-memory": [

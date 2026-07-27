@@ -1,0 +1,127 @@
+{
+ "jax": "0.4.38",
+ "backend": "cpu",
+ "program": "attention 64x64",
+ "steps": [
+  {
+   "n": 0,
+   "pipeline": "sharding-removal",
+   "after": "pipeline-start",
+   "before": "sharding-remover"
+  },
+  {
+   "n": 1,
+   "pipeline": "SubbytePacker_pipeline",
+   "after": "pipeline-start",
+   "before": "sub-byte-size-setter"
+  },
+  {
+   "n": 2,
+   "pipeline": "HLO_passes_through_layout_assignment",
+   "after": "pipeline-start",
+   "before": "gather_scatter_normalizer"
+  },
+  {
+   "n": 3,
+   "pipeline": "simplification",
+   "after": "pipeline-start",
+   "before": "algsimp"
+  },
+  {
+   "n": 4,
+   "pipeline": "simplification",
+   "after": "algsimp",
+   "before": "simplify-sorts"
+  },
+  {
+   "n": 5,
+   "pipeline": "simplification",
+   "after": "tree_reduction_rewriter",
+   "before": "zero_sized_hlo_elimination"
+  },
+  {
+   "n": 6,
+   "pipeline": "simplification",
+   "after": "pipeline-start",
+   "before": "algsimp"
+  },
+  {
+   "n": 7,
+   "pipeline": "simplification",
+   "after": "algsimp",
+   "before": "simplify-sorts"
+  },
+  {
+   "n": 8,
+   "pipeline": "simplification",
+   "after": "pipeline-start",
+   "before": "algsimp"
+  },
+  {
+   "n": 9,
+   "pipeline": "HLO_passes_through_layout_assignment",
+   "after": "simplification",
+   "before": "bitcast_dtypes_expander"
+  },
+  {
+   "n": 10,
+   "pipeline": "HLO_passes_through_layout_assignment",
+   "after": "transpose-folding",
+   "before": "cse"
+  },
+  {
+   "n": 11,
+   "pipeline": "HLO_passes_through_layout_assignment",
+   "after": "cse",
+   "before": "cse_barrier_expander"
+  },
+  {
+   "n": 12,
+   "pipeline": "HLO_passes_through_layout_assignment",
+   "after": "flatten-call-graph",
+   "before": "layout-assignment"
+  },
+  {
+   "n": 13,
+   "pipeline": "HLO_passes_through_layout_assignment",
+   "after": "layout-assignment",
+   "before": "sub-byte-size-setter"
+  },
+  {
+   "n": 14,
+   "pipeline": "hlo_normalization",
+   "after": "pipeline-start",
+   "before": "reshape-decomposer"
+  },
+  {
+   "n": 15,
+   "pipeline": "HLO_passes_after_layout_assignment",
+   "after": "pipeline-start",
+   "before": "after_layout_assignment"
+  },
+  {
+   "n": 16,
+   "pipeline": "after_layout_assignment",
+   "after": "pipeline-start",
+   "before": "pipeline-end"
+  },
+  {
+   "n": 17,
+   "pipeline": "HLO_passes_after_layout_assignment",
+   "after": "fusion",
+   "before": "simplification_after_layout_assignment"
+  },
+  {
+   "n": 18,
+   "pipeline": "simplification_after_layout_assignment",
+   "after": "pipeline-start",
+   "before": "algsimp"
+  },
+  {
+   "n": 22,
+   "pipeline": "HLO_passes_after_layout_assignment",
+   "after": "copy-insertion",
+   "before": "dce"
+  }
+ ]
+}
