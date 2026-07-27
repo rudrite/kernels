@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro'
 import kernelMistakes from '../../data/mistakes.json'
 import jaxMistakes from '../../data/jax-mistakes.json'
 import xlaMistakes from '../../data/xla-mistakes.json'
+import pytorchMistakes from '../../data/pytorch-mistakes.json'
 
 const WINGS = [
   {
@@ -28,6 +29,14 @@ const WINGS = [
     d: 'Where shardings meet the partitioner: uneven specs, unbound axes, collectives without a mesh.',
     count: xlaMistakes.length,
     provenance: '8 host devices · CPU',
+  },
+  {
+    href: '/mistakes/pytorch',
+    k: 'pytorch wing',
+    t: 'The tape defends itself',
+    d: 'Leaves mutated mid-graph, saved tensors rewritten, graphs walked twice, and the shape and dtype classics.',
+    count: pytorchMistakes.length,
+    provenance: 'torch 2.2.2 · CPU',
   },
 ]
 ---
@@ -59,12 +68,6 @@ const WINGS = [
                 </a>
               ))
             }
-            <div class="wing panel reserved" aria-disabled="true">
-              <span class="mono-label wk">pytorch wing</span>
-              <span class="wt">Reserved</span>
-              <span class="wd">Opens with the PyTorch mastery path.</span>
-              <span class="wm">not yet collecting</span>
-            </div>
           </div>
         </div>
       </div>

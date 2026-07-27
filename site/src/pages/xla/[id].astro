@@ -23,7 +23,13 @@ const { prev, next } = xlaChapterAt(key)
 const pad = (n: number) => String(n).padStart(2, '0')
 const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 const partLabel = chapter.part === 'i' ? 'part i, the compiler' : 'part ii, the runtime'
-const diagram = chapter.diagram ? XLA_DIAGRAMS[chapter.diagram.id] : undefined
+// Presentation-owned diagram slots for chapters whose data carries none.
+const EXTRA_DIAGRAMS: Record<string, { id: string; after: number }> = {
+  'layout-memory': { id: 'xla-layout', after: 0 },
+  collectives: { id: 'xla-collective-async', after: 1 },
+}
+const slot = chapter.diagram ?? EXTRA_DIAGRAMS[chapter.id]
+const diagram = slot ? XLA_DIAGRAMS[slot.id] : undefined
 ---
 
 <Base
@@ -93,7 +99,7 @@ const diagram = chapter.diagram ? XLA_DIAGRAMS[chapter.diagram.id] : undefined
                 </div>
               </figure>
             )}
-            {diagram && chapter.diagram!.after === si && (
+            {diagram && slot!.after === si && (
               <figure class="panel codefig">
                 <figcaption class="provenance top">{diagram.caption}</figcaption>
                 <BlockDiagram spec={diagram} />

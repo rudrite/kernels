@@ -5,8 +5,10 @@ import { LAYER_DOCS } from '../data/layers'
 import { STAGES } from '../data/track'
 import { JAX_CHAPTERS } from '../data/jax/track'
 import { XLA_CHAPTERS } from '../data/xla/track'
+import { PT_CHAPTERS } from '../data/pytorch/track'
 import jaxMistakes from '../data/jax-mistakes.json'
 import xlaMistakes from '../data/xla-mistakes.json'
+import pytorchMistakes from '../data/pytorch-mistakes.json'
 import mistakes from '../data/mistakes.json'
 import opCards from '../data/op-cards.json'
 
@@ -109,9 +111,18 @@ const xlaChapters: SearchEntry[] = XLA_CHAPTERS.map((c) => ({
   keywords: `xla ${c.lede}`,
 }))
 
+const ptChapters: SearchEntry[] = PT_CHAPTERS.map((c) => ({
+  kind: 'chapter',
+  title: `pt ${pad(c.num)} · ${c.title}`,
+  href: `/pytorch/${c.id}`,
+  hint: c.part === 'i' ? 'pytorch path · part i, the model' : 'pytorch path · part ii, the practice',
+  keywords: `pytorch torch ${c.lede}`,
+}))
+
 const newWingMistakes: SearchEntry[] = [
   ...(jaxMistakes as { id: string; title: string }[]).map((m) => ({ wing: 'jax', m })),
   ...(xlaMistakes as { id: string; title: string }[]).map((m) => ({ wing: 'xla', m })),
+  ...(pytorchMistakes as { id: string; title: string }[]).map((m) => ({ wing: 'pytorch', m })),
 ].map(({ wing, m }) => ({
   kind: 'mistake' as const,
   title: `mistake · ${m.title}`,
@@ -124,14 +135,17 @@ const pages: SearchEntry[] = [
   { t: 'the path', h: '/', k: 'home chapters map kernels' },
   { t: 'the jax path', h: '/jax', k: 'jax mastery course transformations' },
   { t: 'the xla path', h: '/xla', k: 'xla mastery course compiler pjrt ifrt pathways' },
+  { t: 'the pytorch path', h: '/pytorch', k: 'pytorch mastery course torch tpu torchax' },
   { t: 'the gym', h: '/gym', k: 'drills corpus reference floors' },
   { t: 'the gym · kernels floor', h: '/gym/kernels', k: 'drills corpus ops mosaic' },
   { t: 'the gym · jax floor', h: '/gym/jax', k: 'shape oracle transform corpus x-ray' },
   { t: 'the gym · xla floor', h: '/gym/xla', k: 'spot decision fusion timeline profile' },
+  { t: 'the gym · pytorch floor', h: '/gym/pytorch', k: 'stride oracle views contiguity' },
   { t: 'the mistake museum', h: '/mistakes', k: 'errors failures wings' },
   { t: 'the museum · kernels wing', h: '/mistakes/kernels', k: 'pallas errors failures' },
   { t: 'the museum · jax wing', h: '/mistakes/jax', k: 'jax errors tracer immutable' },
   { t: 'the museum · xla wing', h: '/mistakes/xla', k: 'sharding spmd mesh errors' },
+  { t: 'the museum · pytorch wing', h: '/mistakes/pytorch', k: 'torch autograd inplace errors' },
   { t: 'the bench', h: '/bench', k: 'numbers provenance records compare' },
 ].map((x) => ({ kind: 'page' as const, title: x.t, href: x.h, hint: 'page', keywords: x.k }))
 
@@ -139,6 +153,7 @@ export const SEARCH_INDEX: SearchEntry[] = [
   ...chapters,
   ...jaxChapters,
   ...xlaChapters,
+  ...ptChapters,
   ...newWingMistakes,
   ...instruments,
   ...labs,

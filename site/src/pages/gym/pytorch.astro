@@ -1,0 +1,51 @@
+---
+import Base from '../../layouts/Base.astro'
+import Exhibit from '../../components/Exhibit.astro'
+import StrideOracle from '../../exhibits/StrideOracle'
+---
+
+<Base
+  title="The reading gym · the PyTorch floor — Rudrite Kernels"
+  description="The PyTorch path's stations: the stride oracle, a drill over view chains run on real torch, predicting shape, stride, and contiguity before the reveal."
+>
+  <div class="ws-ground">
+    <section class="wband">
+      <div class="wrap wgrid">
+        <span class="wtag">the gym<br />pytorch floor</span>
+        <div>
+          <p class="mono-label serves">serves pytorch-path chapter 01 · streaks check themselves off · <a class="wing-link" href="/gym">all floors</a></p>
+          <h1 class="wh1">Strides, until they are boring.</h1>
+          <p class="wlede">
+            The tensors chapter claims a tensor is a storage plus a map, and this floor makes you
+            prove it: forty-eight view chains, every answer computed by running the code on real
+            torch (2.2.2, CPU), never invented. Predict the map before the reveal. More stations
+            (guard-or-break, name-the-collective) land with the path's labs.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="wband" id="drills">
+      <div class="wrap wgrid">
+        <span class="wtag">drills</span>
+        <div>
+          <h2 class="wh2">The stride oracle</h2>
+          <div class="drill-wide">
+            <Exhibit designator="GYM·09" title="the stride oracle" provenance="48 view chains executed on torch 2.2.2 · shapes, strides, and contiguity read off the real tensors · streak of 5 is the chapter bar">
+              <StrideOracle client:visible />
+            </Exhibit>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .serves { margin-bottom: 1rem; letter-spacing: 0.04em; }
+  .wing-link { color: var(--copper); text-decoration: none; }
+  .wing-link:hover { text-decoration: underline; }
+  .wh1 + .wlede { margin-top: 1rem; }
+  h2.wh2 { margin-bottom: 1rem; }
+  .drill-wide { margin-top: 1.25rem; }
+</style>

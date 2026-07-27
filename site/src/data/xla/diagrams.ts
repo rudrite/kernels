@@ -49,6 +49,41 @@ export const XLA_DIAGRAMS: Record<string, DiagramSpec> = {
     ],
   },
 
+  'xla-layout': {
+    w: 720,
+    h: 230,
+    alt: 'One shape, two layouts: f32[64,64] with layout {1,0} walks memory row by row with strides (64,1); layout {0,1} walks column by column with strides (1,64); the layout annotation appears on every shape in a dump',
+    caption: 'the {1,0} on every dumped shape is this choice: which dimension walks memory fastest',
+    els: [
+      { k: 'box', x: 40, y: 50, w: 290, h: 80, t: 'f32[64,64]{1,0}', s: 'row-major\nstrides (64, 1)\nlast dim fastest', tone: 'copper' },
+      { k: 'box', x: 390, y: 50, w: 290, h: 80, t: 'f32[64,64]{0,1}', s: 'column-major\nstrides (1, 64)\nfirst dim fastest', tone: 'steel' },
+      { k: 'line', x1: 330, y1: 90, x2: 390, y2: 90, a: 'both', tone: 'mute', dash: true, t: 'a transpose-copy apart', ly: 78 },
+      { k: 'text', x: 360, y: 170, t: 'same values, different memory walks: layout assignment picks per operand,', size: 10 },
+      { k: 'text', x: 360, y: 188, t: 'and conflicts become the copies you see in the dump', size: 10 },
+      { k: 'text', x: 700, y: 222, t: 'the kernel path meets the same idea as the (8, 128) lattice', anchor: 'end', size: 9.5 },
+    ],
+  },
+
+  'xla-collective-async': {
+    w: 720,
+    h: 240,
+    alt: 'Two timelines: in the async version all-reduce-start issues, independent compute runs while the network works, then all-reduce-done collects; in the synchronous version compute waits for the whole collective',
+    caption: 'the start/done pair exists to buy this overlap window; scheduling passes stretch it',
+    els: [
+      { k: 'text', x: 80, y: 34, t: 'async pair', tone: 'copper', size: 11 },
+      { k: 'box', x: 40, y: 44, w: 150, h: 44, t: 'all-reduce-start', tone: 'copper' },
+      { k: 'box', x: 210, y: 44, w: 270, h: 44, t: 'independent compute', s: 'the overlap window', tone: 'steel' },
+      { k: 'box', x: 500, y: 44, w: 150, h: 44, t: 'all-reduce-done', tone: 'copper' },
+      { k: 'line', x1: 115, y1: 88, x2: 115, y2: 112, tone: 'mute', dash: true },
+      { k: 'line', x1: 115, y1: 112, x2: 575, y2: 112, tone: 'mute', dash: true, t: 'the network works underneath', lx: 345, ly: 130 },
+      { k: 'line', x1: 575, y1: 112, x2: 575, y2: 88, a: 'end', tone: 'mute', dash: true },
+      { k: 'text', x: 90, y: 172, t: 'synchronous', tone: 'mute', size: 11 },
+      { k: 'box', x: 40, y: 182, w: 280, h: 40, t: 'all-reduce', s: 'everyone waits', tone: 'mute', dash: true },
+      { k: 'box', x: 340, y: 182, w: 200, h: 40, t: 'compute', s: 'starts late', tone: 'mute', dash: true },
+      { k: 'text', x: 700, y: 234, t: 'exposed communication is the tax; the kernel path measures it from below', anchor: 'end', size: 9.5 },
+    ],
+  },
+
   'xla-runtime-ladder': {
     w: 720,
     h: 280,

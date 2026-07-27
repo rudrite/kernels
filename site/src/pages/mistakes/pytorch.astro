@@ -1,0 +1,36 @@
+---
+import Base from '../../layouts/Base.astro'
+import MistakeExhibits from '../../components/MistakeExhibits.astro'
+import mistakes from '../../data/pytorch-mistakes.json'
+---
+
+<Base
+  title="The mistake museum · the PyTorch wing — Rudrite Kernels"
+  description="Six real PyTorch failures, reproduced and captured on CPU: the failing code, the exact error text, the fix, and the chapter that makes each impossible."
+>
+  <div class="ws-ground">
+    <section class="wband">
+      <div class="wrap wgrid">
+        <span class="wtag">the museum<br />pytorch wing</span>
+        <div>
+          <p class="mono-label serves">serves the pytorch path · every error reproduced on this machine (torch 2.2.2, CPU, 2026-07-27), fixes run and proven · <a class="wing-link" href="/mistakes">all wings</a></p>
+          <h1 class="wh1">The tape objects, in its own words.</h1>
+          <p class="wlede">
+            Six failures from the eager world, most of them autograd defending its tape: leaves
+            mutated mid-graph, saved tensors rewritten, a graph walked twice. The snippet ran and
+            failed; the error is verbatim (paths shortened); the fix ran and passed. The autograd
+            chapter teaches the model that makes every one of these predictable.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <MistakeExhibits entries={mistakes} />
+  </div>
+</Base>
+
+<style>
+  .serves { margin-bottom: 1rem; letter-spacing: 0.04em; }
+  .wing-link { color: var(--copper); text-decoration: none; }
+  .wing-link:hover { text-decoration: underline; }
+</style>

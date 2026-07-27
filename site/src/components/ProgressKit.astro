@@ -6,6 +6,7 @@
 import { PATH } from '../lib/path'
 import { JAX_PATH } from '../data/jax/track'
 import { XLA_PATH } from '../data/xla/track'
+import { PT_PATH } from '../data/pytorch/track'
 import { ALL_MASTERY } from '../data/mastery-index'
 
 // Per-path chapter lists; 'kernels' is the default so every attribute that
@@ -14,6 +15,7 @@ const PATHS = {
   kernels: PATH.map((c) => ({ key: c.key, href: c.href, label: c.title })),
   jax: JAX_PATH.map((c) => ({ key: c.key, href: c.href, label: c.title })),
   xla: XLA_PATH.map((c) => ({ key: c.key, href: c.href, label: c.title })),
+  pytorch: PT_PATH.map((c) => ({ key: c.key, href: c.href, label: c.title })),
 }
 const MASTERY = ALL_MASTERY
 ---
@@ -38,10 +40,11 @@ const MASTERY = ALL_MASTERY
   }
 
   // ---- chapter visit marking ----
-  const m = location.pathname.match(/^\/(l|s|jax|xla)\/([a-z-]+)$/)
+  const m = location.pathname.match(/^\/(l|s|jax|xla|pytorch)\/([a-z-]+)$/)
   const visited = store.get('path.visited', {})
   if (m) {
-    const key = `${m[1]}:${m[2]}`
+    // url segment to store prefix; pytorch chapters store under 'pt:'
+    const key = `${m[1] === 'pytorch' ? 'pt' : m[1]}:${m[2]}`
     if (!visited[key]) {
       visited[key] = new Date().toISOString().slice(0, 10)
       store.set('path.visited', visited)

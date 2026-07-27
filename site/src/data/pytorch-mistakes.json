@@ -1,0 +1,50 @@
+[
+  {
+    "id": "leaf-inplace",
+    "title": "Updating a leaf that autograd is watching",
+    "snippet": "import torch\n\nx = torch.ones(3, requires_grad=True)\nx += 1  # in-place on the leaf the optimizer would own",
+    "error": "RuntimeError: a leaf Variable that requires grad is being used in an in-place operation.",
+    "fix": "import torch\n\nx = torch.ones(3, requires_grad=True)\nwith torch.no_grad():\n    x += 1  # what optimizer.step does under the hood",
+    "why": "A leaf with `requires_grad` is a parameter in autograd's eyes, and mutating it mid-graph would corrupt the tape. Updates belong outside recording, under `torch.no_grad()`; that context is exactly how `optimizer.step` applies yours."
+  },
+  {
+    "id": "version-counter",
+    "title": "Mutating a tensor the backward pass still needs",
+    "snippet": "import torch\n\nx = torch.ones(3, requires_grad=True)\ny = x.exp()\ny += 1  # exp's backward needs y; this rewrites it\ny.sum().backward()",
+    "error": "RuntimeError: one of the variables needed for gradient computation has been modified by an inplace operation: [torch.FloatTensor [3]], which is output 0 of ExpBackward0, is at version 1; expected version 0 instead. Hint: enable anomaly detection to find the operation that failed to compute its gradient, with torch.autograd.set_detect_anomaly(True).",
+    "fix": "import torch\n\nx = torch.ones(3, requires_grad=True)\ny = x.exp()\ny = y + 1  # a new tensor; the saved output survives\ny.sum().backward()",
+    "why": "`exp` saves its output for the backward pass, and the in-place add rewrote that saved tensor. The version counter in the error is autograd noticing. Out-of-place ops leave the saved value alone; reserve in-place mutation for tensors no gradient will revisit."
+  },
+  {
+    "id": "backward-twice",
+    "title": "Backward through a graph that was already freed",
+    "snippet": "import torch\n\nx = torch.ones(3, requires_grad=True)\ny = (x * x).sum()\ny.backward()\ny.backward()  # the tape was freed on the first pass",
+    "error": "RuntimeError: Trying to backward through the graph a second time (or directly access saved tensors after they have already been freed). Saved intermediate values of the graph are freed when you call .backward() or autograd.grad(). Specify retain_graph=True if you need to backward through the graph a second time or if you need to access saved tensors after calling backward.",
+    "fix": "import torch\n\nx = torch.ones(3, requires_grad=True)\ny = (x * x).sum()\ny.backward(retain_graph=True)  # or recompute y; retaining costs memory\ny.backward()",
+    "why": "The tape is consumed by default: backward frees each node's saved tensors as it passes. A second backward finds nothing to walk. `retain_graph=True` keeps the graph alive at the cost of its memory; recomputing the forward is usually the better trade."
+  },
+  {
+    "id": "nonscalar-backward",
+    "title": "backward on a tensor with more than one element",
+    "snippet": "import torch\n\nx = torch.ones(3, requires_grad=True)\n(x * 2).backward()",
+    "error": "RuntimeError: grad can be implicitly created only for scalar outputs",
+    "fix": "import torch\n\nx = torch.ones(3, requires_grad=True)\n(x * 2).sum().backward()  # reduce to a scalar, or pass a gradient argument",
+    "why": "Reverse mode pulls one cotangent backward, so `backward()` with no argument only means something for a scalar. Reduce to a loss, or pass the cotangent explicitly. The JAX wing holds the same lesson wearing `jax.grad`'s error message."
+  },
+  {
+    "id": "linear-shape",
+    "title": "A batch that does not fit the layer",
+    "snippet": "import torch\nfrom torch import nn\n\nlayer = nn.Linear(8, 4)\nlayer(torch.randn(32, 16))  # features axis is 16; the layer expects 8",
+    "error": "RuntimeError: mat1 and mat2 shapes cannot be multiplied (32x16 and 8x4)",
+    "fix": "import torch\nfrom torch import nn\n\nlayer = nn.Linear(16, 4)  # declare the features the data actually has\nlayer(torch.randn(32, 16))",
+    "why": "`nn.Linear(8, 4)` owns an 8 by 4 weight, and the error is the matmul refusing 32x16 against it. Read the two shapes in the message: the second-to-last axis of yours must equal the layer's `in_features`, and one of the two declarations is wrong."
+  },
+  {
+    "id": "crossentropy-dtype",
+    "title": "Class targets handed over as floats",
+    "snippet": "import torch\nfrom torch import nn\n\nlogits = torch.randn(4, 10)\ntargets = torch.tensor([1.0, 3.0, 2.0, 7.0])\nnn.functional.cross_entropy(logits, targets)",
+    "error": "RuntimeError: expected scalar type Long but found Float",
+    "fix": "import torch\nfrom torch import nn\n\nlogits = torch.randn(4, 10)\ntargets = torch.tensor([1, 3, 2, 7])  # class indices are int64\nnn.functional.cross_entropy(logits, targets)",
+    "why": "`cross_entropy` reads integer targets as class indices and float targets as probability rows, and a float vector of the wrong shape satisfies neither. Class labels travel as int64; the fix is the dtype, not the loss."
+  }
+]

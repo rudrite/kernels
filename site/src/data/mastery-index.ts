@@ -4,5 +4,11 @@
 import { MASTERY, type WorkItem } from './mastery'
 import { JAX_MASTERY } from './jax/track'
 import { XLA_MASTERY } from './xla/track'
+import { PT_MASTERY } from './pytorch/track'
 
-export const ALL_MASTERY: Record<string, WorkItem[]> = { ...MASTERY, ...JAX_MASTERY, ...XLA_MASTERY }
+export const ALL_MASTERY: Record<string, WorkItem[]> = {
+  ...MASTERY,
+  ...JAX_MASTERY,
+  ...XLA_MASTERY,
+  ...PT_MASTERY,
+}

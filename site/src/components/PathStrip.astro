@@ -7,6 +7,7 @@
 import { PATH } from '../lib/path'
 import { JAX_PATH } from '../data/jax/track'
 import { XLA_PATH } from '../data/xla/track'
+import { PT_PATH } from '../data/pytorch/track'
 
 // build format 'file' can surface index pages as /jax.html at render time.
 // Workshop sub-pages (/gym/jax, /mistakes/xla, ...) carry their path's strip.
@@ -18,7 +19,9 @@ const strip =
     ? { id: 'jax', home: '/jax', label: 'the jax path', chapters: JAX_PATH, breakAt: 9 }
     : pathId === 'xla'
       ? { id: 'xla', home: '/xla', label: 'the xla path', chapters: XLA_PATH, breakAt: 11 }
-      : { id: 'kernels', home: '/', label: 'the path', chapters: PATH, breakAt: 10 }
+      : pathId === 'pytorch'
+        ? { id: 'pytorch', home: '/pytorch', label: 'the pytorch path', chapters: PT_PATH, breakAt: 8 }
+        : { id: 'kernels', home: '/', label: 'the path', chapters: PATH, breakAt: 10 }
 const scoped = strip.id === 'kernels' ? '' : strip.id
 ---
 

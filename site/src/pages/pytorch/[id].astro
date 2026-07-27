@@ -6,53 +6,46 @@ import SectionHead from '../../components/SectionHead.astro'
 import ReadingRails from '../../components/ReadingRails.astro'
 import MasteryWork from '../../components/MasteryWork.astro'
 import BlockDiagram from '../../components/BlockDiagram.astro'
-import { JAX_CHAPTERS, JAX_PATH, jaxChapterAt, type JaxChapter } from '../../data/jax/track'
-import { JAX_DIAGRAMS } from '../../data/jax/diagrams'
+import { PT_CHAPTERS, PT_PATH, ptChapterAt, type PtChapter } from '../../data/pytorch/track'
+import { PT_DIAGRAMS } from '../../data/pytorch/diagrams'
 
 export function getStaticPaths() {
-  return JAX_CHAPTERS.map((chapter) => ({ params: { id: chapter.id }, props: { chapter } }))
+  return PT_CHAPTERS.map((chapter) => ({ params: { id: chapter.id }, props: { chapter } }))
 }
 
 interface Props {
-  chapter: JaxChapter
+  chapter: PtChapter
 }
 const { chapter } = Astro.props
-const key = `jax:${chapter.id}`
-const { prev, next } = jaxChapterAt(key)
+const key = `pt:${chapter.id}`
+const { prev, next } = ptChapterAt(key)
 const pad = (n: number) => String(n).padStart(2, '0')
 const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 const partLabel = chapter.part === 'i' ? 'part i, the model' : 'part ii, the practice'
-// Presentation-owned diagram slots for chapters whose data carries none.
-const EXTRA_DIAGRAMS: Record<string, { id: string; after: number }> = {
-  'control-flow': { id: 'jax-scan', after: 2 },
-  pytrees: { id: 'jax-pytree', after: 0 },
-  random: { id: 'jax-keys', after: 1 },
-}
-const slot = chapter.diagram ?? EXTRA_DIAGRAMS[chapter.id]
-const diagram = slot ? JAX_DIAGRAMS[slot.id] : undefined
+const diagram = chapter.diagram ? PT_DIAGRAMS[chapter.diagram.id] : undefined
 ---
 
 <Base
-  title={`${chapter.title} — the JAX path — Rudrite Kernels`}
+  title={`${chapter.title} — the PyTorch path — Rudrite Kernels`}
   description={chapter.lede}
 >
   <section class="chapter-head">
     <div class="wrap">
-      <p class="mono-label kicker">the jax path · chapter {pad(chapter.num)} of {JAX_PATH.length} · {partLabel}</p>
+      <p class="mono-label kicker">the pytorch path · chapter {pad(chapter.num)} of {PT_PATH.length} · {partLabel}</p>
       <h1>{chapter.title}</h1>
-      <p class="lede"><Rich text={chapter.lede} self={`/jax/${chapter.id}`} /></p>
-      <p class="goal"><span class="mono-label">the goal</span> <Rich text={chapter.goal} self={`/jax/${chapter.id}`} /></p>
+      <p class="lede"><Rich text={chapter.lede} self={`/pytorch/${chapter.id}`} /></p>
+      <p class="goal"><span class="mono-label">the goal</span> <Rich text={chapter.goal} self={`/pytorch/${chapter.id}`} /></p>
     </div>
   </section>
 
   <div class="wrap layout">
     <aside class="side">
-      <nav class="pathmap" aria-label="The JAX path">
-        <span class="mono-label toc-head">the jax path</span>
+      <nav class="pathmap" aria-label="The PyTorch path">
+        <span class="mono-label toc-head">the pytorch path</span>
         <ol>
           {
-            JAX_PATH.map((c) => (
-              <li class={`${c.num === 9 ? 'part-break' : ''} ${c.key === key ? 'here' : ''}`}>
+            PT_PATH.map((c) => (
+              <li class={`${c.num === 8 ? 'part-break' : ''} ${c.key === key ? 'here' : ''}`}>
                 <a href={c.href} data-chapter-key={c.key}>
                   <span class="pm-num">{pad(c.num)}</span>
                   <span class="pm-title">{c.title}</span>
@@ -83,7 +76,7 @@ const diagram = slot ? JAX_DIAGRAMS[slot.id] : undefined
                 <blockquote class="pull">{p.slice(3)}</blockquote>
               ) : (
                 <p class="theory">
-                  <Rich text={p} self={`/jax/${chapter.id}`} />
+                  <Rich text={p} self={`/pytorch/${chapter.id}`} />
                 </p>
               ),
             )}
@@ -91,11 +84,11 @@ const diagram = slot ? JAX_DIAGRAMS[slot.id] : undefined
               <figure class="panel codefig">
                 <figcaption class="provenance top">{sec.code.caption}</figcaption>
                 <div class="codebody">
-                  <Code code={sec.code.text} lang={sec.code.lang ?? 'python'} theme="vesper" />
+                  <Code code={sec.code.text} lang={sec.code.lang === 'text' ? 'txt' : 'python'} theme="vesper" />
                 </div>
               </figure>
             )}
-            {diagram && slot!.after === si && (
+            {diagram && chapter.diagram!.after === si && (
               <figure class="panel codefig">
                 <figcaption class="provenance top">{diagram.caption}</figcaption>
                 <BlockDiagram spec={diagram} />
@@ -119,9 +112,9 @@ const diagram = slot ? JAX_DIAGRAMS[slot.id] : undefined
         </ul>
       </section>
 
-      <nav class="pathpager" aria-label="The JAX path">
+      <nav class="pathpager" aria-label="The PyTorch path">
         <div class="pp-left">
-          {prev ? <a class="pp-prev" href={prev.href}>← ch {pad(prev.num)} · {prev.title}</a> : <a class="pp-prev" href="/jax">← the jax path</a>}
+          {prev ? <a class="pp-prev" href={prev.href}>← ch {pad(prev.num)} · {prev.title}</a> : <a class="pp-prev" href="/pytorch">← the pytorch path</a>}
           <span class="pp-work">this chapter's work · <span data-work-frac={key}>·</span></span>
         </div>
         {
@@ -131,9 +124,9 @@ const diagram = slot ? JAX_DIAGRAMS[slot.id] : undefined
               <span class="pp-t">ch {pad(next.num)} · {next.title} →</span>
             </a>
           ) : (
-            <a class="pp-next" href="/">
-              <span class="pp-k">the jax path ends here</span>
-              <span class="pp-t">descend the kernel path next →</span>
+            <a class="pp-next" href="/xla">
+              <span class="pp-k">the pytorch path ends here</span>
+              <span class="pp-t">the xla path owns the floor below →</span>
             </a>
           )
         }
@@ -150,7 +143,7 @@ const diagram = slot ? JAX_DIAGRAMS[slot.id] : undefined
         <div>
           <span class="rail-head">this chapter</span>
           <div class="card">
-            <div class="row"><span class="k">chapter</span><span>{pad(chapter.num)} of {JAX_PATH.length}</span></div>
+            <div class="row"><span class="k">chapter</span><span>{pad(chapter.num)} of {PT_PATH.length}</span></div>
             <div class="row"><span class="k">part</span><span>{partLabel}</span></div>
             <div class="row"><span class="k">readings</span><span>{chapter.readings.length} assigned</span></div>
           </div>
@@ -158,8 +151,9 @@ const diagram = slot ? JAX_DIAGRAMS[slot.id] : undefined
         <div>
           <span class="rail-head">part of</span>
           <ul>
-            <li><a href="/jax">the jax path · twelve chapters</a></li>
-            <li><a href="/">the kernel path · the layer below</a></li>
+            <li><a href="/pytorch">the pytorch path · twelve chapters</a></li>
+            <li><a href="/xla">the xla path · under the bridges</a></li>
+            <li><a href="/">the kernel path · the floor below</a></li>
           </ul>
         </div>
       </div>
@@ -199,7 +193,7 @@ const diagram = slot ? JAX_DIAGRAMS[slot.id] : undefined
   .pm-num { font-family: var(--mono); font-size: 0.6875rem; color: var(--copper-deep); }
   .pm-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pm-frac { font-family: var(--mono); font-size: 0.625rem; color: var(--ink-mute); }
-  :global(.pathmap a.p-done) .pm-frac, :global(.pathmap [data-chapter-key].p-done) .pm-frac { color: var(--pass); }
+  :global(.pathmap [data-chapter-key].p-done) .pm-frac { color: var(--pass); }
   .toc { margin-top: 1.5rem; }
 
   .codefig { margin: 1.25rem 0 0; }
