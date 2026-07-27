@@ -492,5 +492,18 @@
   "shapes": "256x8 to 32 to 1",
   "date": "2026-07-27",
   "commit": "lab-p4"
+ },
+ {
+  "id": "L-006",
+  "stage": 9,
+  "kernel": "attention 2048x128, tpu_fusion on against off (LAB\u00b7X4)",
+  "metric": "six alternating pairs, median of 20 each, ranges reported",
+  "value": "153.4 \u00b5s fused vs 165.5 \u00b5s unfused; ranges overlap",
+  "baseline": "inconclusive: the gap is smaller than the harness resolves",
+  "chip": "v6e (Colab)",
+  "dtype": "bf16",
+  "shapes": "2048x128",
+  "date": "2026-07-27",
+  "commit": "lab-x4"
  }
 ]
