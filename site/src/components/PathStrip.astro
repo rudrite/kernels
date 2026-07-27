@@ -1,22 +1,29 @@
 ---
-// The path, always in reach: fifteen ticks, the live mastery fraction, and
-// the continue pointer, on every page. ProgressKit paints all of it through
-// the same data attributes the home page uses; without JS the strip still
-// renders as a static map of the path.
+// The current path, always in reach: its ticks, the live mastery fraction,
+// and the continue pointer, on every page. On /jax/* the strip is the JAX
+// path; everywhere else it is the kernel track. ProgressKit paints all of it
+// through the same data attributes the home pages use; without JS the strip
+// still renders as a static map of the path.
 import { PATH } from '../lib/path'
+import { JAX_PATH } from '../data/jax/track'
 
-const current = Astro.url.pathname
+// build format 'file' can surface this page as /jax.html at render time
+const current = Astro.url.pathname.replace(/\.html$/, '').replace(/\/+$/, '') || '/'
+const onJax = current === '/jax' || current.startsWith('/jax/')
+const strip = onJax
+  ? { id: 'jax', home: '/jax', label: 'the jax path', chapters: JAX_PATH, breakAt: 9 }
+  : { id: 'kernels', home: '/', label: 'the path', chapters: PATH, breakAt: 10 }
 ---
 
 <div class="path-strip">
   <div class="wrap strip-row">
-    <a href="/" class="mono-label strip-label">
-      the path · <span data-path-progress>0/{PATH.length}</span>
+    <a href={strip.home} class="mono-label strip-label">
+      {strip.label} · <span data-path-progress={onJax ? 'jax' : ''}>0/{strip.chapters.length}</span>
     </a>
     <ol class="ticks" aria-label="Chapters">
       {
-        PATH.map((c) => (
-          <li class={c.part === 'ii' && c.num === 10 ? 'part-break' : ''}>
+        strip.chapters.map((c) => (
+          <li class={c.part === 'ii' && c.num === strip.breakAt ? 'part-break' : ''}>
             <a
               href={c.href}
               data-chapter-key={c.key}
@@ -28,7 +35,7 @@ const current = Astro.url.pathname
         ))
       }
     </ol>
-    <a class="mono-label strip-continue" data-continue href="/">
+    <a class="mono-label strip-continue" data-continue={onJax ? 'jax' : ''} href={strip.home}>
       <span data-continue-label>start the path</span>
     </a>
   </div>

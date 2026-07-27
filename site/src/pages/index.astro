@@ -102,6 +102,29 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
     </div>
   </section>
 
+  <section class="wrap paths" aria-label="The mastery paths">
+    <div class="paths-row">
+      <div class="path-card here">
+        <span class="mono-label pc-k">path 01 · you are on it</span>
+        <span class="pc-t">TPU kernels</span>
+        <span class="pc-d">fifteen chapters down the stack · gates measured on real hardware</span>
+        <span class="pc-m meas"><span data-path-progress>0/15</span> chapters · descends below ↓</span>
+      </div>
+      <a class="path-card" href="/jax">
+        <span class="mono-label pc-k">path 02 · open</span>
+        <span class="pc-t">JAX mastery</span>
+        <span class="pc-d">twelve chapters across the language · a strict superset of the official tutorials</span>
+        <span class="pc-m meas"><span data-path-progress="jax">0/12</span> chapters · enter the path →</span>
+      </a>
+      <div class="path-card reserved" aria-disabled="true">
+        <span class="mono-label pc-k">path 03 · reserved</span>
+        <span class="pc-t">PyTorch mastery</span>
+        <span class="pc-d">in design · lands after the JAX path's gym and labs</span>
+        <span class="pc-m meas">not yet open</span>
+      </div>
+    </div>
+  </section>
+
   <div class="descent-cue wrap">
     <span class="mono-label">↓ the descent · nine layers · six stages pinned along the way</span>
   </div>
@@ -237,6 +260,21 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
   .outcome-strip { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.875rem; }
   .outcome-strip .onum { color: var(--copper-deep); font-size: 0.75rem; }
   .outcome-strip .op { color: var(--ink-mute); }
+
+  /* the paths: the course family, one card each */
+  .paths { padding-block: 0.5rem 0.25rem; }
+  .paths-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; border-top: 1px solid var(--rule); padding-top: 1.25rem; }
+  @media (max-width: 960px) { .paths-row { grid-template-columns: 1fr; } }
+  .path-card { display: flex; flex-direction: column; gap: 0.375rem; border: 1px solid var(--rule); background: var(--paper-high); border-radius: 2px; padding: 0.875rem 1rem; text-decoration: none; color: inherit; }
+  .path-card.here { border-left: 3px solid var(--copper-deep); }
+  a.path-card:hover { border-color: var(--copper-deep); }
+  a.path-card:hover .pc-t { color: var(--copper-deep); }
+  .path-card.reserved { border-style: dashed; }
+  .path-card.reserved .pc-t, .path-card.reserved .pc-d { color: var(--ink-mute); }
+  .pc-k { color: var(--copper-deep); }
+  .pc-t { font-family: var(--serif); font-weight: 600; font-size: 1.25rem; }
+  .pc-d { font-size: 0.875rem; color: var(--ink-mute); }
+  .pc-m { font-family: var(--mono); font-size: 0.75rem; color: var(--ink-mute); margin-top: 0.25rem; }
 
   .descent-cue { padding-block: 1.25rem 0.75rem; }
 

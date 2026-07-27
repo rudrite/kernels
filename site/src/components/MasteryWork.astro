@@ -3,13 +3,13 @@
 // chapter asks of the reader. Manual items toggle by click; drill, lab, and
 // checklist items complete themselves from their own stores (ProgressKit
 // owns the wiring). This panel is the course; the prose serves it.
-import { MASTERY } from '../data/mastery'
+import { ALL_MASTERY } from '../data/mastery-index'
 
 interface Props {
   chapterKey: string
 }
 const { chapterKey } = Astro.props
-const items = MASTERY[chapterKey] ?? []
+const items = ALL_MASTERY[chapterKey] ?? []
 ---
 
 {

@@ -4,12 +4,19 @@
 // checklists), visited chapters, and the continue pointer. Pages opt in by
 // rendering the data attributes; without JS the decorations stay absent.
 import { PATH } from '../lib/path'
-import { MASTERY } from '../data/mastery'
+import { JAX_PATH } from '../data/jax/track'
+import { ALL_MASTERY } from '../data/mastery-index'
 
-const CHAPTERS = PATH.map((c) => ({ key: c.key, href: c.href, label: c.title }))
+// Per-path chapter lists; 'kernels' is the default so every attribute that
+// predates the second path keeps its meaning unchanged.
+const PATHS = {
+  kernels: PATH.map((c) => ({ key: c.key, href: c.href, label: c.title })),
+  jax: JAX_PATH.map((c) => ({ key: c.key, href: c.href, label: c.title })),
+}
+const MASTERY = ALL_MASTERY
 ---
 
-<script is:inline define:vars={{ CHAPTERS, MASTERY }}>
+<script is:inline define:vars={{ PATHS, MASTERY }}>
   const store = {
     get(key, fallback) {
       try {
@@ -29,7 +36,7 @@ const CHAPTERS = PATH.map((c) => ({ key: c.key, href: c.href, label: c.title }))
   }
 
   // ---- chapter visit marking ----
-  const m = location.pathname.match(/^\/(l|s)\/([a-z-]+)$/)
+  const m = location.pathname.match(/^\/(l|s|jax)\/([a-z-]+)$/)
   const visited = store.get('path.visited', {})
   if (m) {
     const key = `${m[1]}:${m[2]}`
@@ -88,20 +95,26 @@ const CHAPTERS = PATH.map((c) => ({ key: c.key, href: c.href, label: c.title }))
     for (const el of document.querySelectorAll('[data-chapter-key]')) {
       el.classList.toggle('p-done', complete(el.getAttribute('data-chapter-key')))
     }
-    // overall progress
-    const doneCount = CHAPTERS.filter((c) => complete(c.key)).length
+    // overall progress, per path: the attribute value names the path and
+    // the empty value stays the kernel track
+    const chaptersOf = (el, attr) => PATHS[el.getAttribute(attr) || 'kernels'] ?? PATHS.kernels
     for (const el of document.querySelectorAll('[data-path-progress]')) {
-      el.textContent = `${doneCount}/${CHAPTERS.length}`
+      const chapters = chaptersOf(el, 'data-path-progress')
+      el.textContent = `${chapters.filter((c) => complete(c.key)).length}/${chapters.length}`
     }
     for (const el of document.querySelectorAll('[data-path-progress-bar]')) {
-      el.style.width = `${Math.round((doneCount / CHAPTERS.length) * 100)}%`
+      const chapters = chaptersOf(el, 'data-path-progress-bar')
+      const done = chapters.filter((c) => complete(c.key)).length
+      el.style.width = `${Math.round((done / chapters.length) * 100)}%`
     }
-    // continue: the first chapter whose mastery work is not finished
-    const nextChapter = CHAPTERS.find((c) => !complete(c.key)) ?? CHAPTERS[0]
+    // continue: the first chapter of that path whose mastery work is not finished
     for (const el of document.querySelectorAll('[data-continue]')) {
+      const chapters = chaptersOf(el, 'data-continue')
+      const done = chapters.filter((c) => complete(c.key)).length
+      const nextChapter = chapters.find((c) => !complete(c.key)) ?? chapters[0]
       el.setAttribute('href', nextChapter.href)
       const label = el.querySelector('[data-continue-label]')
-      if (label) label.textContent = doneCount === 0 ? `start the path → ${nextChapter.label}` : `continue → ${nextChapter.label}`
+      if (label) label.textContent = done === 0 ? `start the path → ${nextChapter.label}` : `continue → ${nextChapter.label}`
     }
     // per-stage cards
     for (const el of document.querySelectorAll('[data-sp-checklist]')) {

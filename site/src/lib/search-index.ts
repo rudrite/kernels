@@ -3,6 +3,7 @@
 import { PATH } from './path'
 import { LAYER_DOCS } from '../data/layers'
 import { STAGES } from '../data/track'
+import { JAX_CHAPTERS } from '../data/jax/track'
 import mistakes from '../data/mistakes.json'
 import opCards from '../data/op-cards.json'
 
@@ -89,8 +90,17 @@ const ops: SearchEntry[] = Object.keys(opCards as Record<string, string>).map((o
   keywords: 'primitive op card',
 }))
 
+const jaxChapters: SearchEntry[] = JAX_CHAPTERS.map((c) => ({
+  kind: 'chapter',
+  title: `jax ${pad(c.num)} · ${c.title}`,
+  href: `/jax/${c.id}`,
+  hint: c.part === 'i' ? 'jax path · part i, the model' : 'jax path · part ii, the practice',
+  keywords: `jax ${c.lede}`,
+}))
+
 const pages: SearchEntry[] = [
   { t: 'the path', h: '/', k: 'home chapters map' },
+  { t: 'the jax path', h: '/jax', k: 'jax mastery course transformations' },
   { t: 'the gym', h: '/gym', k: 'drills corpus reference' },
   { t: 'the mistake museum', h: '/mistakes', k: 'errors failures' },
   { t: 'the bench', h: '/bench', k: 'numbers provenance records compare' },
@@ -98,6 +108,7 @@ const pages: SearchEntry[] = [
 
 export const SEARCH_INDEX: SearchEntry[] = [
   ...chapters,
+  ...jaxChapters,
   ...instruments,
   ...labs,
   ...walks,
