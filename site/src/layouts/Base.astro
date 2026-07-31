@@ -94,9 +94,12 @@ const ogImage = new URL(`/og/${ogSlug}.png`, Astro.site)
   @media (max-width: 700px) {
     .lk-desktop { display: none; }
     .lk-mobile { display: inline; }
+    .bar { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+    nav { gap: 0.25rem 1rem; }
+    .search-btn { margin-right: 0.25rem; }
   }
-  nav { display: flex; gap: 1.5rem; align-items: center; }
-  nav a { text-decoration: none; color: var(--ink-mute); }
+  nav { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; }
+  nav a { text-decoration: none; color: var(--ink-mute); padding-block: 0.35rem; }
   nav a:hover { color: var(--copper-deep); }
   .search-btn { background: var(--paper); border: 1px solid var(--rule); border-radius: 2px; padding: 0.3rem 0.6rem; color: var(--ink-mute); cursor: pointer; display: inline-flex; gap: 0.5rem; align-items: center; }
   .search-btn:hover { border-color: var(--copper-deep); color: var(--copper-deep); }

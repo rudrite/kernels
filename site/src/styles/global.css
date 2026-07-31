@@ -119,6 +119,8 @@ a:hover { color: var(--copper-deep); }
 
 /* layout helpers */
 .wrap { max-width: 76rem; margin-inline: auto; padding-inline: var(--pad); }
+/* wide content scrolls inside its own box; the page never scrolls sideways */
+pre { overflow-x: auto; }
 .prose { max-width: var(--measure); }
 .prose p + p { margin-top: 0.9em; }
 
@@ -207,7 +209,7 @@ main {
 .wband.alt { background: var(--paper-high); }
 .wband-light { border-top: 1px solid var(--rule); }
 .wgrid { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: 2rem; padding-block: 2.5rem; }
-@media (max-width: 860px) { .wgrid { grid-template-columns: 1fr; } }
+@media (max-width: 860px) { .wgrid { grid-template-columns: minmax(0, 1fr); } }
 .wtag { font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.11em; text-transform: uppercase; color: var(--copper-deep); }
 .wh1 { font-family: var(--serif); font-weight: 600; font-size: clamp(1.875rem, 4.5vw, 2.75rem); letter-spacing: -0.01em; line-height: 1.1; }
 .wh2 { font-family: var(--serif); font-weight: 600; font-size: clamp(1.375rem, 2.6vw, 1.75rem); letter-spacing: -0.01em; }

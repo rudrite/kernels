@@ -226,7 +226,7 @@ const CATEGORIES = ['all', 'compute', 'reduction', 'shape', 'control', 'distribu
   h2.wh2 { margin-bottom: 1rem; }
 
   .drill-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; align-items: start; }
-  @media (max-width: 1000px) { .drill-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 1000px) { .drill-grid { grid-template-columns: minmax(0, 1fr); } }
   .drill-wide { margin-top: 1.25rem; }
 
   

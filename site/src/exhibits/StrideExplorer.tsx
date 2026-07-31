@@ -143,7 +143,7 @@ export default function StrideExplorer() {
       )}
 
       <style>{`
-        .strideexp { font-family: 'IBM Plex Mono', monospace; }
+        .strideexp { font-family: 'IBM Plex Mono', monospace; overflow-x: auto; }
         .controls { display: flex; flex-direction: column; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid ${PANEL_RULE}; }
         .group { display: flex; flex-direction: column; gap: 0.35rem; }
         .k { font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; color: ${PANEL_MUTE}; }

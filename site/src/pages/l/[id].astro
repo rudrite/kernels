@@ -273,7 +273,7 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
   .layout { display: grid; grid-template-columns: 12.5rem minmax(0, 1fr) 13rem; gap: 3rem; padding-block: 2.5rem; }
   .side, .right { position: sticky; top: 2rem; align-self: start; }
   @media (max-width: 1240px) { .layout { grid-template-columns: 12.5rem minmax(0, 1fr); } .right { display: none; } }
-  @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .side { display: none; } }
+  @media (max-width: 960px) { .layout { grid-template-columns: minmax(0, 1fr); } .side { display: none; } }
 
   .chapter-head { padding-block: 2rem 2.25rem; background: var(--paper-high); border-bottom: 1px solid var(--rule); }
   .chapter-head .kicker { color: var(--copper-deep); margin-bottom: 0.875rem; }

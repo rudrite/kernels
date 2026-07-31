@@ -107,7 +107,7 @@ export default function PipelineStepper() {
         .pos { display: flex; flex-direction: column; gap: 0.2rem; }
         .pos .v { font-size: 1rem; color: ${COPPER}; }
         .pos .of { color: ${PANEL_MUTE}; font-size: 0.75rem; }
-        .controls { display: flex; align-items: center; gap: 0.5rem; }
+        .controls { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
         .controls button { background: transparent; color: ${PANEL_INK}; border: 1px solid ${PANEL_RULE}; border-radius: 2px; font-family: inherit; font-size: 0.8125rem; padding: 0.2rem 0.6rem; cursor: pointer; }
         .controls button:hover:not(:disabled) { border-color: ${COPPER}; color: ${COPPER}; }
         .controls button:disabled { opacity: 0.4; cursor: default; }

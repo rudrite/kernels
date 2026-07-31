@@ -78,7 +78,7 @@ const WINGS = [
 <style>
   .serves { margin-bottom: 1rem; letter-spacing: 0.04em; }
   .wings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; margin-top: 2rem; }
-  @media (max-width: 900px) { .wings { grid-template-columns: 1fr; } }
+  @media (max-width: 900px) { .wings { grid-template-columns: minmax(0, 1fr); } }
   .wing { display: flex; flex-direction: column; gap: 0.45rem; padding: 1.125rem 1.25rem; text-decoration: none; }
   .wk { color: var(--copper); }
   .wt { font-family: var(--serif); font-weight: 600; font-size: 1.375rem; color: var(--panel-ink); }

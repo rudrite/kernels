@@ -77,6 +77,6 @@ const scoped = strip.id === 'kernels' ? '' : strip.id
   @media (max-width: 640px) {
     .ticks { display: none; }
     .strip-row { justify-content: space-between; }
-    .strip-continue { display: inline; }
+    .strip-continue { display: inline; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   }
 </style>

@@ -20,6 +20,7 @@ const TONE = {
 const lines = (s?: string) => (s ? s.split('\n') : [])
 ---
 
+<div class="bdiag-scroll">
 <svg viewBox={`0 0 ${spec.w} ${spec.h}`} role="img" aria-label={spec.alt} class="bdiag">
   <defs>
     <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
@@ -66,7 +67,11 @@ const lines = (s?: string) => (s ? s.split('\n') : [])
     })
   }
 </svg>
+</div>
 
 <style>
+  .bdiag-scroll { overflow-x: auto; }
   .bdiag { display: block; width: 100%; height: auto; font-family: var(--mono); background: #101215; }
+  /* below this the labels scale past legibility; hold a floor and let the diagram scroll */
+  @media (max-width: 700px) { .bdiag { min-width: 560px; } }
 </style>

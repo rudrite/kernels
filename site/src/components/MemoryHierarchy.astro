@@ -42,7 +42,10 @@ const flops = (v5e.bf16FlopsPerSec / 1e12).toFixed(0)
 </div>
 
 <style>
+  .mh { overflow-x: auto; }
   .mh svg { width: 100%; height: auto; display: block; font-family: var(--mono); }
+  /* below this the labels scale past legibility; hold a floor and let it scroll */
+  @media (max-width: 700px) { .mh svg { min-width: 480px; } }
   .box { fill: transparent; stroke: var(--panel-edge); stroke-width: 1; }
   .box.compute { stroke: var(--copper-deep); }
   .name { fill: var(--panel-ink); font-size: 14px; letter-spacing: 1px; }
