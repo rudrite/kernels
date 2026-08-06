@@ -54,33 +54,39 @@ describe('the lesson layer structure', () => {
       }
   })
 
-  it('slices guides without losing a section: valid indices, and covered guides are whole', () => {
+  it('slices guides without losing a section: valid indices, one claim per section, covered guides whole', () => {
     const guides = import.meta.glob('../guides/*.json', { eager: true }) as Record<
       string,
       { default: { sections: unknown[] } }
     >
-    for (const u of ALL_UNIT_LESSONS) {
-      const sliced = u.lessons.filter((l) => l.guide)
-      const claimed = new Set<number>()
-      let guideId: string | undefined
-      for (const l of sliced) {
-        guideId ??= l.guide!.id
-        expect(l.guide!.id, `${u.unit}/${l.id} slices a second guide`).toBe(guideId)
-        const g = guides[`../guides/${l.guide!.id}.json`]
-        expect(g, `${u.unit}/${l.id} · guide ${l.guide!.id}`).toBeDefined()
-        for (const i of l.guide!.sections) {
+    // claims are global: a guide's sections may be told across units, but
+    // each section is told exactly once
+    const claimedBy = new Map<string, Set<number>>()
+    for (const u of ALL_UNIT_LESSONS)
+      for (const l of u.lessons) {
+        if (!l.guide) continue
+        const g = guides[`../guides/${l.guide.id}.json`]
+        expect(g, `${u.unit}/${l.id} · guide ${l.guide.id}`).toBeDefined()
+        const claimed = claimedBy.get(l.guide.id) ?? new Set<number>()
+        claimedBy.set(l.guide.id, claimed)
+        expect(l.guide.sections.length, `${u.unit}/${l.id}`).toBeGreaterThanOrEqual(1)
+        for (const i of l.guide.sections) {
           expect(i, `${u.unit}/${l.id} · section ${i}`).toBeLessThan(g!.default.sections.length)
           expect(claimed.has(i), `${u.unit}/${l.id} · section ${i} claimed twice`).toBe(false)
           claimed.add(i)
         }
       }
-      if (u.coversGuide) {
-        expect(guideId, `${u.unit} claims coverage with no slices`).toBeDefined()
-        const total = guides[`../guides/${guideId}.json`]!.default.sections.length
-        expect([...claimed].sort((a, b) => a - b), `${u.unit} covers ${guideId}`).toEqual(
-          Array.from({ length: total }, (_, i) => i),
-        )
-      }
+    // coversGuide on a unit asserts its own layer's guide is fully told in
+    // lessons somewhere; the hub then renders no inline remainder
+    for (const u of ALL_UNIT_LESSONS) {
+      if (!u.coversGuide) continue
+      const layerId = u.unit.split(':').pop()!
+      const total = guides[`../guides/${layerId}.json`]
+      expect(total, `${u.unit} covers a guide that does not exist`).toBeDefined()
+      const claimed = claimedBy.get(layerId) ?? new Set<number>()
+      expect([...claimed].sort((a, b) => a - b), `${u.unit} covers ${layerId}`).toEqual(
+        Array.from({ length: total!.default.sections.length }, (_, i) => i),
+      )
     }
   })
 

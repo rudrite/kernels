@@ -10,7 +10,7 @@ import PathPager from '../../components/PathPager.astro'
 import MasteryWork from '../../components/MasteryWork.astro'
 import LessonList from '../../components/LessonList.astro'
 import GuideSections from '../../components/GuideSections.astro'
-import { lessonsOf, ALL_UNIT_LESSONS } from '../../data/lessons'
+import { lessonsOf, claimedGuideSections } from '../../data/lessons'
 import { LAYERS, STAGES } from '../../data/track'
 import { LAYER_DOCS, layerDoc } from '../../data/layers'
 import irData from '../../data/ir-attention.json'
@@ -47,10 +47,11 @@ const guideModules = import.meta.glob('../../data/guides/*.json', { eager: true 
   { default: { sections: GuideSection[] } }
 >
 const guide = guideModules[`../../data/guides/${doc.id}.json`]?.default
-// When this unit's lessons carry the guide between them, the hub keeps
-// orientation and the syllabus; the guide body renders inside the lessons.
-const guideCovered = ALL_UNIT_LESSONS.find((u) => u.unit === `l:${doc.id}`)?.coversGuide === true
-const showGuide = Boolean(guide) && !guideCovered
+// Guide sections that already live inside lessons (this unit's or another's)
+// are told there; the hub renders only what remains unclaimed.
+const claimed = claimedGuideSections(doc.id)
+const remaining = guide ? guide.sections.map((_, i) => i).filter((i) => !claimed.has(i)) : []
+const showGuide = remaining.length > 0
 
 const irText = (which: 'source' | 'jaxpr' | 'stablehlo', lines?: [number, number]) => {
   const all = irData[which] as string[]
@@ -77,7 +78,7 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
         <span class="mono-label toc-head">on this page</span>
         <ol>
           {doc.sections.map((sec) => <li><a href={`#${slug(sec.h)}`}>{sec.h}</a></li>)}
-          {showGuide && guide!.sections.map((sec) => <li class="toc-guide"><a href={`#${slug(sec.h)}`}>{sec.h}</a></li>)}
+          {showGuide && remaining.map((i) => <li class="toc-guide"><a href={`#${slug(guide!.sections[i]!.h)}`}>{guide!.sections[i]!.h}</a></li>)}
         </ol>
       </nav>
     </aside>
@@ -135,7 +136,7 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
           </div>
         )
       }
-      {showGuide && <GuideSections guideId={doc.id} self={`/l/${doc.id}`} numbering="guide" />}
+      {showGuide && <GuideSections guideId={doc.id} sections={remaining} self={`/l/${doc.id}`} numbering="guide" />}
 
       {
         drillStage && doc.drills && (
@@ -163,8 +164,8 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
           <div class="card">
             <div class="row"><span class="k">chapter</span><span>{String(idx + 1).padStart(2, '0')} of 15</span></div>
             <div class="row"><span class="k">part</span><span>i · the descent</span></div>
-            {guideCovered && <div class="row"><span class="k">lessons</span><span>{lessonsOf(`l:${doc.id}`).length} in order</span></div>}
-            {showGuide && <div class="row"><span class="k">guide</span><span>{guide!.sections.length} sections</span></div>}
+            {lessonsOf(`l:${doc.id}`).length > 0 && <div class="row"><span class="k">lessons</span><span>{lessonsOf(`l:${doc.id}`).length} in order</span></div>}
+            {showGuide && <div class="row"><span class="k">guide</span><span>{remaining.length} sections</span></div>}
             {drillStage && <div class="row"><span class="k">drilled in</span><span>stage {drillStage.num}</span></div>}
           </div>
         </div>

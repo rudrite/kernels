@@ -9,7 +9,7 @@ export const PALLAS_LESSONS: UnitLessons[] = [
   {
     unit: 'l:pallas',
     lessons: [
-  {
+      {
         id: 'why-a-kernel-language',
         num: 1,
         work: [
@@ -83,9 +83,37 @@ export const PALLAS_LESSONS: UnitLessons[] = [
           },
         ],
       },
-  {
-        id: 'refs',
+      {
+        id: 'memory-spaces-and-scratch',
         num: 2,
+        title: 'Memory spaces and scratch',
+        lede: 'Four places a ref can live, and one of them is a promise rather than a placement. Scratch is the fifth thing: memory that belongs to no input at all.',
+        goal: 'Choose a memory space per argument deliberately, and reach for scratch with the right dtype when partial sums must survive a grid axis.',
+        sections: [],
+        guide: { id: 'pallas', sections: [1] },
+        readings: [
+          { label: 'TPU pipelining: memory spaces', url: 'https://docs.jax.dev/en/latest/pallas/tpu/pipelining.html', note: 'the enum-to-hardware mapping behind this lesson' },
+          { label: 'Scalar prefetch and block-sparse computation', url: 'https://docs.jax.dev/en/latest/pallas/tpu/sparse.html', note: 'where SMEM refs start carrying schedules' },
+        ],
+        check: [
+          {
+            q: 'Who copies a VMEM-staged block in, and when?',
+            a: 'The automatic pipeline: the compiler copies the block your BlockSpec describes into on-chip vector memory before the kernel body runs, overlapped against the neighboring steps.',
+          },
+          {
+            q: 'What is scratch memory tied to, and what is the classic use?',
+            a: 'Nothing: it belongs to no input or output. Requested through scratch_shapes, it lives for the whole invocation, and the classic use is an f32 accumulator carried across a reduction axis.',
+          },
+          {
+            q: 'Why accumulate in f32 scratch when the data is bf16?',
+            a: 'Accumulating directly in bf16 rounds every partial sum to bf16 before the next add, and the rounding compounds. Ordinary floating point behavior, not a Pallas quirk.',
+          },
+        ],
+        work: [{ id: 'check', label: 'answer the checks without opening them', href: '#check' }],
+      },
+      {
+        id: 'refs',
+        num: 3,
         work: [
           { id: 'jaxpr', label: 'print a kernel jaxpr of your own and count the loads against your mental tally' },
         ],
@@ -117,7 +145,7 @@ export const PALLAS_LESSONS: UnitLessons[] = [
           {
             h: 'choosing a memory space is choosing who moves the data',
             ps: [
-              'This unit\'s guide already covers VMEM as the default, SMEM for scalars, and ANY as the promise that you will move the data yourself. The detail the guide leaves implicit is what ANY forbids. A buffer in the `ANY` space cannot be dereferenced with ordinary indexing at all: `x_ref[...]` on it is not a slow read, it is not a read. You copy into a VMEM or SMEM buffer first with `pltpu.sync_copy` or `pltpu.async_copy`, and only then does indexing mean anything.',
+              'The memory-spaces lesson before this one covers VMEM as the default, SMEM for scalars, and ANY as the promise that you will move the data yourself. The detail the guide leaves implicit is what ANY forbids. A buffer in the `ANY` space cannot be dereferenced with ordinary indexing at all: `x_ref[...]` on it is not a slow read, it is not a read. You copy into a VMEM or SMEM buffer first with `pltpu.sync_copy` or `pltpu.async_copy`, and only then does indexing mean anything.',
               '`ANY` is also documented as a hint rather than an address. It tells the compiler the memory space is unconstrained, and in most cases XLA will place the buffer in HBM. You get a promise about who is responsible, not a guarantee about where the bytes sit.',
             ],
             table: {
@@ -141,7 +169,7 @@ export const PALLAS_LESSONS: UnitLessons[] = [
           {
             h: 'aliasing is a promise the compiler cannot check',
             ps: [
-              '`input_output_aliases` tells `pallas_call` that an output may reuse an input\'s buffer, which is donation at kernel granularity. The guide covers the mechanics. What it does not spell out is the ordering consequence: once the two share memory, a write to the output ref is a write to the input, so within a grid step the order of your reads and writes is now semantics. Read the aliased input after writing the output and you read what you just wrote.',
+              '`input_output_aliases` tells `pallas_call` that an output may reuse an input\'s buffer, which is donation at kernel granularity. The aliasing lesson later in this arc covers the mechanics. What it does not spell out is the ordering consequence: once the two share memory, a write to the output ref is a write to the input, so within a grid step the order of your reads and writes is now semantics. Read the aliased input after writing the output and you read what you just wrote.',
               'The sparse-kernel guide uses aliasing for something other than saving an allocation, and it is worth stealing. In its block-sparse matmul, some output blocks are never visited by the grid at all, so their buffer would hold whatever was there. It passes an array of zeros in and aliases it onto the output, which makes "never visited" mean zero instead of uninitialized. Aliasing as an initialization strategy, not a memory optimization.',
             ],
             code: {
@@ -169,12 +197,88 @@ export const PALLAS_LESSONS: UnitLessons[] = [
           },
         ],
       },
+      {
+        id: 'manual-dma',
+        num: 4,
+        title: 'Manual DMA and semaphores',
+        lede: 'The automatic pipeline is make_async_copy and semaphores, done for you. This lesson does it by hand, and names the bug you sign up for.',
+        goal: 'Issue and wait an async copy correctly, put compute in the window between them, and say why a missed wait is silent on hardware and invisible in interpret mode.',
+        sections: [],
+        guide: { id: 'pallas', sections: [5] },
+        readings: [
+          { label: 'Pallas TPU pipelining', url: 'https://docs.jax.dev/en/latest/pallas/tpu/pipelining.html', note: 'the automatic version of everything this lesson does by hand' },
+          { label: 'Pallas TPU details', url: 'https://docs.jax.dev/en/latest/pallas/tpu/details.html', note: 'the memory-space rules a manual copy must respect' },
+        ],
+        check: [
+          {
+            q: 'When is a manual DMA justified at all?',
+            a: 'When the automatic pipeline cannot express the access pattern, an irregular gather the BlockSpec grammar has no vocabulary for. Not as a casual optimization.',
+          },
+          {
+            q: 'What happens if you skip the semaphore wait, and why is it not a compile error?',
+            a: 'The kernel reads whatever bytes already sat in that memory before the copy landed. Shapes and dtypes all check out, so nothing objects at compile time, and interpret mode cannot catch it because it has no memory spaces.',
+          },
+          {
+            q: 'How does this mechanism relate to multi-chip communication?',
+            a: 'It is the same mechanism: a remote DMA over ICI is the same make_async_copy-and-semaphore pattern with a destination on a neighboring chip.',
+          },
+        ],
+        work: [{ id: 'check', label: 'answer the checks without opening them', href: '#check' }],
+      },
+      {
+        id: 'aliasing-and-debugging',
+        num: 5,
+        title: 'Aliasing, and the debugging toolkit',
+        lede: 'Aliasing changes what happens to a buffer, not what your kernel looks like. That is exactly why the two debug flags sit beside it.',
+        goal: 'Declare input_output_aliases correctly, and run the interpret-then-debug workflow in the order that matches the failure you have.',
+        sections: [],
+        guide: { id: 'pallas', sections: [6] },
+        readings: [
+          { label: 'Pallas quickstart', url: 'https://docs.jax.dev/en/latest/pallas/quickstart.html', note: 'interpret mode, in the official introduction' },
+          { label: 'Pallas TPU details', url: 'https://docs.jax.dev/en/latest/pallas/tpu/details.html', note: 'what the real lowering path checks that interpret mode skips' },
+        ],
+        check: [
+          {
+            q: 'What does input_output_aliases change, and what does it leave alone?',
+            a: 'The output reuses the input\'s buffer, so the caller\'s memory is written in place. The kernel logic and shapes stay exactly as written, which is why an aliasing mistake corrupts data instead of failing loudly.',
+          },
+          {
+            q: 'A kernel is green under interpret=True and fails to lower on hardware. Which flag next, and why?',
+            a: 'debug=True. It runs the real lowering path and prints the jaxpr and the Mosaic module, which is where that class of failure lives; interpret mode already vindicated the algebra.',
+          },
+        ],
+        work: [{ id: 'check', label: 'answer the checks without opening them', href: '#check' }],
+      },
+      {
+        id: 'one-language-three-backends',
+        num: 6,
+        title: 'One language, three backends',
+        lede: 'The algorithm you wrote was never chip-specific. The schedule was, and this lesson names exactly which half transfers.',
+        goal: 'Say what carries from Pallas on TPU to Mosaic GPU and interpret mode, and what must be rebuilt, precisely enough to plan a port.',
+        sections: [],
+        guide: { id: 'pallas', sections: [7] },
+        readings: [
+          { label: 'Pallas documentation', url: 'https://docs.jax.dev/en/latest/pallas/index.html', note: 'the backend surface as it stands today' },
+          { label: 'Pallas design document', url: 'https://docs.jax.dev/en/latest/pallas/design/design.html', note: 'why one front end was the goal from the start' },
+        ],
+        check: [
+          {
+            q: 'What transfers across the three backends, and what does not?',
+            a: 'The algorithm half transfers: the algebra in the body and the split between computation and scheduling. The execution model does not: the TPU\'s sequential software pipeline against the GPU\'s warps, and VMEM against GPU shared memory.',
+          },
+          {
+            q: 'Why does a TPU have no warp-like unit?',
+            a: 'A TPU core was never a bundle of threads. The grid runs as a sequential software pipeline with parallelism coming from the wide units and the overlap, so there is no thread group for a warp to name.',
+          },
+        ],
+        work: [{ id: 'check', label: 'answer the checks without opening them', href: '#check' }],
+      },
     ],
   },
   {
     unit: 's:pallas',
     lessons: [
-  {
+      {
         id: 'blockspec',
         num: 1,
         work: [
@@ -258,7 +362,7 @@ export const PALLAS_LESSONS: UnitLessons[] = [
           },
         ],
       },
-  {
+      {
         id: 'grid-and-pipeline',
         num: 2,
         work: [
@@ -349,7 +453,7 @@ export const PALLAS_LESSONS: UnitLessons[] = [
           },
         ],
       },
-  {
+      {
         id: 'scalar-world',
         num: 3,
         work: [
@@ -442,8 +546,9 @@ export const PALLAS_LESSONS: UnitLessons[] = [
   },
   {
     unit: 'l:mosaic',
+    coversGuide: true,
     lessons: [
-  {
+      {
         id: 'to-machine-code',
         num: 1,
         work: [
@@ -518,6 +623,58 @@ export const PALLAS_LESSONS: UnitLessons[] = [
             note: 'what the Mosaic backend accepts, op by op, when the lowering refuses',
           },
         ],
+      },
+      {
+        id: 'the-tiling-vocabulary',
+        num: 2,
+        title: 'The tiling vocabulary, precisely',
+        lede: 'A vector register is a physical grid of 8 sublanes by 128 lanes, and every vector type in a lowered module is that fact showing through.',
+        goal: 'Read the trailing tile pair on any vector type and derive it from the dtype: (8, 128) for f32, (16, 128) for bf16, (32, 128) for int8.',
+        sections: [],
+        guide: { id: 'mosaic', sections: [0] },
+        readings: [
+          { label: 'Pallas TPU details', url: 'https://docs.jax.dev/en/latest/pallas/tpu/details.html', note: 'the tiling constraints as the kernel author meets them' },
+          { label: 'Scaling book · All about TPUs', url: 'https://jax-ml.github.io/scaling-book/tpus/', note: 'the register file these tiles live in' },
+        ],
+        check: [
+          {
+            q: 'Why does bf16 tile as (16, 128) when f32 tiles as (8, 128)?',
+            a: 'Register width in bytes is fixed, so narrower elements pack more rows into the same footprint: half-width bf16 doubles the sublane count.',
+          },
+          {
+            q: 'What two shapes does the captured module keep side by side, and what does the pairing teach?',
+            a: 'The logical array shape you wrote in JAX and the physical vector type Mosaic derived from it. With the packing rule known, the pairing reads as a derivation rather than noise.',
+          },
+        ],
+        work: [{ id: 'check', label: 'answer the checks without opening them', href: '#check' }],
+      },
+      {
+        id: 'reading-layout-decisions',
+        num: 3,
+        title: 'Reading layout decisions',
+        lede: 'You do not trace every op to read a module. Three signatures carry the story: the cast before a reduction, the grid attributes, and the compiled index maps.',
+        goal: 'Scan a Mosaic module for its three layout signatures and read each one back to the source decision that produced it.',
+        sections: [],
+        guide: { id: 'mosaic', sections: [1, 2] },
+        readings: [
+          { label: 'MLIR language reference', url: 'https://mlir.llvm.org/docs/LangRef/', note: 'the notation the module is written in' },
+          { label: 'Pallas TPU pipelining', url: 'https://docs.jax.dev/en/latest/pallas/tpu/pipelining.html', note: 'the dimension_semantics the grid attributes record' },
+        ],
+        check: [
+          {
+            q: 'What does a shape_cast just before a reduction tell you?',
+            a: 'The logical shape dropped a dimension but the register grid cannot; the cast is the tiled representation being reconciled with the reduction\'s result shape.',
+          },
+          {
+            q: 'Where did your BlockSpec\'s Python index map go?',
+            a: 'It compiled into a transform function attached to the operand, taking grid indices and returning memory offsets. The closure does not survive; the function does.',
+          },
+          {
+            q: 'Which attribute shows how the pipeline actually runs, and what marks a sequential axis?',
+            a: 'dimension_semantics on the grid: each axis is parallel or arbitrary, and arbitrary marks the axis Mosaic must run in order.',
+          },
+        ],
+        work: [{ id: 'check', label: 'answer the checks without opening them', href: '#check' }],
       },
     ],
   },

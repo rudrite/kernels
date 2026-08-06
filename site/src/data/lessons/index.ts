@@ -75,6 +75,15 @@ export const ALL_UNIT_LESSONS: UnitLessons[] = [
   ...XLA_LESSONS,
 ]
 
+/** Guide sections already told inside lessons, across every unit. */
+export const claimedGuideSections = (guideId: string): Set<number> => {
+  const claimed = new Set<number>()
+  for (const u of ALL_UNIT_LESSONS)
+    for (const l of u.lessons)
+      if (l.guide?.id === guideId) for (const i of l.guide.sections) claimed.add(i)
+  return claimed
+}
+
 export const lessonKey = (unit: string, lessonId: string) => `${unit}:${lessonId}`
 
 /** '/l/tpu/tpu-chip' from ('l:tpu', 'tpu-chip'); mirrors the chapter URL rules. */

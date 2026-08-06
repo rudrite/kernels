@@ -47,12 +47,10 @@ export const MASTERY: Record<string, WorkItem[]> = {
   'l:pallas': [
     { id: 'read', label: 'read the chapter: refs, BlockSpecs, the grid' },
     { id: 'sandbox', label: 'BlockSpec sandbox: produce one legal and one illegal schedule, explain both', href: '/s/pallas#instruments' },
-    { id: 'guide', label: 'the full guide: every section read, exercises worked', href: '#exercises' },
   ],
   'l:mosaic': [
     { id: 'read', label: 'read the chapter: what lowers below pallas_call' },
     { id: 'mxray', label: 'mosaic x-ray: find your index maps compiled into functions', href: '/gym/kernels#mosaic' },
-    { id: 'guide', label: 'the full guide: every section read, exercises worked', href: '#exercises' },
   ],
   'l:tpu': [
     { id: 'read', label: 'read the chapter: the four numbers' },
