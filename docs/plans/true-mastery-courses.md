@@ -138,15 +138,36 @@ primitive contract as written there):
   - [x] s:machine (GPU contrast lessons with checks) · s:pallas (the three absorbed
         lessons claim the pallas guide's reserved practice sections; the language guide
         is now fully told across the two pallas units)
-  - [ ] s:ir · s:kernels · s:distributed · s:capstone
-  - [ ] xla:pjrt · xla:ingestion · xla:hlo · xla:pipeline
-  - [ ] xla:fusion · xla:layout-memory · xla:spmd · xla:collectives
-  - [ ] xla:codegen · xla:autotuning · xla:ifrt · xla:mcjax · xla:pathways ·
-        xla:capstone
-  - [ ] Close: README and CURRICULUM reflect the arcs; this file's grades updated;
-        the loop reports and stops
+  - [x] s:ir · s:kernels · s:distributed · s:capstone (judgment: the stages already
+        run as arcs, chapter then instruments then walks then labs then the can-you
+        checklist then a measured gate; the checklist is their check mechanism, and
+        forcing lesson splits would add structure without teaching)
+  - [x] xla:pjrt · xla:hlo · xla:pipeline (deep lessons with checks); xla:ingestion
+        graded below
+  - [x] xla:fusion · xla:spmd (deep lessons with checks); xla:layout-memory and
+        xla:collectives graded below
+  - [x] xla:codegen · xla:ifrt (deep lessons with checks); xla:autotuning, xla:mcjax,
+        xla:pathways, xla:capstone graded below
+  - [x] Close: README and CURRICULUM reflect the arcs (47 lessons); grades recorded
+        under P5; the loop reported and stopped
 - **P4.** The same pass for jax and pytorch.
 - **P5.** Continuous deepening against the model, chapter grades tracked in this file.
+
+  Grades after the P3 pass (2026-08-07). Teaches-to-competence with a full arc: every
+  kernel-path layer except the deliberate single-article gap, both pallas units,
+  mosaic, tpu, ici, machine, and seven xla units (pjrt, hlo, pipeline, fusion, spmd,
+  codegen, ifrt). Already-arced by their practice machinery: the six stages. Graded
+  chapter-level, arc pending, with what an arc needs:
+  - xla:ingestion · would want a translation-walk lesson from a real jaxpr to its
+    StableHLO, beyond the survey.
+  - xla:layout-memory · overlaps the layouts lesson under l:xla and the shape-brace
+    lesson under xla:hlo; the arc here is mostly reconciliation, one telling per fact.
+  - xla:collectives · wants a dump-reading lesson pairing each collective with the
+    partitioner decision that authored it.
+  - xla:autotuning · wants a real autotuning log read end to end.
+  - xla:mcjax and xla:pathways · survey chapters whose depth is capped by closed
+    source; grade acceptable, revisit when public interfaces move.
+  - xla:capstone · a project brief, not teachable content; arcs do not apply.
 
 ## 6. Decisions (founder, 2026-08-07)
 

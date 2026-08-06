@@ -2,6 +2,8 @@
 
 Purpose: take one engineer (expert in the JAX distributed runtime: sharding, collectives, GSPMD, XProf; new to single-chip kernel land) from zero Pallas to shipping a production-grade TPU kernel upstream, in 14 weeks part-time. The bar is mastery, not completion: by the end, any production Pallas kernel should read like prose. Every stage ends with a verifiable checkpoint, and every stage's material is delivered on kernels.rudrite.com: the site is the course. Do not advance a stage until its checkpoint passes.
 
+Course shape on the site: each chapter is a unit carrying an ordered run of lessons, each ending in a check, with the drills, walks, labs, and gates paced by the mastery ledger.
+
 Hardware ladder: `interpret=True` on any machine (Stages 1-3 logic), Colab/Kaggle v5e (Stages 1-3 timings), TRC or internal capacity for a v5e-8+ slice (Stages 4-5).
 
 Prior-knowledge credit: sharding, meshes, collectives semantics, XProf navigation, and jit/pytrees are assumed known and are not re-taught. The curriculum teaches what happens below the jaxpr.

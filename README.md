@@ -20,7 +20,7 @@ Each chapter carries a diagram, its assigned readings, and tracked mastery work.
 - **The gym** ([/gym](https://kernels.rudrite.com/gym)): one floor per path, 13 drill stations. Every answer is computed from generated dumps or real runs, never written by hand. Streaks live in your browser.
 - **The museum** ([/mistakes](https://kernels.rudrite.com/mistakes)): one wing per path, 27 exhibits. Each is a failure that was reproduced, with its verbatim error and a fix that was run.
 - **Instruments**: 18 live surfaces, from the roofline playground to the jit cache key, the view explorer, and the pass pipeline stepped from a real dump.
-- **Lessons**: 19 depth lessons nested inside the chapters that own them, each with its own mastery work that rolls up into the chapter's ledger: the machine and the Pallas language in the kernel path, the compiler internals in the XLA path, down to the symbol a PJRT plugin exports.
+- **Lessons**: 47 lessons nested inside the chapters that own them, each ending in a check and carrying mastery work that rolls up into the chapter's ledger: the machine, the profiler, the fabric, and the Pallas language in the kernel path; the compiler internals in the XLA path, down to the symbol a PJRT plugin exports.
 
 ## The repo
 
