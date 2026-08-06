@@ -8,9 +8,20 @@ import type { UnitLessons } from './index'
 export const PALLAS_LESSONS: UnitLessons[] = [
   {
     unit: 'l:pallas',
+    coversGuide: true,
     lessons: [
       {
         id: 'why-a-kernel-language',
+        check: [
+          {
+            q: 'Why could Triton not simply be compiled for TPU?',
+            a: 'It is specialized enough to GPU that it cannot: its atomics exist for parallel writes a TPU does not perform. The tile-level model needed a front end one level above.',
+          },
+          {
+            q: 'What is one thing Pallas refuses to lower, and why is the refusal a design position?',
+            a: 'gather and scatter (or conv_general): the substrate is tiles and contiguous moves, and the language declines to offer an op that hides an arbitrary access pattern.',
+          },
+        ],
         num: 1,
         work: [
           { id: 'restate', label: 'read the design doc motivation end to end and restate the Triton argument in two sentences' },
@@ -113,6 +124,16 @@ export const PALLAS_LESSONS: UnitLessons[] = [
       },
       {
         id: 'refs',
+        check: [
+          {
+            q: 'What does reading a Ref give you, and what does that imply about hidden loads?',
+            a: 'A JAX Array, with the load as an explicit term in the jaxpr. A body has no hidden trips to memory, so counting loads in the printed kernel is real evidence.',
+          },
+          {
+            q: 'What decides scalar-core versus vector-core placement?',
+            a: 'Rank: every 0D value runs on the scalar core; anything rank 1 or higher goes to the vector unit and pays full-tile padding.',
+          },
+        ],
         num: 3,
         work: [
           { id: 'jaxpr', label: 'print a kernel jaxpr of your own and count the loads against your mental tally' },
@@ -280,6 +301,17 @@ export const PALLAS_LESSONS: UnitLessons[] = [
     lessons: [
       {
         id: 'blockspec',
+        check: [
+          {
+            q: 'What does an index map return, and who does the multiplication?',
+            a: 'Block coordinates per axis; Pallas multiplies by the block shape unconditionally to get element offsets.',
+          },
+          {
+            q: "What may the padding past the array's edge contain?",
+            a: "Garbage, by contract: unspecified on input, discarded on output. Interpret mode's NaN is a debugging aid you may not rely on.",
+          },
+        ],
+        guide: { id: 'pallas', sections: [0] },
         num: 1,
         work: [
           { id: 'carve', label: 'design a carve for a (1024, 1024) bf16 matmul on v5e: lattice, budget, reuse, write order' },
@@ -364,6 +396,17 @@ export const PALLAS_LESSONS: UnitLessons[] = [
       },
       {
         id: 'grid-and-pipeline',
+        check: [
+          {
+            q: 'What does pallas_call promise about grid order?',
+            a: "Nothing beyond completeness: every point runs, order unspecified. Sequential lexicographic order is the TPU backend's behavior, not the language's promise.",
+          },
+          {
+            q: 'Why must a reduction axis be last, and marked arbitrary?',
+            a: 'All writes to one output slice must be consecutive, and a reduction leaves the output window fixed; put it first and the writes interleave, which the backend does not guarantee.',
+          },
+        ],
+        guide: { id: 'pallas', sections: [2] },
         num: 2,
         work: [
           { id: 'reroll', label: 're-derive the double-buffered loop from the unrolled form without looking' },
@@ -455,6 +498,17 @@ export const PALLAS_LESSONS: UnitLessons[] = [
       },
       {
         id: 'scalar-world',
+        check: [
+          {
+            q: 'Why does scalar prefetch need an API rather than an ordinary read?',
+            a: 'The index map runs to schedule copies before real data exists; prefetch lands the scalars before the first step so no decision depends on a transfer it was supposed to schedule.',
+          },
+          {
+            q: 'What can a branch in the body never do?',
+            a: 'Prevent a block from arriving: the copy was issued from the index map before the body ran. pl.when saves the compute and pays the transfer anyway.',
+          },
+        ],
+        guide: { id: 'pallas', sections: [3, 4, 8] },
         num: 3,
         work: [
           { id: 'prefetch', label: 'write a prefetch map that repeats an index and explain which transfers disappear' },
@@ -550,6 +604,16 @@ export const PALLAS_LESSONS: UnitLessons[] = [
     lessons: [
       {
         id: 'to-machine-code',
+        check: [
+          {
+            q: 'What is interpret mode, mechanically?',
+            a: 'The kernel expressed as a lax.scan over the grid, lowered to StableHLO and compiled by XLA like any other program. A loop, not a simulator.',
+          },
+          {
+            q: 'Why does grad sometimes hurt kernels?',
+            a: 'Transposition flips read and write patterns, so overlapping parallel reads become overlapping parallel writes, and Pallas has no representation for reordering loops into a good transposed kernel. custom_vjp is the tool.',
+          },
+        ],
         num: 1,
         work: [
           { id: 'interpret', label: 'run one kernel in interpret mode and name the two failures it cannot see' },

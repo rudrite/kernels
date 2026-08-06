@@ -7,8 +7,9 @@ import type { UnitLessons } from './index'
 export const MACHINE_LESSONS: UnitLessons[] = [
   {
     unit: 'l:tpu',
+    coversGuide: true,
     lessons: [
-  {
+      {
         id: 'tpu-chip',
         num: 1,
         title: 'The TPU chip',
@@ -42,9 +43,8 @@ export const MACHINE_LESSONS: UnitLessons[] = [
             h: 'the scratchpad and the staging',
             ps: [
               "Between the compute units and HBM sits VMEM, roughly `128 MiB` of on-chip memory on v5e. Calling it a cache would miss the design. A cache decides for you what stays close; VMEM holds exactly what software staged into it, nothing more. Every block a kernel touches was placed there by a DMA that something explicitly issued, and the compute units read only from there. Kernel engineering on TPU is mostly the choreography of that staging: which block arrives when, and whether the next transfer overlaps the current compute.",
-              'Two smaller memories complete the picture. SMEM holds scalars: loop bounds, block indices, flags, the values a kernel branches on. And a scalar core runs alongside the vector units executing the control flow your kernel compiles to, issuing the DMA descriptors that move blocks from HBM into VMEM. This unit\'s guide walks these two in detail, with the diagram most block diagrams omit; here it is enough to hold the division: MXU and VPU compute, the scalar core decides and fetches, VMEM is where the two worlds meet.',
+              'Two smaller memories complete the picture. SMEM holds scalars: loop bounds, block indices, flags, the values a kernel branches on. And a scalar core runs alongside the vector units executing the control flow your kernel compiles to, issuing the DMA descriptors that move blocks from HBM into VMEM. The guide sections below walk these two in detail, with the diagram most block diagrams omit; here it is enough to hold the division: MXU and VPU compute, the scalar core decides and fetches, VMEM is where the two worlds meet.',
             ],
-            diagram: 'tpu-chip',
           },
           {
             h: 'sparsecore, the odd one out',
@@ -53,6 +53,7 @@ export const MACHINE_LESSONS: UnitLessons[] = [
             ],
           },
         ],
+        guide: { id: 'tpu', sections: [0] },
         readings: [
           { label: 'Scaling book · All about TPUs', url: 'https://jax-ml.github.io/scaling-book/tpus/', note: 'the backbone text; every constant in this lesson lives in its tables' },
           { label: 'Cloud TPU system architecture', url: 'https://docs.cloud.google.com/tpu/docs/system-architecture-tpu-vm', note: 'the vendor description of the same units, generation by generation' },
@@ -77,7 +78,7 @@ export const MACHINE_LESSONS: UnitLessons[] = [
           { id: 'check', label: 'answer the three checks without opening them', href: '#check' },
         ],
       },
-  {
+      {
         id: 'generations',
         num: 2,
         title: 'Six generations of the same idea',
@@ -126,17 +127,124 @@ export const MACHINE_LESSONS: UnitLessons[] = [
           { label: 'Scaling book · All about TPUs', url: 'https://jax-ml.github.io/scaling-book/tpus/', note: 'the source of every row; check the live tables, they gain generations' },
           { label: 'Cloud TPU pricing and configurations', url: 'https://docs.cloud.google.com/tpu/docs/system-architecture-tpu-vm', note: 'the e and p split as the vendor frames it' },
         ],
+        check: [
+          {
+            q: "What single ratio is a generation's personality, and why?",
+            a: 'Peak FLOPs over HBM bytes per second, the ridge: it says which kernels the chip rewards and which it starves, and it moves whenever compute and bandwidth grow unevenly.',
+          },
+          {
+            q: 'A kernel tuned on v5e lands on v6e with no code change. What can flip?',
+            a: "Its side of the ridge: v6e's ridge sits near 575 FLOPs per byte against v5e's 240, so any op between those intensities switches from compute-bound to memory-bound.",
+          },
+        ],
         work: [
           { id: 'ridge', label: 'compute the ridge for all six rows and rank the generations by it' },
           { id: 'cross', label: 'find one op from stage 0 that crosses the ridge between v5e and v6e' },
         ],
       },
+      {
+        id: 'two-ways-to-hide-latency',
+        num: 3,
+        title: 'Two ways to hide latency',
+        lede: 'A GPU hides memory latency with thousands of threads. A TPU has one big core and no threads to switch, so every wait has to be planned away.',
+        goal: 'Explain both latency-hiding strategies and name who does the hiding on each machine: the warp scheduler at runtime, or the compiled pipeline ahead of time.',
+        sections: [],
+        guide: { id: 'tpu', sections: [1, 2] },
+        readings: [
+          { label: 'Scaling book · How to think about GPUs', url: 'https://jax-ml.github.io/scaling-book/gpus/', note: 'the thread-switching half of the contrast' },
+          { label: 'Scaling book · All about TPUs', url: 'https://jax-ml.github.io/scaling-book/tpus/', note: 'the pipelined half' },
+        ],
+        check: [
+          {
+            q: 'Both machines wait on HBM. What hides the wait on each?',
+            a: 'The GPU switches among resident warps at runtime, so another thread computes while one waits. The TPU runs one sequential core, so the compiler and the pipeline overlap transfers against compute ahead of time.',
+          },
+          {
+            q: 'Why does the TPU approach demand more of the compiler?',
+            a: 'There is no runtime scheduler to cover a miss: any wait not planned away at compile time is a stall the machine simply takes.',
+          },
+        ],
+        work: [{ id: 'check', label: 'answer the checks without opening them', href: '#check' }],
+      },
+      {
+        id: 'xprof-and-the-three-accounts',
+        num: 4,
+        title: 'XProf, and the three accounts',
+        lede: 'The profiler is how prediction meets the machine, and a program has three cost tellings that this site once caught disagreeing in public.',
+        goal: 'Capture a trace both ways, then rank the cost model, the roofline, and the timeline by trustworthiness for the question you are asking.',
+        sections: [],
+        guide: { id: 'tpu', sections: [3, 4, 5] },
+        readings: [
+          { label: 'JAX profiling', url: 'https://docs.jax.dev/en/latest/profiling.html', note: 'the capture API and the viewer, officially' },
+          { label: 'Scaling book · rooflines', url: 'https://jax-ml.github.io/scaling-book/roofline/', note: 'the prediction the trace is judged against' },
+        ],
+        check: [
+          {
+            q: 'What are the three accounts of a program, and which one arbitrates?',
+            a: 'The cost model from compiled.cost_analysis(), the roofline prediction, and the measured timeline. The timeline arbitrates: the first two predict, the device plane records what ran.',
+          },
+          {
+            q: 'What are the two ways to reach XProf?',
+            a: 'Programmatically, wrapping the code you care about with the capture API, and interactively through the profiler UI; both land in the same viewer.',
+          },
+        ],
+        work: [{ id: 'check', label: 'answer the checks without opening them', href: '#check' }],
+      },
+      {
+        id: 'the-timeline-op-by-op',
+        num: 5,
+        title: 'The timeline, op by op',
+        lede: 'One plane of the trace matters for kernel work: the device plane, where every event carries a name you already know how to read.',
+        goal: 'Walk a device-plane trace, match events to fusions and custom calls by name, and say what the host and device sides each contribute to a capture.',
+        sections: [],
+        guide: { id: 'tpu', sections: [6, 7] },
+        readings: [
+          { label: 'JAX profiling', url: 'https://docs.jax.dev/en/latest/profiling.html', note: 'where the planes come from' },
+          { label: 'XLA tools', url: 'https://openxla.org/xla/tools', note: 'the dump the event names trace back to' },
+        ],
+        check: [
+          {
+            q: 'Which plane answers kernel questions, and what is on it?',
+            a: 'The device plane (/device:TPU:0): the ops that actually ran, under names that match the compiled module, fusions and custom calls included.',
+          },
+          {
+            q: 'Where does a capture come from?',
+            a: 'Two recorders: the host runtime logs python and dispatch events while the TPU side logs device execution, and the viewer aligns the two.',
+          },
+        ],
+        work: [{ id: 'check', label: 'answer the checks without opening them', href: '#check' }],
+      },
+      {
+        id: 'reading-it-like-an-operator',
+        num: 6,
+        title: 'Reading it like an operator',
+        lede: 'Six habits turn a wall of events into a diagnosis, and the first is always the same: name the envelope before judging anything inside it.',
+        goal: 'Apply the six operator habits to a fresh trace and produce a one-sentence diagnosis with the envelope number attached.',
+        sections: [],
+        guide: { id: 'tpu', sections: [8, 9] },
+        readings: [
+          { label: 'JAX profiling', url: 'https://docs.jax.dev/en/latest/profiling.html', note: 'the tool the habits run on' },
+          { label: 'Scaling book · All about TPUs', url: 'https://jax-ml.github.io/scaling-book/tpus/', note: 'the constants a diagnosis quotes' },
+        ],
+        check: [
+          {
+            q: 'What is the envelope, and why does it come first?',
+            a: 'The jit event for the function: wall time per call. Every other number is judged against it, so naming it first anchors the reading.',
+          },
+          {
+            q: 'The compute events sum to far less than the envelope. What is the habit?',
+            a: 'Find what fills the gap: the difference is unhidden transfer or overhead, and chasing it beats tuning a kernel that already looks fast.',
+          },
+        ],
+        work: [{ id: 'check', label: 'answer the checks without opening them', href: '#check' }],
+      },
     ],
   },
   {
     unit: 'l:ici',
+    coversGuide: true,
     lessons: [
-  {
+      {
         id: 'tpu-fabric',
         num: 1,
         title: 'The TPU fabric',
@@ -177,14 +285,96 @@ export const MACHINE_LESSONS: UnitLessons[] = [
           { label: 'Scaling book · All about TPUs', url: 'https://jax-ml.github.io/scaling-book/tpus/', note: 'link constants, torus shapes, and the wraparound rules, with diagrams' },
           { label: 'Scaling book · Sharding matmuls', url: 'https://jax-ml.github.io/scaling-book/sharding/', note: 'where the hop arithmetic starts paying rent' },
         ],
+        check: [
+          {
+            q: 'What does wraparound buy, and when does a slice have it?',
+            a: "A factor of two on worst-case hops, since a ring's far chip is n/2 away instead of n-1. It exists when the slice spans full 4x4x4 cubes on 3D generations or a full axis of 16 on 2D ones.",
+          },
+          {
+            q: 'Why do the chattiest parallelism axes stay inside the slice?',
+            a: 'DCN carries one to two orders of magnitude less per chip than ICI, so whatever crosses slices has to communicate rarely.',
+          },
+        ],
         work: [
           { id: 'torus', label: 'torus stepper: find the worst-case pair with and without wraparound', href: '#the-torus-and-the-wraparound' },
           { id: 'floor', label: 'bound an all-gather on one v6e ring axis by hand, then check it against the bench' },
         ],
       },
-  {
-        id: "gpu-fabric",
+      {
+        id: 'the-vocabulary-as-ring-movements',
         num: 2,
+        title: 'The vocabulary, as ring movements',
+        lede: 'All-gather, reduce-scatter, all-reduce: each one is the same ring step repeated, shards moving neighbor to neighbor by remote DMA.',
+        goal: "Describe each collective as ring movements precisely enough to draw every chip's shards after any given step.",
+        sections: [],
+        guide: { id: 'ici', sections: [0] },
+        readings: [
+          { label: 'Scaling book · sharded matmuls', url: 'https://jax-ml.github.io/scaling-book/sharding/', note: 'where these movements start earning money' },
+          { label: 'JAX · shard_map', url: 'https://docs.jax.dev/en/latest/notebooks/shard_map.html', note: 'the collectives as you call them' },
+        ],
+        check: [
+          {
+            q: 'What single primitive underlies the ring collectives?',
+            a: 'A neighbor-to-neighbor shard move by remote DMA, repeated around the ring; the collectives differ only in what each chip does with what arrives.',
+          },
+          {
+            q: 'How does all-reduce decompose on a ring?',
+            a: 'Reduce-scatter then all-gather: first every chip ends holding one fully reduced shard, then the shards circulate until everyone holds all of them.',
+          },
+        ],
+        work: [{ id: 'check', label: 'answer the checks without opening them', href: '#check' }],
+      },
+      {
+        id: 'cost-formulas-in-your-head',
+        num: 3,
+        title: 'Cost formulas you can do in your head',
+        lede: 'Ring collective cost is desk arithmetic, not measurement: bytes, chips, and one link rate are the whole formula.',
+        goal: 'Bound any ring collective on a given axis from link constants alone, and say when the bound is tight.',
+        sections: [],
+        guide: { id: 'ici', sections: [1] },
+        readings: [
+          { label: 'Scaling book · All about TPUs', url: 'https://jax-ml.github.io/scaling-book/tpus/', note: 'the link constants the formulas quote' },
+          { label: 'Scaling book · sharded matmuls', url: 'https://jax-ml.github.io/scaling-book/sharding/', note: 'the formulas at work on real layouts' },
+        ],
+        check: [
+          {
+            q: 'What is the all-gather floor for D bytes on a ring of n chips?',
+            a: 'D(n-1)/n over the one-way link rate: each shard travels n-1 hops, and the bound is tight exactly when every link stays busy the whole time.',
+          },
+          {
+            q: 'When does the desk formula miss, and what does the miss mean?',
+            a: 'When a link is contended, the slice lacks wraparound, or traffic leaves ICI. A measured collective far off its floor is naming its own problem.',
+          },
+        ],
+        work: [{ id: 'check', label: 'answer the checks without opening them', href: '#check' }],
+      },
+      {
+        id: 'the-collective-is-a-kernel',
+        num: 4,
+        title: 'The collective is a kernel',
+        lede: 'Nothing about a collective is special hardware. It is the same async remote DMA and semaphore pairing, written as a kernel you can read.',
+        goal: 'Read a ring collective kernel and point at the remote copy, the semaphore pair, and the accumulation that make it a collective.',
+        sections: [],
+        guide: { id: 'ici', sections: [2, 3] },
+        readings: [
+          { label: 'Pallas TPU pipelining', url: 'https://docs.jax.dev/en/latest/pallas/tpu/pipelining.html', note: 'the local version of the same copy discipline' },
+          { label: 'JAX · multi-process', url: 'https://docs.jax.dev/en/latest/multi_process.html', note: 'the scale these kernels run at' },
+        ],
+        check: [
+          {
+            q: 'What distinguishes a collective kernel from the manual-DMA kernel you already know?',
+            a: 'Only the destination: the async copy lands on a neighboring chip over ICI instead of in local memory. The issue, wait, semaphore discipline is identical.',
+          },
+          {
+            q: 'Why does that identity matter when a collective hangs?',
+            a: 'It is the same bug class as a missed semaphore wait in any kernel, debugged with the same discipline, rather than a network mystery.',
+          },
+        ],
+        work: [{ id: 'check', label: 'answer the checks without opening them', href: '#check' }],
+      },
+      {
+        id: "gpu-fabric",
+        num: 5,
         title: "The GPU fabric",
         lede: "Inside a node, every GPU is one hop from every other. Cross the node boundary and you are on a different network with different numbers.",
         goal: "Given a collective and the GPUs it spans, name the layer of fabric that carries it and the bandwidth that layer actually delivers rather than the one on the slide.",
@@ -269,6 +459,16 @@ export const MACHINE_LESSONS: UnitLessons[] = [
             note: "how the 72-GPU domain is cabled once you go above the rack",
           },
         ],
+          check: [
+          {
+            q: 'What are the two numbers that shape a GPU cluster?',
+            a: '450 GB/s per GPU inside an H100 node over NVLink, and 400 GB/s per node once traffic leaves for the InfiniBand tree. Sharding decisions are arguments about which side of that boundary a collective lands on.',
+          },
+          {
+            q: 'What did NVL72 change, and what stayed fixed?',
+            a: 'The NVLink domain grew to 72 GPUs at the same 900 GB/s each, while per-GPU egress to the outside stayed near 50 GB/s: nine times more traffic never has to leave, and leaving costs what it did.',
+          },
+        ],
           work: [
             { id: 'fabric', label: 'fabric instrument: move the source and watch which machine cares', href: '#switch-against-torus' },
             { id: 'bound', label: 'bound an 8-GPU all-reduce at 58 MB and set it against the measured 150 GB/s' },
@@ -279,7 +479,7 @@ export const MACHINE_LESSONS: UnitLessons[] = [
   {
     unit: 's:machine',
     lessons: [
-  {
+      {
         id: "gpu-chip",
         num: 1,
         title: "The GPU chip",
@@ -361,12 +561,22 @@ export const MACHINE_LESSONS: UnitLessons[] = [
             note: "the same hierarchy seen from inside a kernel, step by step",
           },
         ],
+          check: [
+          {
+            q: 'What is the ceiling on SM independence?',
+            a: "The shared L2: all the SMs compete for the same lines, so one kernel's access pattern moves another kernel's throughput.",
+          },
+          {
+            q: 'What stops you keeping 64 warps resident on an SM?',
+            a: 'Registers: at 256 registers per thread only 8 warps fit the 256 kB register file, so occupancy falls as register pressure rises.',
+          },
+        ],
           work: [
             { id: 'sketch', label: 'sketch one SM from memory: four subpartitions and what each holds' },
             { id: 'occupancy', label: 'compute how many warps fit an SM at 256 registers per thread, then at 64' },
           ],
       },
-  {
+      {
         id: "two-machines",
         num: 2,
         title: "Two machines, one job",
@@ -446,6 +656,16 @@ export const MACHINE_LESSONS: UnitLessons[] = [
             label: "HuggingFace · the ultra-scale playbook",
             url: "https://huggingface.co/spaces/nanotron/ultrascale-playbook",
             note: "the GPU side of all of this, at cluster scale and in practice",
+          },
+        ],
+        check: [
+          {
+            q: 'What are the mappings for SMEM and for the GPU Tensor Core?',
+            a: "SMEM plays VMEM's role, and a GPU Tensor Core maps to the MXU. The TPU TensorCore is the umbrella unit; its GPU counterpart is the SM.",
+          },
+          {
+            q: 'Who schedules each machine?',
+            a: 'The GPU schedules at runtime through its warp schedulers; the TPU is scheduled at compile time, with the compiler pipelining every load or the machine stalls.',
           },
         ],
         work: [

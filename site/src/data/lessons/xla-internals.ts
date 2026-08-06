@@ -10,6 +10,16 @@ export const XLA_LESSONS: UnitLessons[] = [
     lessons: [
   {
         id: 'pjrt-boundary',
+        check: [
+          {
+            q: 'What is the entire public surface of a PJRT plugin?',
+            a: 'One exported symbol, GetPjrtApi, returning a PJRT_Api pointer the caller never owns; everything else is function pointers behind it.',
+          },
+          {
+            q: 'How does JAX find your plugin?',
+            a: 'Through jax_plugins namespace packages or entry points: discovery imports the module and calls initialize(), which registers via xb.register_plugin, default priority 400.',
+          },
+        ],
         num: 1,
         work: [
           { id: 'symbols', label: 'read the cpu plugin version script and find the one global symbol yourself' },
@@ -103,6 +113,16 @@ export const XLA_LESSONS: UnitLessons[] = [
     lessons: [
   {
         id: 'hlo-invariants',
+        check: [
+          {
+            q: 'What does StableHLO have that HLO does not?',
+            a: 'A written grammar, a spec, and versioned serialization. HLO has a C++ class hierarchy and a set of invariants passes must leave standing.',
+          },
+          {
+            q: 'In bf16[1024,512]{1,0:T(8,128)(2,1)S(1)}, what are the last two fragments?',
+            a: 'The (2,1) is the packing tile that appears only on 16-bit types in the capture; S(1) is a memory space, reached through a copy-start and copy-done pair.',
+          },
+        ],
         num: 1,
         work: [
           { id: 'decode', label: 'decode one full shape brace from the repo capture, fragment by fragment' },
@@ -193,6 +213,16 @@ export const XLA_LESSONS: UnitLessons[] = [
     lessons: [
   {
         id: 'pass-pipeline',
+        check: [
+          {
+            q: "What does a pass's Run return, and what pipeline behavior does that enable?",
+            a: 'StatusOr of bool, the bool meaning whether the module changed; a pipeline can rerun its members until every one returns false, which is why algsimp repeats in dumps.',
+          },
+          {
+            q: 'Why diff the modules before timing a disable flag?',
+            a: 'A flag can be accepted, name a pass that exists, and still change nothing for your program; the byte-level diff catches that in seconds where a benchmark would mislead for an afternoon.',
+          },
+        ],
         num: 1,
         work: [
           { id: 'dump', label: 'dump any jit function with xla_dump_to and draw the pipeline tree from filenames alone' },
@@ -283,6 +313,16 @@ export const XLA_LESSONS: UnitLessons[] = [
     lessons: [
   {
         id: 'reading-fusion',
+        check: [
+          {
+            q: 'How do you match a fusion instruction to the computation it runs?',
+            a: 'Only through its calls= field. The numeric suffixes are independent counters, and matching fusion.N to fused_computation.N by number will be wrong more often than right.',
+          },
+          {
+            q: 'What are the three ways a merge does not happen?',
+            a: 'No producer-consumer edge exists in the graph; the priority queue judged the merge unprofitable; or something unfusable sits between the two, like a memory-space copy.',
+          },
+        ],
         num: 1,
         work: [
           { id: 'trace', label: 'follow every calls= link in the softmax capture and diagram the fusion graph' },
@@ -356,6 +396,16 @@ export const XLA_LESSONS: UnitLessons[] = [
     lessons: [
   {
         id: 'the-partitioner',
+        check: [
+          {
+            q: 'Who authors every collective in an optimized module?',
+            a: 'The SPMD partitioner, the pass named spmd-partitioning: each collective is the answer to a resharding request between two shardings.',
+          },
+          {
+            q: 'What does shard_map change about how you read a dump?',
+            a: "Inside manual regions the shapes are already per-device and the collectives are yours, not the pass's; propagation had nothing to fill in.",
+          },
+        ],
         num: 1,
         work: [
           { id: 'collectives', label: 'count collectives in a partitioned dump and name the resharding each one answers' },
@@ -438,6 +488,16 @@ export const XLA_LESSONS: UnitLessons[] = [
     lessons: [
   {
         id: 'backend-seam',
+        check: [
+          {
+            q: 'Where exactly does shared XLA end?',
+            a: 'At the xla/backends directory: five entries, none of them tpu. The TPU backend lives in the libtpu wheel behind the same exported PJRT symbol.',
+          },
+          {
+            q: "Must a backend run XLA's pass pipeline?",
+            a: 'No. PJRT_Client_Compile takes a program blob plus a format string; a backend may lower StableHLO through its own compiler and never construct an HloModule.',
+          },
+        ],
         num: 1,
         work: [
           { id: 'seam', label: 'list xla/backends yourself and place libtpu in the picture the pjrt lesson drew' },
@@ -520,6 +580,16 @@ export const XLA_LESSONS: UnitLessons[] = [
     lessons: [
   {
         id: 'above-the-compiler',
+        check: [
+          {
+            q: "What is IFRT's unit of data, against PJRT's?",
+            a: 'One ifrt::Array carrying its own dtype, shape, sharding, and layout across devices, where PJRT hands out per-device buffers the framework must track by hand.',
+          },
+          {
+            q: 'What makes the proxy the swap point?',
+            a: 'It splits the interface across a wire, so a different runtime, a Pathways-style single controller included, can sit behind the same client with unchanged JAX above.',
+          },
+        ],
         num: 1,
         work: [
           { id: 'capstone', label: 'open the capstone PJRT project and write down the first struct you would fill in' },

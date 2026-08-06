@@ -134,9 +134,10 @@ primitive contract as written there):
   - [x] l:source · l:jaxpr · l:stablehlo (the IR descent, one arc each)
   - [x] l:xla · l:gap (the compiler wall and the escape; the gap stays a single-article unit by design, one bridging idea, and gains an applied ledger item)
   - [x] l:pallas · l:mosaic (absorbed lessons reconciled; the pallas guide sections on practice depth are reserved for the s:pallas arc and the hub now renders only the unclaimed remainder)
-  - [ ] l:tpu · l:ici (with the absorbed machine lessons reconciled)
-  - [ ] s:machine (GPU contrast lessons reconciled) · s:pallas (three absorbed lessons
-        reconciled into the arc)
+  - [x] l:tpu · l:ici (absorbed machine lessons reconciled; both guides fully told in lessons: profiling arc under tpu, collectives arc under ici)
+  - [x] s:machine (GPU contrast lessons with checks) · s:pallas (the three absorbed
+        lessons claim the pallas guide's reserved practice sections; the language guide
+        is now fully told across the two pallas units)
   - [ ] s:ir · s:kernels · s:distributed · s:capstone
   - [ ] xla:pjrt · xla:ingestion · xla:hlo · xla:pipeline
   - [ ] xla:fusion · xla:layout-memory · xla:spmd · xla:collectives
