@@ -4,6 +4,7 @@
 // tracks (JSON-shaped TS, '>> ' pull quotes) so authoring carries over.
 import type { WorkItem } from '../mastery'
 import { MACHINE_SERIES } from './machine'
+import { PALLAS_SERIES } from './pallas'
 
 export interface SeriesCode {
   caption: string
@@ -52,7 +53,7 @@ export interface Series {
   pages: SeriesPage[]
 }
 
-export const ALL_SERIES: Series[] = [MACHINE_SERIES]
+export const ALL_SERIES: Series[] = [MACHINE_SERIES, PALLAS_SERIES]
 
 // Every series page is mastery work under the 'sr:' prefix: the derived
 // read item first, then whatever the page adds.
