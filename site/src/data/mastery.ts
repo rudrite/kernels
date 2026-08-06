@@ -38,11 +38,11 @@ export const MASTERY: Record<string, WorkItem[]> = {
   'l:xla': [
     { id: 'read', label: 'read the chapter: fusion and its exact limit' },
     { id: 'spot', label: 'spot the decision: streak of 3', href: '/gym/kernels#drills', auto: { type: 'streak', key: 'gym.spot.streak', goal: 3 } },
-    { id: 'guide', label: 'the full guide: every section read, exercises worked', href: '#exercises' },
     { id: 'fusion', label: 'fusion x-ray: find the spill in the attention plan', href: '/gym/kernels#fusion' },
   ],
   'l:gap': [
     { id: 'read', label: 'read the chapter: the two modes, and why the crossing is on foot' },
+    { id: 'spill', label: 'in EX·05, point at the spill the gap predicts, then name the identity the compiler could not apply', href: '/s/ir#instruments' },
   ],
   'l:pallas': [
     { id: 'read', label: 'read the chapter: refs, BlockSpecs, the grid' },

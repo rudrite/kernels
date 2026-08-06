@@ -4,6 +4,7 @@
 // lesson belongs to exactly one unit, and the shelf that once held these
 // pages is gone (docs/plans/true-mastery-courses.md).
 import type { WorkItem } from '../mastery'
+import { COMPILER_WALL_LESSONS } from './compiler-wall'
 import { IR_DESCENT_LESSONS } from './ir-descent'
 import { MACHINE_LESSONS } from './machine'
 import { PALLAS_LESSONS } from './pallas'
@@ -68,6 +69,7 @@ export interface UnitLessons {
 
 export const ALL_UNIT_LESSONS: UnitLessons[] = [
   ...IR_DESCENT_LESSONS,
+  ...COMPILER_WALL_LESSONS,
   ...MACHINE_LESSONS,
   ...PALLAS_LESSONS,
   ...XLA_LESSONS,
