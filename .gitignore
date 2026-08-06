@@ -4,3 +4,6 @@ dist/
 .DS_Store
 site/src/data/labs.generated.json
 __pycache__/
+
+# local agent instructions stay local
+CL?UDE.md

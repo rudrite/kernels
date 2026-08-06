@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "node ../scripts/extract-labs.mjs && astro build && node ../scripts/firewall.mjs",
+    "build": "node ../scripts/extract-labs.mjs && astro build && node ../scripts/firewall.mjs && node ../scripts/voice.mjs",
     "preview": "astro preview",
-    "test": "node ../scripts/extract-labs.mjs && vitest run"
+    "test": "node ../scripts/extract-labs.mjs && vitest run && node ../scripts/voice.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^6.0.1",

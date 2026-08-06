@@ -144,7 +144,7 @@ export const JAX_DIAGRAMS: Record<string, DiagramSpec> = {
       { k: 'box', x: 578, y: 40, w: 118, h: 58, t: 'one program', s: 'compiled once', tone: 'steel' },
       { k: 'box', x: 24, y: 148, w: 190, h: 62, t: 'the loop you did not write', s: 'N calls, N dispatches', tone: 'mute', dash: true },
       { k: 'line', x1: 214, y1: 179, x2: 286, y2: 179, a: 'end', tone: 'mute', dash: true, t: 'what vmap is not', lx: 330, ly: 200 },
-      { k: 'text', x: 700, y: 240, t: 'in_axes says which arguments carry the batch; None rides along whole', anchor: 'end', size: 9.5 },
+      { k: 'text', x: 700, y: 240, t: 'in_axes says which arguments carry the batch; None is passed whole', anchor: 'end', size: 9.5 },
     ],
   },
 
