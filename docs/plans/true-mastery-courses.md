@@ -113,6 +113,37 @@ primitive contract as written there):
   focused lessons, place practice steps into the order, write the checks, reconcile
   duplicates with the absorbed series lessons, deepen where the material is thin.
   Order by learner impact: part i layers first.
+
+  The working protocol, per unit (this is the loop's contract):
+  1. Read the unit's current article, its guide if it has one, its absorbed lessons,
+     and its mastery ledger. Decide the arc: 2 to 6 lessons, each one idea, ordered.
+  2. Author or restructure the lessons in `site/src/data/lessons/`. Every lesson ends
+     with a check (2 or 3 questions with revealable answers; the first P3 iteration
+     adds the `check` field to the Lesson type and template). Reconcile duplicates:
+     one telling per fact, the hub keeps orientation, the lessons keep depth.
+  3. Sequence practice into the hub: the unit's drills, labs, and walks appear as
+     ordered mastery items with auto rules where checkable.
+  4. Voice per `docs/VOICE.md`; facts verified (run snippets or quote verbatim from
+     corpora); numbers carry provenance.
+  5. `npm test` and `npm run build` green (build runs the firewall: never a blocked
+     word in files or commit messages), unit checked in a browser, one conventional
+     commit per unit, pushed. Tick the unit below in the same commit.
+
+  The worklist, in order:
+  - [ ] P3 bootstrap: `check` field on lessons + template rendering + test invariant
+  - [ ] l:source · l:jaxpr · l:stablehlo (the IR descent, one arc each)
+  - [ ] l:xla · l:gap (the compiler wall and the escape)
+  - [ ] l:pallas · l:mosaic (with the absorbed language lessons reconciled)
+  - [ ] l:tpu · l:ici (with the absorbed machine lessons reconciled)
+  - [ ] s:machine (GPU contrast lessons reconciled) · s:pallas (three absorbed lessons
+        reconciled into the arc)
+  - [ ] s:ir · s:kernels · s:distributed · s:capstone
+  - [ ] xla:pjrt · xla:ingestion · xla:hlo · xla:pipeline
+  - [ ] xla:fusion · xla:layout-memory · xla:spmd · xla:collectives
+  - [ ] xla:codegen · xla:autotuning · xla:ifrt · xla:mcjax · xla:pathways ·
+        xla:capstone
+  - [ ] Close: README and CURRICULUM reflect the arcs; this file's grades updated;
+        the loop reports and stops
 - **P4.** The same pass for jax and pytorch.
 - **P5.** Continuous deepening against the model, chapter grades tracked in this file.
 
