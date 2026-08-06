@@ -4,6 +4,7 @@
 // itself and is disabled entirely under prefers-reduced-motion.
 import { useEffect, useMemo, useState } from 'react'
 import type { TraceDoc } from './types'
+import { prefersReducedMotion } from './reduced-motion'
 
 const COPPER = '#c88a70'
 const STEEL = '#7f98ab'
@@ -25,6 +26,7 @@ interface Props {
 export default function Choreographer({ trace, initialFrame = 0 }: Props) {
   const [i, setI] = useState(Math.min(initialFrame, trace.frames.length - 1))
   const [playing, setPlaying] = useState(false)
+  const reduced = prefersReducedMotion()
 
   useEffect(() => {
     if (!playing) return
@@ -190,17 +192,19 @@ export default function Choreographer({ trace, initialFrame = 0 }: Props) {
       <div className="controls">
         <button onClick={() => { setPlaying(false); setI(0) }} disabled={i === 0} aria-label="Back to start">|«</button>
         <button onClick={() => { setPlaying(false); setI((x) => Math.max(0, x - 1)) }} disabled={i === 0} aria-label="Previous step">«</button>
-        <button
-          onClick={() => {
-            // play always means play: restart when pressed at the final frame
-            if (!playing && i >= trace.frames.length - 1) setI(0)
-            setPlaying((p) => !p)
-          }}
-          aria-label={playing ? 'Pause' : 'Play'}
-          aria-pressed={playing}
-        >
-          {playing ? '❚❚' : '▶'}
-        </button>
+        {!reduced && (
+          <button
+            onClick={() => {
+              // play always means play: restart when pressed at the final frame
+              if (!playing && i >= trace.frames.length - 1) setI(0)
+              setPlaying((p) => !p)
+            }}
+            aria-label={playing ? 'Pause' : 'Play'}
+            aria-pressed={playing}
+          >
+            {playing ? '❚❚' : '▶'}
+          </button>
+        )}
         <button onClick={() => { setPlaying(false); setI((x) => Math.min(trace.frames.length - 1, x + 1)) }} disabled={i === trace.frames.length - 1} aria-label="Next step">»</button>
         <input
           type="range"
