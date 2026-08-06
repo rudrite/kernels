@@ -35,6 +35,11 @@ export interface LessonReading {
   url: string
   note: string
 }
+/** An end-of-lesson check: a question with a revealable answer. */
+export interface LessonCheck {
+  q: string
+  a: string
+}
 export interface Lesson {
   id: string
   num: number
@@ -43,6 +48,8 @@ export interface Lesson {
   goal: string
   sections: LessonSection[]
   readings: LessonReading[]
+  /** Two or three questions the reader answers before moving on. */
+  check?: LessonCheck[]
   /** Mastery work past the derived read item. */
   work?: WorkItem[]
 }

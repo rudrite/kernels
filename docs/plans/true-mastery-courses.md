@@ -130,7 +130,7 @@ primitive contract as written there):
      commit per unit, pushed. Tick the unit below in the same commit.
 
   The worklist, in order:
-  - [ ] P3 bootstrap: `check` field on lessons + template rendering + test invariant
+  - [x] P3 bootstrap: `check` field on lessons + template rendering + test invariant
   - [ ] l:source · l:jaxpr · l:stablehlo (the IR descent, one arc each)
   - [ ] l:xla · l:gap (the compiler wall and the escape)
   - [ ] l:pallas · l:mosaic (with the absorbed language lessons reconciled)

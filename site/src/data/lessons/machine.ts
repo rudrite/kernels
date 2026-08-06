@@ -57,9 +57,24 @@ export const MACHINE_LESSONS: UnitLessons[] = [
           { label: 'Scaling book · All about TPUs', url: 'https://jax-ml.github.io/scaling-book/tpus/', note: 'the backbone text; every constant in this lesson lives in its tables' },
           { label: 'Cloud TPU system architecture', url: 'https://docs.cloud.google.com/tpu/docs/system-architecture-tpu-vm', note: 'the vendor description of the same units, generation by generation' },
         ],
+        check: [
+          {
+            q: "A kernel's inner loop is mostly exponentials and rescaling, with a small matmul at the end. Which unit is your bottleneck candidate, and why won't a FLOPs roofline warn you?",
+            a: 'The VPU. The elementwise work runs there while the MXU idles, and a roofline over FLOPs mostly counts matmul arithmetic, so a VPU-bound kernel can sit far below the FLOPs roof and still be at its own ceiling.',
+          },
+          {
+            q: 'Why does a small matmul waste the MXU even when its operands are already resident in VMEM?',
+            a: 'The systolic array spends its opening cycles filling the wavefront and its closing cycles draining it. A small operand spends most of its time in those ramps, so few cycles run with every cell active, no matter what the memory did.',
+          },
+          {
+            q: 'VMEM is often described as a cache. What breaks in that analogy?',
+            a: 'A cache decides for itself what stays close. VMEM holds exactly what software staged into it by DMA, nothing is fetched or evicted behind your back, and that is why the staging is yours to choreograph.',
+          },
+        ],
         work: [
           { id: 'systolic', label: 'systolic stepper: run a full pass and name the three phases', href: '#the-systolic-array' },
           { id: 'sort', label: 'take one kernel from stage 1 and sort its lines into MXU lines and VPU lines' },
+          { id: 'check', label: 'answer the three checks without opening them', href: '#check' },
         ],
       },
   {

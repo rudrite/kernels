@@ -77,6 +77,20 @@ describe('the lesson layer structure', () => {
         }
   })
 
+  it('keeps checks well-formed: two or three per lesson, real questions, real answers', () => {
+    for (const u of ALL_UNIT_LESSONS)
+      for (const l of u.lessons) {
+        if (!l.check) continue
+        expect(l.check.length, l.id).toBeGreaterThanOrEqual(2)
+        expect(l.check.length, l.id).toBeLessThanOrEqual(3)
+        for (const c of l.check) {
+          expect(c.q.length, l.id).toBeGreaterThan(20)
+          expect(c.q.trim().endsWith('?'), `${l.id} · ${c.q}`).toBe(true)
+          expect(c.a.length, l.id).toBeGreaterThan(40)
+        }
+      }
+  })
+
   it('covers every lesson in the mastery ledger with a read item first', () => {
     for (const u of ALL_UNIT_LESSONS)
       for (const l of u.lessons) {
@@ -90,7 +104,8 @@ describe('the lesson layer structure', () => {
     const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
     for (const u of ALL_UNIT_LESSONS)
       for (const l of u.lessons) {
-        const slugs = new Set(l.sections.map((sec) => slug(sec.h)))
+        // template-emitted anchors exist on every lesson page
+        const slugs = new Set([...l.sections.map((sec) => slug(sec.h)), 'check', 'readings'])
         for (const w of l.work ?? []) {
           if (!w.href) continue
           if (w.href.startsWith('#')) expect(slugs.has(w.href.slice(1)), `${l.id} · ${w.id} · ${w.href}`).toBe(true)

@@ -153,6 +153,25 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
         ))
       }
 
+      {
+        lesson.check && lesson.check.length > 0 && (
+          <section class="block">
+            <SectionHead id="check" eyebrow="before you move on" title="Check yourself" />
+            <div class="checks">
+              {lesson.check.map((c, ci) => (
+                <details class="check">
+                  <summary>
+                    <span class="q-num meas">{pad(ci + 1)}</span>
+                    <span class="q">{c.q}</span>
+                  </summary>
+                  <p class="a">{c.a}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+        )
+      }
+
       <section class="block">
         <SectionHead id="readings" eyebrow="assigned" title="Readings" />
         <ul class="readings">
@@ -269,6 +288,16 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
   .tablefig td { font-family: var(--mono); padding: 0.45rem 0.75rem; border-bottom: 1px solid var(--rule-soft); white-space: nowrap; }
   .tablefig tr:last-child td { border-bottom: none; }
   .tablefig .provenance { border: 1px solid var(--rule); border-top: none; background: var(--paper-high); color: var(--ink-mute); }
+
+  .checks { display: flex; flex-direction: column; gap: 0.75rem; max-width: var(--measure); }
+  .check { border: 1px solid var(--rule); background: var(--paper-high); box-shadow: 3px 3px 0 color-mix(in srgb, var(--ink) 8%, transparent); }
+  .check summary { display: flex; gap: 0.75rem; align-items: baseline; padding: 0.875rem 1rem; cursor: pointer; list-style: none; }
+  .check summary::-webkit-details-marker { display: none; }
+  .check summary:hover .q { color: var(--accent-deep); }
+  .check .q-num { color: var(--accent-deep); font-size: 0.8125rem; }
+  .check .q { font-weight: 500; }
+  .check .a { padding: 0 1rem 0.875rem 2.5rem; color: var(--ink-mute); }
+  .check[open] summary { border-bottom: 1px solid var(--rule-soft); margin-bottom: 0.75rem; }
 
   .readings { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.75rem; }
   .readings li { display: flex; flex-direction: column; gap: 0.2rem; border: 1px solid var(--rule); background: var(--paper-high); padding: 0.75rem 1rem; }
