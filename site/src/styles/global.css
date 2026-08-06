@@ -28,10 +28,11 @@
   --pass: #4da37a;
   --fail: #c4574a;
 
-  /* interactive chrome: the brand accent (ADR 0001) */
-  --accent: #4f46dc;
-  --accent-deep: #423ac0;
-  --accent-bright: #7d76ec; /* for dark panels */
+  /* interactive chrome: terracotta, same family as the algorithm hue
+     (ADR 0002, superseding ADR 0001's brand-token accent) */
+  --accent: #c88a70;
+  --accent-deep: #a86e55;
+  --accent-bright: #c88a70; /* for dark panels */
 
   /* type */
   --serif: 'IBM Plex Serif', georgia, 'times new roman', serif;
