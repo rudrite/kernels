@@ -1,0 +1,50 @@
+---
+import Base from '../../layouts/Base.astro'
+import { ALL_SERIES } from '../../data/series'
+---
+
+<Base
+  title="The series shelf · Rudrite Kernels"
+  description="Ordered runs of full pages that take one subject past its path chapter: the hardware, the Pallas language, XLA from the inside."
+>
+  <section class="chapter-head">
+    <div class="wrap">
+      <p class="mono-label kicker">the shelf</p>
+      <h1>Series</h1>
+      <p class="lede">
+        The paths teach in chapters; a series takes one subject and refuses to stop at chapter depth.
+        Each one names the path chapters it goes past and sends you back when it ends.
+      </p>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="shelf">
+      {
+        ALL_SERIES.map((s) => (
+          <a class="card" href={`/series/${s.id}`}>
+            <span class="mono-label count">{s.pages.length} pages · <span data-path-progress={`sr-${s.id}`}>0/{s.pages.length}</span> read</span>
+            <span class="t">{s.title}</span>
+            <span class="l">{s.lede}</span>
+            <span class="mono-label go">open the series →</span>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</Base>
+
+<style>
+  .chapter-head { padding-block: 2rem 2.25rem; background: var(--paper-high); border-bottom: 1px solid var(--rule); }
+  .chapter-head .kicker { color: var(--copper-deep); margin-bottom: 0.875rem; }
+  .chapter-head h1 { font-size: clamp(1.875rem, 4.5vw, 2.75rem); font-weight: 600; letter-spacing: -0.01em; }
+  .chapter-head .lede { margin-top: 0.75rem; font-size: 1.1875rem; color: var(--ink-mute); max-width: 62ch; }
+
+  .shelf { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 1.25rem; margin-top: 2.5rem; max-width: 64rem; }
+  .card { display: flex; flex-direction: column; gap: 0.5rem; border: 1px solid var(--rule); background: var(--paper-high); padding: 1.25rem 1.375rem; text-decoration: none; }
+  .card:hover { border-color: var(--copper-deep); }
+  .count { color: var(--ink-mute); }
+  .t { font-size: 1.25rem; font-weight: 600; color: var(--ink); }
+  .l { color: var(--ink-mute); font-size: 0.9375rem; }
+  .go { margin-top: 0.5rem; color: var(--copper-deep); }
+</style>

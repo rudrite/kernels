@@ -19,7 +19,8 @@ Each chapter carries a diagram, its assigned readings, and tracked mastery work.
 
 - **The gym** ([/gym](https://kernels.rudrite.com/gym)): one floor per path, 13 drill stations. Every answer is computed from generated dumps or real runs, never written by hand. Streaks live in your browser.
 - **The museum** ([/mistakes](https://kernels.rudrite.com/mistakes)): one wing per path, 27 exhibits. Each is a failure that was reproduced, with its verbatim error and a fix that was run.
-- **Instruments**: 15 live surfaces, from the roofline playground to the jit cache key, the view explorer, and the pass pipeline stepped from a real dump.
+- **Instruments**: 18 live surfaces, from the roofline playground to the jit cache key, the view explorer, and the pass pipeline stepped from a real dump.
+- **The series shelf** ([/series](https://kernels.rudrite.com/series)): multi-page runs that take one subject past chapter depth. The first is the machine: TPU and GPU silicon, the generations, and both fabrics, with three instruments built for it.
 
 ## The repo
 

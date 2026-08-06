@@ -1,0 +1,253 @@
+---
+import { Code } from 'astro:components'
+import Base from '../../../layouts/Base.astro'
+import Rich from '../../../components/Rich.astro'
+import SectionHead from '../../../components/SectionHead.astro'
+import ReadingRails from '../../../components/ReadingRails.astro'
+import MasteryWork from '../../../components/MasteryWork.astro'
+import BlockDiagram from '../../../components/BlockDiagram.astro'
+import MlirCode from '../../../components/MlirCode.astro'
+import Exhibit from '../../../components/Exhibit.astro'
+import SeriesPager from '../../../components/SeriesPager.astro'
+import SystolicArray from '../../../exhibits/SystolicArray'
+import TorusHops from '../../../exhibits/TorusHops'
+import FabricCompare from '../../../exhibits/FabricCompare'
+import { ALL_SERIES, type Series, type SeriesPage } from '../../../data/series'
+import { SERIES_DIAGRAMS } from '../../../data/series/diagrams'
+import { seriesRefs } from '../../../lib/series'
+
+// The instrument roster for series pages; sections reference these by id.
+const INSTRUMENTS: Record<string, { d: string; t: string; p: string }> = {
+  systolic: {
+    d: 'EX·19',
+    t: 'the systolic array, cycle by cycle',
+    p: 'a 6x6 stand-in for the real grid · fill, steady state, drain · MAC readout scaled to 128x128 (v5e) or 256x256 (v6e) per jax-ml.github.io/scaling-book/tpus/',
+  },
+  torus: {
+    d: 'EX·20',
+    t: 'the torus, hop by hop',
+    p: 'an 8x8 axis pair standing for 16x16 · hop counts exact for the drawn grid · link constants from jax-ml.github.io/scaling-book/tpus/',
+  },
+  fabric: {
+    d: 'EX·21',
+    t: 'two fabrics, one question',
+    p: 'hop distance on a wrapped 4x4 torus against one switched 8-GPU node · egress constants from jax-ml.github.io/scaling-book (tpus, gpus)',
+  },
+}
+
+export function getStaticPaths() {
+  return ALL_SERIES.flatMap((series) =>
+    series.pages.map((page) => ({ params: { series: series.id, id: page.id }, props: { series, page } })),
+  )
+}
+
+interface Props {
+  series: Series
+  page: SeriesPage
+}
+const { series, page } = Astro.props
+const key = `sr:${series.id}:${page.id}`
+const self = `/series/${series.id}/${page.id}`
+const refs = seriesRefs(series)
+const pad = (n: number) => String(n).padStart(2, '0')
+const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+---
+
+<Base
+  title={`${page.title} · ${series.title}, the series · Rudrite Kernels`}
+  description={page.lede}
+>
+  <section class="chapter-head">
+    <div class="wrap">
+      <p class="mono-label kicker">{series.title.toLowerCase()}, the series · page {pad(page.num)} of {series.pages.length}</p>
+      <h1>{page.title}</h1>
+      <p class="lede"><Rich text={page.lede} self={self} /></p>
+      <p class="goal"><span class="mono-label">the goal</span> <Rich text={page.goal} self={self} /></p>
+    </div>
+  </section>
+
+  <div class="wrap layout">
+    <aside class="side">
+      <nav class="pathmap" aria-label={`The ${series.title} series`}>
+        <span class="mono-label toc-head">the series</span>
+        <ol>
+          {
+            refs.map((c) => (
+              <li class={c.key === key ? 'here' : ''}>
+                <a href={c.href} data-chapter-key={c.key}>
+                  <span class="pm-num">{pad(c.num)}</span>
+                  <span class="pm-title">{c.title}</span>
+                  <span class="pm-frac meas" data-work-frac={c.key} />
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+      </nav>
+      <nav class="toc" aria-label="On this page">
+        <span class="mono-label toc-head">on this page</span>
+        <ol>
+          {page.sections.map((sec) => <li><a href={`#${slug(sec.h)}`}>{sec.h}</a></li>)}
+        </ol>
+      </nav>
+    </aside>
+
+    <article class="main">
+      <MasteryWork chapterKey={key} />
+
+      {
+        page.sections.map((sec, si) => (
+          <section class="block prose">
+            <SectionHead id={slug(sec.h)} eyebrow={`§ ${pad(si + 1)}`} title={sec.h.charAt(0).toUpperCase() + sec.h.slice(1)} />
+            {sec.ps.map((p) =>
+              p.startsWith('>> ') ? (
+                <blockquote class="pull">{p.slice(3)}</blockquote>
+              ) : (
+                <p class="theory">
+                  <Rich text={p} self={self} />
+                </p>
+              ),
+            )}
+            {sec.code && (
+              <figure class="panel codefig">
+                <figcaption class="provenance top">{sec.code.caption}</figcaption>
+                <div class="codebody">
+                  {sec.code.lang === 'mlir' ? (
+                    <MlirCode code={sec.code.text} />
+                  ) : (
+                    <Code code={sec.code.text} lang={sec.code.lang === 'text' ? 'txt' : (sec.code.lang ?? 'python')} theme="vesper" />
+                  )}
+                </div>
+              </figure>
+            )}
+            {sec.table && (
+              <figure class="tablefig">
+                <div class="tablescroll">
+                  <table>
+                    <thead>
+                      <tr>{sec.table.cols.map((c) => <th>{c}</th>)}</tr>
+                    </thead>
+                    <tbody>
+                      {sec.table.rows.map((row) => <tr>{row.map((cell) => <td>{cell}</td>)}</tr>)}
+                    </tbody>
+                  </table>
+                </div>
+                <figcaption class="provenance">{sec.table.caption}</figcaption>
+              </figure>
+            )}
+            {sec.diagram && SERIES_DIAGRAMS[sec.diagram] && (
+              <figure class="panel codefig">
+                <figcaption class="provenance top">{SERIES_DIAGRAMS[sec.diagram]!.caption}</figcaption>
+                <BlockDiagram spec={SERIES_DIAGRAMS[sec.diagram]!} />
+              </figure>
+            )}
+            {sec.exhibit && INSTRUMENTS[sec.exhibit] && (
+              <div class="exwrap">
+                <Exhibit designator={INSTRUMENTS[sec.exhibit]!.d} title={INSTRUMENTS[sec.exhibit]!.t} provenance={INSTRUMENTS[sec.exhibit]!.p}>
+                  {sec.exhibit === 'systolic' && <SystolicArray client:visible />}
+                  {sec.exhibit === 'torus' && <TorusHops client:visible />}
+                  {sec.exhibit === 'fabric' && <FabricCompare client:visible />}
+                </Exhibit>
+              </div>
+            )}
+          </section>
+        ))
+      }
+
+      <section class="block">
+        <SectionHead id="readings" eyebrow="assigned" title="Readings" />
+        <ul class="readings">
+          {
+            page.readings.map((r) => (
+              <li>
+                <a href={r.url} target="_blank" rel="noopener">{r.label} ↗</a>
+                <span class="r-note">{r.note}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <SeriesPager seriesId={series.id} pageId={page.id} />
+    </article>
+
+    <aside class="right">
+      <div class="rail">
+        <div>
+          <span class="rail-head">reading progress</span>
+          <span class="progress-num meas">0%</span>
+          <div class="progress-bar"><i></i></div>
+        </div>
+        <div>
+          <span class="rail-head">this page</span>
+          <div class="card">
+            <div class="row"><span class="k">page</span><span>{pad(page.num)} of {series.pages.length}</span></div>
+            <div class="row"><span class="k">series</span><span>{series.title.toLowerCase()}</span></div>
+            <div class="row"><span class="k">readings</span><span>{page.readings.length} assigned</span></div>
+          </div>
+        </div>
+        <div>
+          <span class="rail-head">goes past</span>
+          <ul>
+            {series.deepens.map((d) => <li><a href={d.href}>{d.label}</a></li>)}
+          </ul>
+        </div>
+      </div>
+    </aside>
+  </div>
+  <ReadingRails />
+</Base>
+
+<style>
+  .layout { display: grid; grid-template-columns: 13.5rem minmax(0, 1fr) 13rem; gap: 3rem; padding-block: 2.5rem; }
+  .side, .right { position: sticky; top: 2rem; align-self: start; }
+  @media (max-width: 1240px) { .layout { grid-template-columns: 13.5rem minmax(0, 1fr); } .right { display: none; } }
+  @media (max-width: 960px) { .layout { grid-template-columns: minmax(0, 1fr); } .side { display: none; } }
+
+  .chapter-head { padding-block: 2rem 2.25rem; background: var(--paper-high); border-bottom: 1px solid var(--rule); }
+  .chapter-head .kicker { color: var(--copper-deep); margin-bottom: 0.875rem; }
+  .chapter-head h1 { font-size: clamp(1.875rem, 4.5vw, 2.75rem); font-weight: 600; letter-spacing: -0.01em; }
+  .chapter-head .lede { margin-top: 0.75rem; font-size: 1.1875rem; color: var(--ink-mute); max-width: 62ch; }
+  .chapter-head .goal { margin-top: 0.875rem; font-size: 0.9375rem; color: var(--ink); max-width: 70ch; border-left: 3px solid var(--copper-deep); padding-left: 0.875rem; }
+  .chapter-head .goal .mono-label { color: var(--copper-deep); margin-right: 0.5rem; }
+
+  .block { margin-top: 2.5rem; }
+  .theory { margin-bottom: 1em; }
+
+  .pull {
+    margin: 1.25rem 0; padding: 0.25rem 0 0.25rem 1.125rem;
+    border-left: 3px solid var(--copper-deep);
+    font-family: var(--serif); font-style: italic; font-size: 1.1875rem; line-height: 1.5;
+    color: var(--ink);
+  }
+
+  .pathmap ol { list-style: none; margin: 0.5rem 0 0; padding: 0; }
+  .pathmap a { display: flex; align-items: baseline; gap: 0.5rem; padding: 0.22rem 0; text-decoration: none; color: var(--ink-mute); font-size: 0.8125rem; }
+  .pathmap a:hover { color: var(--copper-deep); }
+  .pathmap li.here a { color: var(--copper-deep); font-weight: 500; }
+  .pm-num { font-family: var(--mono); font-size: 0.6875rem; color: var(--copper-deep); }
+  .pm-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pm-frac { font-family: var(--mono); font-size: 0.625rem; color: var(--ink-mute); }
+  :global(.pathmap [data-chapter-key].p-done) .pm-frac { color: var(--pass); }
+  .toc { margin-top: 1.5rem; }
+
+  .codefig { margin: 1.25rem 0 0; }
+  .codefig .top { border-top: none; border-bottom: 1px solid var(--panel-rule); }
+  .codebody :global(pre) { margin: 0; padding: 0.875rem; overflow-x: auto; font-size: 0.8125rem; line-height: 1.65; background: transparent !important; }
+
+  .exwrap { margin-top: 1.25rem; }
+
+  .tablefig { margin: 1.25rem 0 0; }
+  .tablescroll { overflow-x: auto; border: 1px solid var(--rule); background: var(--paper-high); }
+  .tablefig table { border-collapse: collapse; width: 100%; font-size: 0.8125rem; }
+  .tablefig th { font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-mute); text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--rule); }
+  .tablefig td { font-family: var(--mono); padding: 0.45rem 0.75rem; border-bottom: 1px solid var(--rule-soft); white-space: nowrap; }
+  .tablefig tr:last-child td { border-bottom: none; }
+  .tablefig .provenance { border: 1px solid var(--rule); border-top: none; background: var(--paper-high); color: var(--ink-mute); }
+
+  .readings { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+  .readings li { display: flex; flex-direction: column; gap: 0.2rem; border: 1px solid var(--rule); background: var(--paper-high); padding: 0.75rem 1rem; }
+  .readings a { font-family: var(--mono); font-size: 0.8125rem; color: var(--ink); text-decoration: none; }
+  .readings a:hover { color: var(--copper-deep); text-decoration: underline; }
+  .r-note { font-size: 0.8125rem; color: var(--ink-mute); }
+</style>

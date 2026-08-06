@@ -1,7 +1,25 @@
 {
   "source": "jax-ml.github.io/scaling-book/tpus/",
-  "retrieved": "2026-07-26",
+  "retrieved": "2026-08-06",
   "chips": [
+    {
+      "id": "v3",
+      "label": "TPU v3",
+      "bf16FlopsPerSec": 1.4e14,
+      "hbmBytes": 3.2e10,
+      "hbmBytesPerSec": 9.0e11,
+      "vmemBytes": null,
+      "iciBytesPerSecOneWay": 1.0e11
+    },
+    {
+      "id": "v4p",
+      "label": "TPU v4p",
+      "bf16FlopsPerSec": 2.75e14,
+      "hbmBytes": 3.2e10,
+      "hbmBytesPerSec": 1.2e12,
+      "vmemBytes": null,
+      "iciBytesPerSecOneWay": 4.5e10
+    },
     {
       "id": "v5e",
       "label": "TPU v5e",
@@ -12,11 +30,29 @@
       "iciBytesPerSecOneWay": 4.5e10
     },
     {
+      "id": "v5p",
+      "label": "TPU v5p",
+      "bf16FlopsPerSec": 4.59e14,
+      "hbmBytes": 9.6e10,
+      "hbmBytesPerSec": 2.8e12,
+      "vmemBytes": null,
+      "iciBytesPerSecOneWay": 9.0e10
+    },
+    {
       "id": "v6e",
       "label": "TPU v6e (Trillium)",
       "bf16FlopsPerSec": 9.2e14,
       "hbmBytes": 3.2e10,
       "hbmBytesPerSec": 1.6e12,
+      "vmemBytes": null,
+      "iciBytesPerSecOneWay": 9.0e10
+    },
+    {
+      "id": "tpu7x",
+      "label": "TPU 7x",
+      "bf16FlopsPerSec": 2.3e15,
+      "hbmBytes": 1.92e11,
+      "hbmBytesPerSec": 7.4e12,
       "vmemBytes": null,
       "iciBytesPerSecOneWay": 9.0e10
     }

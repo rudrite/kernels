@@ -8,14 +8,26 @@ import { PATH } from '../lib/path'
 import { JAX_PATH } from '../data/jax/track'
 import { XLA_PATH } from '../data/xla/track'
 import { PT_PATH } from '../data/pytorch/track'
+import { ALL_SERIES } from '../data/series'
+import { seriesRefs } from '../lib/series'
 
 // build format 'file' can surface index pages as /jax.html at render time.
 // Workshop sub-pages (/gym/jax, /mistakes/xla, ...) carry their path's strip.
 const current = Astro.url.pathname.replace(/\.html$/, '').replace(/\/+$/, '') || '/'
 const seg = current.split('/').filter(Boolean)
 const pathId = seg[0] === 'gym' || seg[0] === 'mistakes' ? seg[1] : seg[0]
-const strip =
-  pathId === 'jax'
+// On a series page the strip is that series; the shelf itself and unknown
+// series ids keep the kernel track.
+const onSeries = seg[0] === 'series' ? ALL_SERIES.find((s) => s.id === seg[1]) : undefined
+const strip = onSeries
+  ? {
+      id: `sr-${onSeries.id}`,
+      home: `/series/${onSeries.id}`,
+      label: `${onSeries.title.toLowerCase()}, the series`,
+      chapters: seriesRefs(onSeries),
+      breakAt: 0,
+    }
+  : pathId === 'jax'
     ? { id: 'jax', home: '/jax', label: 'the jax path', chapters: JAX_PATH, breakAt: 9 }
     : pathId === 'xla'
       ? { id: 'xla', home: '/xla', label: 'the xla path', chapters: XLA_PATH, breakAt: 11 }
@@ -23,6 +35,7 @@ const strip =
         ? { id: 'pytorch', home: '/pytorch', label: 'the pytorch path', chapters: PT_PATH, breakAt: 8 }
         : { id: 'kernels', home: '/', label: 'the path', chapters: PATH, breakAt: 10 }
 const scoped = strip.id === 'kernels' ? '' : strip.id
+const startLabel = onSeries ? 'start the series' : 'start the path'
 ---
 
 <div class="path-strip">
@@ -46,7 +59,7 @@ const scoped = strip.id === 'kernels' ? '' : strip.id
       }
     </ol>
     <a class="mono-label strip-continue" data-continue={scoped} href={strip.home}>
-      <span data-continue-label>start the path</span>
+      <span data-continue-label>{startLabel}</span>
     </a>
   </div>
 </div>

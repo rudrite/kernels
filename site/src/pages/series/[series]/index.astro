@@ -1,0 +1,73 @@
+---
+import Base from '../../../layouts/Base.astro'
+import Rich from '../../../components/Rich.astro'
+import { ALL_SERIES, type Series } from '../../../data/series'
+
+export function getStaticPaths() {
+  return ALL_SERIES.map((series) => ({ params: { series: series.id }, props: { series } }))
+}
+
+interface Props {
+  series: Series
+}
+const { series } = Astro.props
+const pad = (n: number) => String(n).padStart(2, '0')
+---
+
+<Base title={`${series.title}, the series · Rudrite Kernels`} description={series.lede}>
+  <section class="chapter-head">
+    <div class="wrap">
+      <p class="mono-label kicker">a series · {series.pages.length} pages · <span data-path-progress={`sr-${series.id}`}>0/{series.pages.length}</span> read</p>
+      <h1>{series.title}</h1>
+      <p class="lede"><Rich text={series.lede} /></p>
+      <p class="deepens">
+        <span class="mono-label">goes past</span>
+        {series.deepens.map((d, i) => <a href={d.href}>{d.label}{i < series.deepens.length - 1 ? ' · ' : ''}</a>)}
+      </p>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <ol class="pagelist">
+      {
+        series.pages.map((p) => (
+          <li>
+            <a href={`/series/${series.id}/${p.id}`} data-chapter-key={`sr:${series.id}:${p.id}`}>
+              <span class="num">{pad(p.num)}</span>
+              <span class="body">
+                <span class="t">{p.title}</span>
+                <span class="l">{p.lede}</span>
+              </span>
+              <span class="frac meas" data-work-frac={`sr:${series.id}:${p.id}`}>·</span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+    <p class="backrow"><a class="mono-label" href="/series">← the series shelf</a></p>
+  </div>
+</Base>
+
+<style>
+  .chapter-head { padding-block: 2rem 2.25rem; background: var(--paper-high); border-bottom: 1px solid var(--rule); }
+  .chapter-head .kicker { color: var(--copper-deep); margin-bottom: 0.875rem; }
+  .chapter-head h1 { font-size: clamp(1.875rem, 4.5vw, 2.75rem); font-weight: 600; letter-spacing: -0.01em; }
+  .chapter-head .lede { margin-top: 0.75rem; font-size: 1.1875rem; color: var(--ink-mute); max-width: 62ch; }
+  .deepens { margin-top: 0.875rem; font-size: 0.875rem; }
+  .deepens .mono-label { color: var(--copper-deep); margin-right: 0.5rem; }
+  .deepens a { color: var(--ink-mute); text-decoration: none; }
+  .deepens a:hover { color: var(--copper-deep); }
+
+  .pagelist { list-style: none; margin: 2.5rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.875rem; max-width: 46rem; }
+  .pagelist a { display: flex; gap: 1rem; align-items: baseline; border: 1px solid var(--rule); background: var(--paper-high); padding: 1rem 1.125rem; text-decoration: none; }
+  .pagelist a:hover { border-color: var(--copper-deep); }
+  .pagelist .num { font-family: var(--mono); font-size: 0.8125rem; color: var(--copper-deep); }
+  .pagelist .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+  .pagelist .t { color: var(--ink); font-weight: 500; }
+  .pagelist .l { color: var(--ink-mute); font-size: 0.875rem; }
+  .pagelist .frac { font-family: var(--mono); font-size: 0.6875rem; color: var(--ink-mute); }
+  :global(.pagelist a.p-done) .frac { color: var(--pass); }
+  .backrow { margin: 2rem 0 0; }
+  .backrow a { color: var(--ink-mute); text-decoration: none; }
+  .backrow a:hover { color: var(--copper-deep); }
+</style>

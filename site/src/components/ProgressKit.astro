@@ -7,6 +7,8 @@ import { PATH } from '../lib/path'
 import { JAX_PATH } from '../data/jax/track'
 import { XLA_PATH } from '../data/xla/track'
 import { PT_PATH } from '../data/pytorch/track'
+import { ALL_SERIES } from '../data/series'
+import { seriesRefs } from '../lib/series'
 import { ALL_MASTERY } from '../data/mastery-index'
 
 // Per-path chapter lists; 'kernels' is the default so every attribute that
@@ -16,6 +18,9 @@ const PATHS = {
   jax: JAX_PATH.map((c) => ({ key: c.key, href: c.href, label: c.title })),
   xla: XLA_PATH.map((c) => ({ key: c.key, href: c.href, label: c.title })),
   pytorch: PT_PATH.map((c) => ({ key: c.key, href: c.href, label: c.title })),
+  ...Object.fromEntries(
+    ALL_SERIES.map((s) => [`sr-${s.id}`, seriesRefs(s).map((c) => ({ key: c.key, href: c.href, label: c.title }))]),
+  ),
 }
 const MASTERY = ALL_MASTERY
 ---
@@ -41,10 +46,12 @@ const MASTERY = ALL_MASTERY
 
   // ---- chapter visit marking ----
   const m = location.pathname.match(/^\/(l|s|jax|xla|pytorch)\/([a-z-]+)$/)
+  const sr = location.pathname.match(/^\/series\/([a-z-]+)\/([a-z-]+)$/)
   const visited = store.get('path.visited', {})
-  if (m) {
-    // url segment to store prefix; pytorch chapters store under 'pt:'
-    const key = `${m[1] === 'pytorch' ? 'pt' : m[1]}:${m[2]}`
+  if (m || sr) {
+    // url segment to store prefix; pytorch chapters store under 'pt:',
+    // series pages under 'sr:<series>:'
+    const key = sr ? `sr:${sr[1]}:${sr[2]}` : `${m[1] === 'pytorch' ? 'pt' : m[1]}:${m[2]}`
     if (!visited[key]) {
       visited[key] = new Date().toISOString().slice(0, 10)
       store.set('path.visited', visited)
@@ -119,7 +126,8 @@ const MASTERY = ALL_MASTERY
       const nextChapter = chapters.find((c) => !complete(c.key)) ?? chapters[0]
       el.setAttribute('href', nextChapter.href)
       const label = el.querySelector('[data-continue-label]')
-      if (label) label.textContent = done === 0 ? `start the path → ${nextChapter.label}` : `continue → ${nextChapter.label}`
+      const noun = (el.getAttribute('data-continue') || '').startsWith('sr-') ? 'series' : 'path'
+      if (label) label.textContent = done === 0 ? `start the ${noun} → ${nextChapter.label}` : `continue → ${nextChapter.label}`
     }
     // per-stage cards
     for (const el of document.querySelectorAll('[data-sp-checklist]')) {

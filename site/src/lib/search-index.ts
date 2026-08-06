@@ -6,6 +6,7 @@ import { STAGES } from '../data/track'
 import { JAX_CHAPTERS } from '../data/jax/track'
 import { XLA_CHAPTERS } from '../data/xla/track'
 import { PT_CHAPTERS } from '../data/pytorch/track'
+import { ALL_SERIES } from '../data/series'
 import jaxMistakes from '../data/jax-mistakes.json'
 import xlaMistakes from '../data/xla-mistakes.json'
 import pytorchMistakes from '../data/pytorch-mistakes.json'
@@ -131,6 +132,23 @@ const newWingMistakes: SearchEntry[] = [
   keywords: `error failure fix ${wing}`,
 }))
 
+const seriesPages: SearchEntry[] = ALL_SERIES.flatMap((s) => [
+  {
+    kind: 'page' as const,
+    title: `${s.title.toLowerCase()}, the series`,
+    href: `/series/${s.id}`,
+    hint: 'series',
+    keywords: s.lede,
+  },
+  ...s.pages.map((p) => ({
+    kind: 'chapter' as const,
+    title: `${s.id} ${pad(p.num)} · ${p.title}`,
+    href: `/series/${s.id}/${p.id}`,
+    hint: `${s.title.toLowerCase()}, the series`,
+    keywords: `${s.id} ${p.lede}`,
+  })),
+])
+
 const pages: SearchEntry[] = [
   { t: 'the path', h: '/', k: 'home chapters map kernels' },
   { t: 'the jax path', h: '/jax', k: 'jax mastery course transformations' },
@@ -154,6 +172,7 @@ export const SEARCH_INDEX: SearchEntry[] = [
   ...jaxChapters,
   ...xlaChapters,
   ...ptChapters,
+  ...seriesPages,
   ...newWingMistakes,
   ...instruments,
   ...labs,
