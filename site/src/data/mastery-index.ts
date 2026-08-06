@@ -18,7 +18,12 @@ export const ALL_MASTERY: Record<string, WorkItem[]> = (() => {
     ...LESSON_MASTERY,
   }
   for (const u of ALL_UNIT_LESSONS) {
-    merged[u.unit] = [...(merged[u.unit] ?? []), ...unitLessonItems(u.unit)]
+    // lessons sit right after the read item: the arc's teaching steps come
+    // before its practice steps
+    const items = merged[u.unit] ?? []
+    const readAt = items.findIndex((i) => i.id === 'read')
+    const at = readAt === -1 ? 0 : readAt + 1
+    merged[u.unit] = [...items.slice(0, at), ...unitLessonItems(u.unit), ...items.slice(at)]
   }
   return merged
 })()

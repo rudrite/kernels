@@ -14,6 +14,7 @@ import Exhibit from './Exhibit.astro'
 import SystolicArray from '../exhibits/SystolicArray'
 import TorusHops from '../exhibits/TorusHops'
 import FabricCompare from '../exhibits/FabricCompare'
+import GuideSections from './GuideSections.astro'
 import { lessonAt, lessonHref, lessonKey } from '../data/lessons'
 import { LESSON_DIAGRAMS } from '../data/lessons/diagrams'
 
@@ -51,6 +52,16 @@ const key = lessonKey(unit, lesson.id)
 const self = lessonHref(unit, lesson.id)
 const pad = (n: number) => String(n).padStart(2, '0')
 const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+
+// When the lesson slices a guide, its body lives there; the toc lists the
+// sliced sections' headings.
+const guideModules = import.meta.glob('../data/guides/*.json', { eager: true }) as Record<
+  string,
+  { default: { sections: { h: string }[] } }
+>
+const guideHeads = lesson.guide
+  ? lesson.guide.sections.map((i) => guideModules[`../data/guides/${lesson.guide!.id}.json`]!.default.sections[i]!.h)
+  : []
 ---
 
 <Base title={`${lesson.title} · ${unitTitle} · Rudrite Kernels`} description={lesson.lede}>
@@ -87,6 +98,8 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
         <span class="mono-label toc-head">on this page</span>
         <ol>
           {lesson.sections.map((sec) => <li><a href={`#${slug(sec.h)}`}>{sec.h}</a></li>)}
+          {guideHeads.map((h) => <li><a href={`#${slug(h)}`}>{h}</a></li>)}
+          {lesson.check && <li><a href="#check">check yourself</a></li>}
         </ol>
       </nav>
     </aside>
@@ -151,6 +164,12 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
             )}
           </section>
         ))
+      }
+
+      {
+        lesson.guide && (
+          <GuideSections guideId={lesson.guide.id} sections={lesson.guide.sections} self={self} numbering="lesson" />
+        )
       }
 
       {

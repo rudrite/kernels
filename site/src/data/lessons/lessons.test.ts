@@ -37,12 +37,13 @@ describe('the lesson layer structure', () => {
     }
   })
 
-  it('teaches in depth: lede, goal, three-plus sections, real paragraphs', () => {
+  it('teaches in depth: lede, goal, and a real body (own sections or a guide slice)', () => {
     for (const u of ALL_UNIT_LESSONS)
       for (const l of u.lessons) {
         expect(l.lede.length, l.id).toBeGreaterThan(30)
         expect(l.goal.length, l.id).toBeGreaterThan(40)
-        expect(l.sections.length, l.id).toBeGreaterThanOrEqual(3)
+        if (l.guide) expect(l.guide.sections.length, l.id).toBeGreaterThanOrEqual(1)
+        else expect(l.sections.length, l.id).toBeGreaterThanOrEqual(3)
         for (const sec of l.sections) {
           expect(sec.ps.length, `${l.id} · ${sec.h}`).toBeGreaterThanOrEqual(1)
           for (const par of sec.ps) {
@@ -51,6 +52,36 @@ describe('the lesson layer structure', () => {
           }
         }
       }
+  })
+
+  it('slices guides without losing a section: valid indices, and covered guides are whole', () => {
+    const guides = import.meta.glob('../guides/*.json', { eager: true }) as Record<
+      string,
+      { default: { sections: unknown[] } }
+    >
+    for (const u of ALL_UNIT_LESSONS) {
+      const sliced = u.lessons.filter((l) => l.guide)
+      const claimed = new Set<number>()
+      let guideId: string | undefined
+      for (const l of sliced) {
+        guideId ??= l.guide!.id
+        expect(l.guide!.id, `${u.unit}/${l.id} slices a second guide`).toBe(guideId)
+        const g = guides[`../guides/${l.guide!.id}.json`]
+        expect(g, `${u.unit}/${l.id} · guide ${l.guide!.id}`).toBeDefined()
+        for (const i of l.guide!.sections) {
+          expect(i, `${u.unit}/${l.id} · section ${i}`).toBeLessThan(g!.default.sections.length)
+          expect(claimed.has(i), `${u.unit}/${l.id} · section ${i} claimed twice`).toBe(false)
+          claimed.add(i)
+        }
+      }
+      if (u.coversGuide) {
+        expect(guideId, `${u.unit} claims coverage with no slices`).toBeDefined()
+        const total = guides[`../guides/${guideId}.json`]!.default.sections.length
+        expect([...claimed].sort((a, b) => a - b), `${u.unit} covers ${guideId}`).toEqual(
+          Array.from({ length: total }, (_, i) => i),
+        )
+      }
+    }
   })
 
   it('cites at least two readings per lesson, all https', () => {

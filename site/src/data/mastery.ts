@@ -25,19 +25,15 @@ export const MASTERY: Record<string, WorkItem[]> = {
   'l:source': [
     { id: 'read', label: 'read the chapter: what tracing takes away' },
     { id: 'trace', label: 'trace one of your own functions with jax.make_jaxpr and read what survived' },
-    { id: 'guide', label: 'the full guide: every section read, exercises worked', href: '#exercises' },
   ],
   'l:jaxpr': [
     { id: 'read', label: 'read the chapter: equations, shapes, the f32 upcast' },
     { id: 'oracle', label: 'shape oracle: streak of 5', href: '/gym/kernels#drills', auto: { type: 'streak', key: 'gym.shape.streak', goal: 5 } },
-    { id: 'guide', label: 'the full guide: every section read, exercises worked', href: '#exercises' },
     { id: 'transform', label: 'name the transform: streak of 5', href: '/gym/kernels#drills', auto: { type: 'streak', key: 'gym.transform.streak', goal: 5 } },
   ],
   'l:stablehlo': [
     { id: 'read', label: 'read the chapter: MLIR, dialects, dimension_numbers' },
     { id: 'decoder', label: 'dot_general decoder: streak of 5', href: '/gym/kernels#drills', auto: { type: 'streak', key: 'gym.dot.streak', goal: 5 } },
-    { id: 'xray', label: 'corpus x-ray: narrate two programs you have not seen', href: '/gym/kernels#xray' },
-    { id: 'guide', label: 'the full guide: every section read, exercises worked', href: '#exercises' },
   ],
   'l:xla': [
     { id: 'read', label: 'read the chapter: fusion and its exact limit' },

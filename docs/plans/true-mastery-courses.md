@@ -131,7 +131,7 @@ primitive contract as written there):
 
   The worklist, in order:
   - [x] P3 bootstrap: `check` field on lessons + template rendering + test invariant
-  - [ ] l:source · l:jaxpr · l:stablehlo (the IR descent, one arc each)
+  - [x] l:source · l:jaxpr · l:stablehlo (the IR descent, one arc each)
   - [ ] l:xla · l:gap (the compiler wall and the escape)
   - [ ] l:pallas · l:mosaic (with the absorbed language lessons reconciled)
   - [ ] l:tpu · l:ici (with the absorbed machine lessons reconciled)

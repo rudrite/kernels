@@ -4,6 +4,7 @@
 // lesson belongs to exactly one unit, and the shelf that once held these
 // pages is gone (docs/plans/true-mastery-courses.md).
 import type { WorkItem } from '../mastery'
+import { IR_DESCENT_LESSONS } from './ir-descent'
 import { MACHINE_LESSONS } from './machine'
 import { PALLAS_LESSONS } from './pallas'
 import { XLA_LESSONS } from './xla-internals'
@@ -46,20 +47,27 @@ export interface Lesson {
   title: string
   lede: string
   goal: string
+  /** Authored sections; may be empty when the lesson slices a guide. */
   sections: LessonSection[]
   readings: LessonReading[]
   /** Two or three questions the reader answers before moving on. */
   check?: LessonCheck[]
   /** Mastery work past the derived read item. */
   work?: WorkItem[]
+  /** A slice of a layer guide: the body lives there, told once. */
+  guide?: { id: string; sections: number[] }
 }
 export interface UnitLessons {
   /** The owning chapter's key: 'l:<id>' | 's:<id>' | 'xla:<id>'. */
   unit: string
+  /** True when the lessons carry the unit's whole guide between them,
+      so the hub stops rendering the guide inline. */
+  coversGuide?: boolean
   lessons: Lesson[]
 }
 
 export const ALL_UNIT_LESSONS: UnitLessons[] = [
+  ...IR_DESCENT_LESSONS,
   ...MACHINE_LESSONS,
   ...PALLAS_LESSONS,
   ...XLA_LESSONS,
