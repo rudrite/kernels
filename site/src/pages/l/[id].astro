@@ -10,6 +10,8 @@ import SectionHead from '../../components/SectionHead.astro'
 import ReadingRails from '../../components/ReadingRails.astro'
 import PathPager from '../../components/PathPager.astro'
 import MasteryWork from '../../components/MasteryWork.astro'
+import LessonList from '../../components/LessonList.astro'
+import { lessonsOf } from '../../data/lessons'
 import { LAYERS, STAGES } from '../../data/track'
 import { LAYER_DOCS, layerDoc } from '../../data/layers'
 import irData from '../../data/ir-attention.json'
@@ -114,6 +116,15 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
             )}
           </section>
         ))
+      }
+
+      {
+        lessonsOf(`l:${doc.id}`).length > 0 && (
+          <section class="block">
+            <SectionHead id="lessons" eyebrow="go deeper, in order" title="Lessons" />
+            <LessonList unit={`l:${doc.id}`} />
+          </section>
+        )
       }
 
       {

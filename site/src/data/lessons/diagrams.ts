@@ -1,10 +1,10 @@
-// Diagram registry for series pages. Copper is compute, steel is memory,
+// Diagram registry for lesson pages. Copper is compute, steel is memory,
 // dashed is control or absence, same as everywhere. The tpu-chip figure is
 // the layer guide's, shared by reference; the GPU figures are drawn from
 // the scaling book's Hopper description.
 import { DIAGRAMS, type DiagramSpec } from '../diagrams'
 
-export const SERIES_DIAGRAMS: Record<string, DiagramSpec> = {
+export const LESSON_DIAGRAMS: Record<string, DiagramSpec> = {
   'tpu-chip': DIAGRAMS['tpu-chip']!,
   'sm-anatomy': {
     w: 720,

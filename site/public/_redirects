@@ -1,0 +1,24 @@
+# The series shelf retired into course lessons (docs/plans/true-mastery-courses.md)
+/series / 301
+/series/machine /l/tpu 301
+/series/pallas /l/pallas 301
+/series/xla-internals /xla 301
+/series/machine/tpu-chip /l/tpu/tpu-chip 301
+/series/machine/generations /l/tpu/generations 301
+/series/machine/tpu-fabric /l/ici/tpu-fabric 301
+/series/machine/gpu-chip /s/machine/gpu-chip 301
+/series/machine/gpu-fabric /l/ici/gpu-fabric 301
+/series/machine/two-machines /s/machine/two-machines 301
+/series/pallas/why-a-kernel-language /l/pallas/why-a-kernel-language 301
+/series/pallas/refs /l/pallas/refs 301
+/series/pallas/blockspec /s/pallas/blockspec 301
+/series/pallas/grid-and-pipeline /s/pallas/grid-and-pipeline 301
+/series/pallas/scalar-world /s/pallas/scalar-world 301
+/series/pallas/to-machine-code /l/mosaic/to-machine-code 301
+/series/xla-internals/pjrt-boundary /xla/pjrt/pjrt-boundary 301
+/series/xla-internals/hlo-invariants /xla/hlo/hlo-invariants 301
+/series/xla-internals/pass-pipeline /xla/pipeline/pass-pipeline 301
+/series/xla-internals/fusion /xla/fusion/reading-fusion 301
+/series/xla-internals/spmd /xla/spmd/the-partitioner 301
+/series/xla-internals/backend-seam /xla/codegen/backend-seam 301
+/series/xla-internals/above-the-compiler /xla/ifrt/above-the-compiler 301

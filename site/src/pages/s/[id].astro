@@ -6,6 +6,8 @@ import SectionHead from '../../components/SectionHead.astro'
 import ReadingRails from '../../components/ReadingRails.astro'
 import PathPager from '../../components/PathPager.astro'
 import MasteryWork from '../../components/MasteryWork.astro'
+import LessonList from '../../components/LessonList.astro'
+import { lessonsOf } from '../../data/lessons'
 import GateStamp from '../../components/GateStamp.astro'
 import LabCard from '../../components/LabCard.astro'
 import Spine from '../../components/Spine.astro'
@@ -124,6 +126,15 @@ const toc = [...chapterToc, ...fixedToc]
             )}
           </section>
         ))
+      }
+
+      {
+        lessonsOf(`s:${stage.id}`).length > 0 && (
+          <section class="block">
+            <SectionHead id="lessons" eyebrow="go deeper, in order" title="Lessons" />
+            <LessonList unit={`s:${stage.id}`} />
+          </section>
+        )
       }
 
       {

@@ -6,7 +6,7 @@ import { STAGES } from '../data/track'
 import { JAX_CHAPTERS } from '../data/jax/track'
 import { XLA_CHAPTERS } from '../data/xla/track'
 import { PT_CHAPTERS } from '../data/pytorch/track'
-import { ALL_SERIES } from '../data/series'
+import { ALL_UNIT_LESSONS, lessonHref } from '../data/lessons'
 import jaxMistakes from '../data/jax-mistakes.json'
 import xlaMistakes from '../data/xla-mistakes.json'
 import pytorchMistakes from '../data/pytorch-mistakes.json'
@@ -49,6 +49,9 @@ const instruments: SearchEntry[] = [
   { t: 'EX·04 ring attention', h: '/s/distributed#instruments', k: 'ici remote dma longer arrows' },
   { t: 'EX·10 the semaphore timeline', h: '/s/distributed#instruments', k: 'deadlock send wait ring' },
   { t: 'EX·11 the mesh, hop by hop', h: '/s/distributed#instruments', k: 'torus links bandwidth collective' },
+  { t: 'EX·19 the systolic array, cycle by cycle', h: '/l/tpu/tpu-chip', k: 'mxu weights wavefront fill drain' },
+  { t: 'EX·20 the torus, hop by hop', h: '/l/ici/tpu-fabric', k: 'ici wraparound hops link bandwidth' },
+  { t: 'EX·21 two fabrics, one question', h: '/l/ici/gpu-fabric', k: 'nvlink nvswitch torus egress' },
 ].map((x) => ({ kind: 'instrument' as const, title: x.t, href: x.h, hint: 'instrument', keywords: x.k }))
 
 const labs: SearchEntry[] = STAGES.flatMap((s) =>
@@ -132,22 +135,15 @@ const newWingMistakes: SearchEntry[] = [
   keywords: `error failure fix ${wing}`,
 }))
 
-const seriesPages: SearchEntry[] = ALL_SERIES.flatMap((s) => [
-  {
-    kind: 'page' as const,
-    title: `${s.title.toLowerCase()}, the series`,
-    href: `/series/${s.id}`,
-    hint: 'series',
-    keywords: s.lede,
-  },
-  ...s.pages.map((p) => ({
+const lessonEntries: SearchEntry[] = ALL_UNIT_LESSONS.flatMap((u) =>
+  u.lessons.map((l) => ({
     kind: 'chapter' as const,
-    title: `${s.id} ${pad(p.num)} · ${p.title}`,
-    href: `/series/${s.id}/${p.id}`,
-    hint: `${s.title.toLowerCase()}, the series`,
-    keywords: `${s.id} ${p.lede}`,
+    title: `lesson · ${l.title}`,
+    href: lessonHref(u.unit, l.id),
+    hint: u.unit.startsWith('xla:') ? 'the xla path · lesson' : 'the kernel path · lesson',
+    keywords: `${u.unit} ${l.lede}`,
   })),
-])
+)
 
 const pages: SearchEntry[] = [
   { t: 'the path', h: '/', k: 'home chapters map kernels' },
@@ -172,7 +168,7 @@ export const SEARCH_INDEX: SearchEntry[] = [
   ...jaxChapters,
   ...xlaChapters,
   ...ptChapters,
-  ...seriesPages,
+  ...lessonEntries,
   ...newWingMistakes,
   ...instruments,
   ...labs,

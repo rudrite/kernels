@@ -1,0 +1,71 @@
+---
+import Base from '../layouts/Base.astro'
+
+const ROOMS = [
+  {
+    href: '/gym',
+    title: 'The gym',
+    lede: 'One floor per path, 13 drill stations. Every answer is computed from generated dumps or real runs; streaks live in your browser.',
+    label: 'drills · streaks',
+  },
+  {
+    href: '/mistakes',
+    title: 'The mistake museum',
+    lede: 'One wing per path, 27 exhibits. Each is a failure that was reproduced, with its verbatim error and a fix that was run.',
+    label: 'failures · fixes',
+  },
+  {
+    href: '/bench',
+    title: 'The bench',
+    lede: 'Every number the site shows, with its provenance: chip, dtype, shapes, date, commit. One row reads RETRACTED on purpose.',
+    label: 'numbers · receipts',
+  },
+]
+---
+
+<Base
+  title="The workshop · Rudrite Kernels"
+  description="The practice rooms behind the courses: the gym's drills, the mistake museum's reproduced failures, and the bench's measured numbers."
+>
+  <section class="chapter-head">
+    <div class="wrap">
+      <p class="mono-label kicker">the practice rooms</p>
+      <h1>Workshop</h1>
+      <p class="lede">
+        The courses send you here and the ledgers check you off here. Drills build the reflexes,
+        the museum shows you every way it breaks, and the bench holds the numbers with their
+        receipts.
+      </p>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="rooms">
+      {
+        ROOMS.map((r) => (
+          <a class="card" href={r.href}>
+            <span class="mono-label count">{r.label}</span>
+            <span class="t">{r.title}</span>
+            <span class="l">{r.lede}</span>
+            <span class="mono-label go">enter →</span>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</Base>
+
+<style>
+  .chapter-head { padding-block: 2rem 2.25rem; background: var(--paper-high); border-bottom: 1px solid var(--rule); }
+  .chapter-head .kicker { color: var(--copper-deep); margin-bottom: 0.875rem; }
+  .chapter-head h1 { font-size: clamp(1.875rem, 4.5vw, 2.75rem); font-weight: 600; letter-spacing: -0.01em; }
+  .chapter-head .lede { margin-top: 0.75rem; font-size: 1.1875rem; color: var(--ink-mute); max-width: 62ch; }
+
+  .rooms { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 1.25rem; margin-top: 2.5rem; max-width: 64rem; }
+  .card { display: flex; flex-direction: column; gap: 0.5rem; border: 1px solid var(--rule); background: var(--paper-high); padding: 1.25rem 1.375rem; text-decoration: none; }
+  .card:hover { border-color: var(--copper-deep); }
+  .count { color: var(--ink-mute); }
+  .t { font-size: 1.25rem; font-weight: 600; color: var(--ink); }
+  .l { color: var(--ink-mute); font-size: 0.9375rem; }
+  .go { margin-top: 0.5rem; color: var(--copper-deep); }
+</style>

@@ -11,6 +11,8 @@ export type AutoRule =
   | { type: 'streak'; key: string; goal: number }
   | { type: 'labs'; ids: string[] }
   | { type: 'checklist'; stage: string; total: number }
+  /** Complete when another ledger key's work is complete (unit ← lesson rollup). */
+  | { type: 'work'; key: string }
 
 export interface WorkItem {
   id: string
