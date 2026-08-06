@@ -48,16 +48,16 @@ const partII = PATH.filter((c) => c.part === 'ii')
   .spine { font-family: var(--mono); font-size: 0.6875rem; }
   .head { display: block; margin-bottom: 0.75rem; }
   .part { margin-bottom: 0.875rem; }
-  .part-label { display: block; font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--copper-deep); margin-bottom: 0.375rem; }
+  .part-label { display: block; font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-deep); margin-bottom: 0.375rem; }
   ol { list-style: none; padding: 0; margin: 0; }
   li { display: flex; align-items: center; gap: 0.4rem; position: relative; padding-left: 0.75rem; }
   li::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--rule-soft); }
-  li.here::before { background: var(--copper-deep); }
+  li.here::before { background: var(--accent-deep); }
   li a { display: flex; gap: 0.5rem; align-items: baseline; padding-block: 0.26rem; text-decoration: none; color: var(--ink-mute); flex: 1; min-width: 0; }
-  li a:hover { color: var(--copper-deep); }
+  li a:hover { color: var(--accent-deep); }
   li.here a { color: var(--ink); font-weight: 500; }
-  .num { color: var(--copper-deep); font-size: 0.625rem; }
+  .num { color: var(--accent-deep); font-size: 0.625rem; }
   .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .spine-tick.p-done .name::after { content: ' \2713'; color: var(--pass); font-size: 0.625rem; }
-  .you { color: var(--copper-deep); }
+  .you { color: var(--accent-deep); }
 </style>

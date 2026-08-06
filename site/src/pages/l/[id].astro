@@ -287,16 +287,16 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
   @media (max-width: 960px) { .layout { grid-template-columns: minmax(0, 1fr); } .side { display: none; } }
 
   .chapter-head { padding-block: 2rem 2.25rem; background: var(--paper-high); border-bottom: 1px solid var(--rule); }
-  .chapter-head .kicker { color: var(--copper-deep); margin-bottom: 0.875rem; }
+  .chapter-head .kicker { color: var(--accent-deep); margin-bottom: 0.875rem; }
   .chapter-head h1 { font-size: clamp(1.875rem, 4.5vw, 2.75rem); font-weight: 600; letter-spacing: -0.01em; }
   .chapter-head .lede { margin-top: 0.75rem; font-size: 1.1875rem; color: var(--ink-mute); max-width: 62ch; }
   .block { margin-top: 2.5rem; }
   .block > h2 { margin-bottom: 0.875rem; }
   .theory { margin-bottom: 1em; }
 
-  .toc-guide a { color: var(--copper-deep); }
+  .toc-guide a { color: var(--accent-deep); }
 
-  .guide-open { margin-top: 3rem; border: 1px solid var(--rule); border-left: 3px solid var(--copper-deep); background: var(--paper-high); padding: 1rem 1.25rem; }
+  .guide-open { margin-top: 3rem; border: 1px solid var(--rule); border-left: 3px solid var(--accent-deep); background: var(--paper-high); padding: 1rem 1.25rem; }
   .guide-open p { margin-top: 0.375rem; font-size: 0.9375rem; color: var(--ink-mute); max-width: 70ch; }
 
   .codefig { margin: 1.25rem 0 0; }
@@ -304,15 +304,15 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
   .codebody :global(pre) { margin: 0; padding: 0.875rem; overflow-x: auto; font-size: 0.8125rem; line-height: 1.65; background: transparent !important; }
   .errbody pre { color: #d4a09a; font-family: var(--mono); white-space: pre-wrap; }
 
-  .exercise { display: flex; flex-direction: column; gap: 0.375rem; border: 1px solid var(--rule); border-left: 3px solid var(--copper-deep); background: var(--paper-high); padding: 0.875rem 1.125rem; margin: 1rem 0; counter-increment: exercise; }
-  .exercise .ex-tag { color: var(--copper-deep); }
+  .exercise { display: flex; flex-direction: column; gap: 0.375rem; border: 1px solid var(--rule); border-left: 3px solid var(--accent-deep); background: var(--paper-high); padding: 0.875rem 1.125rem; margin: 1rem 0; counter-increment: exercise; }
+  .exercise .ex-tag { color: var(--accent-deep); }
   .exercise .ex-tag::after { content: " · " counter(exercise, decimal-leading-zero); }
   .exercise .ex-text { font-size: 0.9375rem; line-height: 1.65; color: var(--ink); max-width: 68ch; }
   article.main { counter-reset: exercise; }
 
   .crossref { display: flex; flex-direction: column; gap: 0.25rem; border: 1px solid var(--rule); background: var(--paper-high); padding: 0.75rem 1rem; margin: 1rem 0; }
   .crossref a, .crossref .crossref-text { font-family: var(--mono); font-size: 0.8125rem; color: var(--ink); text-decoration: none; }
-  .crossref a:hover { color: var(--copper-deep); text-decoration: underline; }
+  .crossref a:hover { color: var(--accent-deep); text-decoration: underline; }
 
   .drill { display: inline-flex; flex-direction: column; gap: 0.375rem; border: 1px solid var(--rule); background: var(--paper-high); padding: 0.875rem 1.125rem; }
   .dtext { font-family: var(--mono); font-size: 0.8125rem; color: var(--ink-mute); }

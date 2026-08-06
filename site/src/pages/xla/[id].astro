@@ -256,7 +256,7 @@ const diagram = slot ? XLA_DIAGRAMS[slot.id] : undefined
   @media (max-width: 960px) { .layout { grid-template-columns: minmax(0, 1fr); } .side { display: none; } }
 
   .chapter-head { padding-block: 2rem 2.25rem; background: var(--paper-high); border-bottom: 1px solid var(--rule); }
-  .chapter-head .kicker { color: var(--copper-deep); margin-bottom: 0.875rem; }
+  .chapter-head .kicker { color: var(--accent-deep); margin-bottom: 0.875rem; }
   .chapter-head h1 { font-size: clamp(1.875rem, 4.5vw, 2.75rem); font-weight: 600; letter-spacing: -0.01em; }
   .chapter-head .lede { margin-top: 0.75rem; font-size: 1.1875rem; color: var(--ink-mute); max-width: 62ch; }
   .chapter-head .goal { margin-top: 0.875rem; font-size: 0.9375rem; color: var(--ink); max-width: 70ch; border-left: 3px solid var(--copper-deep); padding-left: 0.875rem; }
@@ -275,9 +275,9 @@ const diagram = slot ? XLA_DIAGRAMS[slot.id] : undefined
   .pathmap ol { list-style: none; margin: 0.5rem 0 0; padding: 0; }
   .pathmap li.part-break { margin-top: 0.625rem; padding-top: 0.625rem; border-top: 1px solid var(--rule-soft); }
   .pathmap a { display: flex; align-items: baseline; gap: 0.5rem; padding: 0.22rem 0; text-decoration: none; color: var(--ink-mute); font-size: 0.8125rem; }
-  .pathmap a:hover { color: var(--copper-deep); }
-  .pathmap li.here a { color: var(--copper-deep); font-weight: 500; }
-  .pm-num { font-family: var(--mono); font-size: 0.6875rem; color: var(--copper-deep); }
+  .pathmap a:hover { color: var(--accent-deep); }
+  .pathmap li.here a { color: var(--accent-deep); font-weight: 500; }
+  .pm-num { font-family: var(--mono); font-size: 0.6875rem; color: var(--accent-deep); }
   .pm-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pm-frac { font-family: var(--mono); font-size: 0.625rem; color: var(--ink-mute); }
   :global(.pathmap [data-chapter-key].p-done) .pm-frac { color: var(--pass); }
@@ -291,16 +291,16 @@ const diagram = slot ? XLA_DIAGRAMS[slot.id] : undefined
   .readings { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.75rem; }
   .readings li { display: flex; flex-direction: column; gap: 0.2rem; border: 1px solid var(--rule); background: var(--paper-high); padding: 0.75rem 1rem; }
   .readings a { font-family: var(--mono); font-size: 0.8125rem; color: var(--ink); text-decoration: none; }
-  .readings a:hover { color: var(--copper-deep); text-decoration: underline; }
+  .readings a:hover { color: var(--accent-deep); text-decoration: underline; }
   .r-note { font-size: 0.8125rem; color: var(--ink-mute); }
 
   .pathpager { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap; margin-top: 3.5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); }
   .pp-left { display: flex; flex-direction: column; gap: 0.375rem; }
   .pp-work { font-family: var(--mono); font-size: 0.6875rem; color: var(--ink-mute); }
   .pp-prev { font-family: var(--mono); font-size: 0.75rem; color: var(--ink-mute); text-decoration: none; }
-  .pp-prev:hover { color: var(--copper-deep); }
-  .pp-next { display: inline-flex; flex-direction: column; gap: 0.25rem; align-items: flex-end; text-align: right; text-decoration: none; border: 1px solid var(--copper-deep); background: var(--paper-high); padding: 0.625rem 0.875rem; border-radius: 2px; }
+  .pp-prev:hover { color: var(--accent-deep); }
+  .pp-next { display: inline-flex; flex-direction: column; gap: 0.25rem; align-items: flex-end; text-align: right; text-decoration: none; border: 1px solid var(--accent-deep); background: var(--paper-high); padding: 0.625rem 0.875rem; border-radius: 2px; }
   .pp-next:hover { background: var(--paper); }
   .pp-k { font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-mute); }
-  .pp-t { font-family: var(--mono); font-size: 0.8125rem; color: var(--copper-deep); }
+  .pp-t { font-family: var(--mono); font-size: 0.8125rem; color: var(--accent-deep); }
 </style>

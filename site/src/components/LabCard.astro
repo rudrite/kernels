@@ -35,13 +35,13 @@ const { lab } = Astro.props
 <style>
   .lab { display: flex; flex-direction: column; position: relative; }
   .card-link { position: absolute; inset: 0; z-index: 0; border-radius: 2px; }
-  .lab:has(.card-link):hover { border-color: var(--copper); }
+  .lab:has(.card-link):hover { border-color: var(--accent); }
   .lab .lab-toggle, .lab .action-row a { position: relative; z-index: 1; }
   .body { padding: 0.875rem; flex: 1; }
   .top { display: flex; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
-  .designator { color: var(--copper); }
+  .designator { color: var(--accent); }
   .meta { font-size: 0.6875rem; color: var(--panel-mute); letter-spacing: 0.03em; }
   h3 { font-family: var(--mono); font-size: 0.9375rem; font-weight: 500; letter-spacing: 0.01em; }
-  .action-row a { color: var(--copper); text-decoration: none; }
+  .action-row a { color: var(--accent); text-decoration: none; }
   .action-row a:hover { text-decoration: underline; }
 </style>

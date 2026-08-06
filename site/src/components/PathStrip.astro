@@ -55,7 +55,7 @@ const scoped = strip.id === 'kernels' ? '' : strip.id
   .path-strip { background: var(--paper-high); border-bottom: 1px solid var(--rule); }
   .strip-row { display: flex; align-items: center; gap: 1.25rem; padding-block: 0.4rem; }
   .strip-label { text-decoration: none; color: var(--ink-mute); white-space: nowrap; }
-  .strip-label:hover { color: var(--copper-deep); }
+  .strip-label:hover { color: var(--accent-deep); }
 
   .ticks { display: flex; align-items: center; gap: 0.25rem; list-style: none; margin: 0; padding: 0; flex: 1; min-width: 0; }
   .ticks li { display: flex; }
@@ -64,11 +64,11 @@ const scoped = strip.id === 'kernels' ? '' : strip.id
     display: block; width: 0.875rem; height: 0.5rem; border-radius: 1px;
     border: 1px solid var(--rule); background: var(--paper);
   }
-  .tick:hover { border-color: var(--copper-deep); }
-  .tick.here { outline: 2px solid var(--copper-deep); outline-offset: 1px; }
-  :global(.tick.p-done) { background: var(--copper-deep); border-color: var(--copper-deep); }
+  .tick:hover { border-color: var(--accent-deep); }
+  .tick.here { outline: 2px solid var(--accent-deep); outline-offset: 1px; }
+  :global(.tick.p-done) { background: var(--accent-deep); border-color: var(--accent-deep); }
 
-  .strip-continue { text-decoration: none; color: var(--copper-deep); white-space: nowrap; }
+  .strip-continue { text-decoration: none; color: var(--accent-deep); white-space: nowrap; }
   .strip-continue:hover { text-decoration: underline; }
 
   @media (max-width: 900px) {
