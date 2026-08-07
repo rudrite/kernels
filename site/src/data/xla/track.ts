@@ -55,9 +55,9 @@ export const XLA_CHAPTERS: XlaChapter[] = [
       {
         "h": "three objects, three jobs",
         "ps": [
-          "PjRtClient is the object that owns everything else: it holds the list of devices, knows the topology connecting them, and is what you call Compile on to turn a StableHLO module into something runnable. One process typically holds one client per backend, and every other PJRT object you touch traces back to it.",
-          "PjRtBuffer is a handle to memory resident on one specific device, nothing more. It gets created either by handing the client a host array or by running an executable and catching its output. Crucially, a buffer lives on exactly one device: there is no such thing as a buffer that spans two chips at this layer.",
-          "PjRtLoadedExecutable is a compiled program bound to a specific set of devices and ready to run. Execute takes a nested list of buffers, one inner list per partition, and returns the same shape back. Client owns devices and compilation, buffers are per-device memory, executables run: three nouns, three jobs, and almost everything else in PJRT is plumbing between them."
+          "Start with the question of who is in charge. Something has to hold the device list, know the topology wiring those devices together, and take your StableHLO when you ask for it to become runnable. That something is PjRtClient. A process typically keeps one per backend, and every other PJRT object you will ever touch traces back to one.",
+          "The memory side is smaller than you might expect. A PjRtBuffer is memory on one device, and nothing more; you get one by handing the client a host array, or by running an executable and catching what falls out. One device, exactly. Nothing at this layer spans two chips, which is why an array sharded eight ways shows up here as eight separate buffers, each knowing only its own device.",
+          "And the thing you actually run arrives already spoken for: a PjRtLoadedExecutable comes back from Compile bound to its devices. Its Execute wants buffers in a nested list, one inner list per partition, and hands results back in the same shape. So the division of labor comes out clean. The client owns devices and compilation, buffers are per-device memory, executables run, and almost everything else in PJRT is plumbing between those three."
         ]
       },
       {
