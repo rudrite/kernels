@@ -28,7 +28,9 @@ const FACES = [
 ].join('')
 
 // One card per surface: the status line, the copper eyebrow, the headline.
+// headSize overrides the 74px default when a headline needs the room.
 const CARDS = {
+  home: { status: 'taught in public', eyebrow: 'a public curriculum · fourteen weeks · six gates', head: 'Learn to write fast TPU kernels.', headSize: 64 },
   jax: { status: 'path 02 · open', eyebrow: 'twelve chapters · across the language', head: 'Learn to think in JAX.' },
   xla: { status: 'path 03 · open', eyebrow: 'fourteen chapters · through the compiler', head: 'Learn how XLA works.' },
   pytorch: { status: 'path 04 · open', eyebrow: 'twelve chapters · landing on tpu', head: 'Learn to think in PyTorch.' },
@@ -40,7 +42,7 @@ const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, 
 
 const BAND = 285   // (1200 - 630) / 2: where the card sits in the square canvas
 
-const svg = ({ status, eyebrow, head }) => `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200">
+const svg = ({ status, eyebrow, head, headSize }) => `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200">
 <style>${FACES}
 .mono{font-family:'Plex Mono',monospace}
 .serif{font-family:'Plex Serif',serif;font-weight:600}
@@ -48,7 +50,7 @@ const svg = ({ status, eyebrow, head }) => `<svg xmlns="http://www.w3.org/2000/s
 .mark{font-size:31px;fill:#d6d9dc}
 .status{font-size:28px;fill:#d6d9dc}
 .eyebrow{font-size:21px;letter-spacing:.16em;fill:#c88a70}
-.head{font-size:74px;fill:#d6d9dc}
+.head{font-size:${headSize ?? 74}px;fill:#d6d9dc}
 .foot{font-size:20px;fill:#6f767d}
 .copper{fill:#c88a70}
 </style>
@@ -68,8 +70,11 @@ const svg = ({ status, eyebrow, head }) => `<svg xmlns="http://www.w3.org/2000/s
 </g>
 </svg>`
 
+// Pass slugs to regenerate a subset; no args regenerates the whole set.
+const only = process.argv.slice(2)
 const tmp = mkdtempSync(join(tmpdir(), 'og-'))
 for (const [slug, card] of Object.entries(CARDS)) {
+  if (only.length && !only.includes(slug)) continue
   const svgPath = join(tmp, `${slug}.svg`)
   writeFileSync(svgPath, svg(card))
   execSync(`qlmanage -t -s 1200 -o ${tmp} ${svgPath}`, { stdio: 'ignore' })
