@@ -840,4 +840,107 @@ export const XLA_LESSONS: UnitLessons[] = [
       },
     ],
   },
+  {
+    unit: 'xla:autotuning',
+    lessons: [
+      {
+        id: 'reading-the-autotune-cache',
+        num: 1,
+        title: 'Reading the autotune cache',
+        lede: 'The race the chapter describes leaves a written verdict. This lesson reads one, field by field, from the XLA tree itself.',
+        goal: 'Take any autotune cache entry and name what each field pins down: the device the answer belongs to, the fused HLO that keyed it, the candidate that won, and the time that decided it.',
+        sections: [
+          {
+            h: 'the artifact, whole',
+            ps: [
+              'The chapter above taught the mechanism: candidates fingerprinted, duplicates collapsed, a timed race, a cached answer. Here is what the cache actually holds. The entry below is quoted verbatim from the XLA repository\'s own test data, which makes it a real verdict from a real race, checked in by the people who run them.',
+            ],
+            code: {
+              caption: 'one cache entry, verbatim from openxla/xla · xla/backends/gpu/tests/test_autotune_cache.textproto',
+              lang: 'text',
+              text: "version: 3\nresults {\n  device: \"CUDA: 8.0, Cores: 108, GPU clock: 1.41 GHz, Memory bandwidth: 1555 GB/s, L2 cache: 40 MB\"\n  hlo: \"{\\n  tmp_0 = f16[1,16,17,3]{3,2,1,0} parameter(0)\\n  tmp_1 = f16[16,51]{1,0} bitcast(f16[1,16,17,3]{3,2,1,0} tmp_0)\\n  tmp_2 = s8[16,17,3]{2,1,0} parameter(1)\\n  tmp_3 = s8[51,16]{0,1} bitcast(s8[16,17,3]{2,1,0} tmp_2)\\n  tmp_4 = f16[51,16]{0,1} convert(s8[51,16]{0,1} tmp_3)\\n  tmp_5 = f16[16,16]{1,0} dot(f16[16,51]{1,0} tmp_1, f16[51,16]{0,1} tmp_4), lhs_contracting_dims={1}, rhs_contracting_dims={0}\\n  ROOT tmp_6 = f16[1,16,16]{2,1,0} bitcast(f16[16,16]{1,0} tmp_5)\\n}\"\n  result {\n    run_time {\n      nanos: 31744\n    }\n    triton {\n      block_m: 32\n      block_n: 32\n      block_k: 32\n      num_stages: 1\n      num_warps: 4\n      num_ctas: 1\n    }\n  }\n}",
+            },
+          },
+          {
+            h: 'the fields, one by one',
+            ps: [
+              'The `device` string is the answer\'s address, and every clause narrows it: compute capability 8.0, 108 cores, 1.41 GHz, 1555 GB/s of memory bandwidth, 40 MB of L2. Those numbers name an A100, and they should be familiar: 108 is the SM count the GPU chip lesson tabulated for Ampere. The verdict is keyed to exactly this silicon, which is the reproducibility warning of the chapter made structural.',
+              'The `hlo` field is the fingerprint\'s subject: the fused computation printed whole, a dot with its bitcasts and an s8-to-f16 convert pulled in. Two instructions that print identically collapse to one race, and this text is what identical means.',
+              'And the `result` block is the race\'s outcome. The candidate space here is Triton tile configurations, and the winner is written out plainly: 32 by 32 by 32 blocks, one stage, four warps, one CTA. Above it sits the number that decided everything: `run_time` of 31744 nanoseconds. Not a model\'s estimate. A stopwatch reading.',
+            ],
+          },
+          {
+            h: 'what the entry proves',
+            ps: [
+              'Read as a contract, the entry says: on this exact device, for this exact fused computation, this tile configuration won a timed race by the recorded margin. Change the chip generation or the driver and the address no longer matches, which is why autotuned answers do not travel and why the chapter prices reproducibility the way it does. The dumps-on-demand lesson\'s habit applies here unchanged: when a GPU program\'s performance shifts across environments, the autotune verdicts are part of the program\'s identity, and diffing them is as legitimate as diffing the HLO.',
+            ],
+          },
+        ],
+        readings: [
+          { label: 'the artifact in the tree', url: 'https://github.com/openxla/xla/blob/main/xla/backends/gpu/tests/test_autotune_cache.textproto', note: 'the file this lesson quotes, at its home' },
+          { label: 'xla/backends/autotuner', url: 'https://github.com/openxla/xla/tree/main/xla/backends/autotuner', note: 'the harness that runs the races' },
+        ],
+        check: [
+          {
+            q: 'Why is the device string part of the cache key, in one sentence?',
+            a: 'An autotuned answer is a stopwatch fact about one chip and one driver, so the verdict is addressed to exactly that silicon and a different device must race again.',
+          },
+          {
+            q: 'What was actually being chosen in this entry, and what decided it?',
+            a: 'A Triton tile configuration for a fused dot: 32x32x32 blocks, one stage, four warps won, decided by a measured run_time of 31744 nanoseconds against the other candidates.',
+          },
+        ],
+        work: [{ id: 'check', label: 'answer the checks without opening them', href: '#check' }],
+      },
+    ],
+  },
+  {
+    unit: 'xla:mcjax',
+    lessons: [
+      {
+        id: 'the-coordination-handshake',
+        num: 1,
+        title: 'The coordination handshake',
+        lede: 'Three numbers and an address turn a thousand isolated processes into one program. This lesson is what actually happens when they arrive.',
+        goal: 'Say what jax.distributed.initialize exchanges and when it must run, keep local and global devices straight, and connect the handshake to the key-value callbacks the PJRT boundary already showed you.',
+        sections: [
+          {
+            h: 'three numbers and an address',
+            ps: [
+              'The chapter above establishes that stock JAX has no coordinator handing out work; every host runs the same script. What it takes to make that safe is one call: `jax.distributed.initialize(coordinator_address, num_processes, process_id)`. One process\'s address is nominated as the meeting point, every process states how many peers exist, and each names its own index. On Slurm, Kubernetes, or a Cloud TPU deployment the three arguments populate themselves and the call takes none.',
+              'The timing rule is strict and the docs state it as a must: initialize runs before `jax.devices()`, before `jax.local_devices()`, before any computation touches a device. The handshake is how a process learns the cluster exists; ask about devices earlier and you get a single-process answer that poisons everything after it.',
+            ],
+          },
+          {
+            h: 'what the handshake exchanges',
+            ps: [
+              'During initialization the processes discover each other and exchange device information, and afterward each one can answer a question it could not answer alone: what does the whole cluster look like? The mechanism underneath is one you have already met. The PJRT boundary lesson read `PJRT_Client_Create_Args` field by field and found key-value store callbacks, kv_get and kv_put, sitting in the middle of the struct. This handshake is the far side of those callbacks: the coordination service is the store, and a plugin on host three learns what host zero decided by reading keys host zero wrote.',
+            ],
+          },
+          {
+            h: 'local, global, and the one rule',
+            ps: [
+              'After the handshake, two device lists coexist and confusing them is the classic multi-host bug. `jax.local_devices()` is the hardware attached to this process; `jax.devices()` is every device across every process, and `jax.process_index()` says which slice of the world is yours. Global operations are written against the global list even though each process only ever touches its local slice.',
+              'The rule that keeps a thousand processes from deadlocking is behavioral, not enforced: all processes run the same computation in the same order. A collective is a meeting; if one process compiles a different program or reaches the meeting in a different order, the others wait forever for a participant that is never coming. The chapter\'s framing holds: isolated except when a collective says otherwise, and the handshake is what makes the collectives able to say it.',
+            ],
+          },
+        ],
+        readings: [
+          { label: 'JAX · multi-process', url: 'https://docs.jax.dev/en/latest/multi_process.html', note: 'the handshake, the device lists, and the rule, officially' },
+          { label: 'JAX · distributed arrays', url: 'https://docs.jax.dev/en/latest/notebooks/Distributed_arrays_and_automatic_parallelization.html', note: 'what the global device list is for' },
+        ],
+        check: [
+          {
+            q: 'When must jax.distributed.initialize run, and what breaks if it runs late?',
+            a: 'Before any device query or computation: jax.devices, jax.local_devices, everything. Run late, the process answers device questions as if it were alone, and the wrong world-view propagates into every placement after it.',
+          },
+          {
+            q: 'How does the handshake connect to the PJRT struct you read earlier?',
+            a: 'The kv_get and kv_put callbacks in PJRT_Client_Create_Args are wired to the coordination service: the handshake is the store those callbacks read and write, which is how one host learns what another decided.',
+          },
+        ],
+        work: [{ id: 'check', label: 'answer the checks without opening them', href: '#check' }],
+      },
+    ],
+  },
 ]

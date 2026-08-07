@@ -1,7 +1,7 @@
 # True mastery courses: the site, replanned
 
-Status: shipped through P5 (2026-08-07). The grade list under P5 is the living
-remainder; everything else in this file is history.
+Status: complete (2026-08-07). All phases shipped, all grades closed; P5 remains
+only as the standing rule for future material.
 
 Founder direction, 2026-08-07, five directives in sequence: fold the series into the
 courses; no second surface teaching the same thing; the existing paths should teach
@@ -167,13 +167,24 @@ primitive contract as written there):
     donation, reconciled against the layouts and shape-brace lessons.
   - xla:collectives · six shardings of one matmul, the sharding-corpus table
     verbatim, with the partitioner's choices read as choices.
-  Remaining, with reasons on record:
-  - xla:autotuning · artifact-blocked: the arc wants a real captured autotuning log,
-    which needs a GPU run this machine cannot produce; the evidence rule forbids a
-    lesson without it. Capture a log, then write the lesson around it.
-  - xla:mcjax and xla:pathways · survey chapters whose depth is capped by closed
-    source; grade stands, revisit when public interfaces move.
-  - xla:capstone · a project brief, not teachable content; arcs do not apply.
+  The last three closed (2026-08-07, second pass):
+  - xla:autotuning · the artifact block dissolved without a GPU run: the XLA tree
+    itself checks in a real autotune cache (test_autotune_cache.textproto), so the
+    lesson reads a genuine A100 verdict verbatim, Triton tile config, stopwatch
+    nanoseconds and all, cited to its home in the repository.
+  - xla:mcjax · fully public after all: the coordination-handshake lesson covers
+    jax.distributed.initialize, the device-list split, the same-program rule, and
+    ties the handshake to the PJRT key-value callbacks the boundary lesson read.
+  - xla:pathways · closed by judgment: the chapter's own closing section states the
+    verify-boundary honestly and its ledger already carries an applied close-read of
+    the paper; a second telling of the proxy split (owned by the ifrt lesson) would
+    break one-fact-one-home. Revisit only when public interfaces move.
+  - xla:capstone · closed by judgment: the three projects are the arc, and the bar
+    section is the check.
+
+  Nothing remains open. The model's standing rule (P5) is now maintenance: new
+  material enters as lessons in arcs, graded against section 2, one telling per
+  fact.
 
 ## 6. Decisions (founder, 2026-08-07)
 
