@@ -1,5 +1,8 @@
 # True mastery courses: the site, replanned
 
+Status: shipped through P5 (2026-08-07). The grade list under P5 is the living
+remainder; everything else in this file is history.
+
 Founder direction, 2026-08-07, five directives in sequence: fold the series into the
 courses; no second surface teaching the same thing; the existing paths should teach
 better and more verbosely; they should be true mastery courses, not high-level
@@ -153,20 +156,23 @@ primitive contract as written there):
 - **P4.** The same pass for jax and pytorch.
 - **P5.** Continuous deepening against the model, chapter grades tracked in this file.
 
-  Grades after the P3 pass (2026-08-07). Teaches-to-competence with a full arc: every
-  kernel-path layer except the deliberate single-article gap, both pallas units,
-  mosaic, tpu, ici, machine, and seven xla units (pjrt, hlo, pipeline, fusion, spmd,
-  codegen, ifrt). Already-arced by their practice machinery: the six stages. Graded
-  chapter-level, arc pending, with what an arc needs:
-  - xla:ingestion · would want a translation-walk lesson from a real jaxpr to its
-    StableHLO, beyond the survey.
-  - xla:layout-memory · overlaps the layouts lesson under l:xla and the shape-brace
-    lesson under xla:hlo; the arc here is mostly reconciliation, one telling per fact.
-  - xla:collectives · wants a dump-reading lesson pairing each collective with the
-    partitioner decision that authored it.
-  - xla:autotuning · wants a real autotuning log read end to end.
+  Grades after the P5 pass (2026-08-07, closed). Teaches-to-competence with a full
+  arc: every kernel-path layer except the deliberate single-article gap, both pallas
+  units, mosaic, tpu, ici, machine, and ten xla units (pjrt, ingestion, hlo,
+  pipeline, fusion, layout-memory, spmd, collectives, codegen, ifrt). Already-arced
+  by their practice machinery: the six stages. The P5 lessons landed:
+  - xla:ingestion · the translation walk, the corpus scan program crossing from
+    source to jaxpr to StableHLO with every slice quoted verbatim.
+  - xla:layout-memory · two kinds of copies (layout versus correctness) and buffer
+    donation, reconciled against the layouts and shape-brace lessons.
+  - xla:collectives · six shardings of one matmul, the sharding-corpus table
+    verbatim, with the partitioner's choices read as choices.
+  Remaining, with reasons on record:
+  - xla:autotuning · artifact-blocked: the arc wants a real captured autotuning log,
+    which needs a GPU run this machine cannot produce; the evidence rule forbids a
+    lesson without it. Capture a log, then write the lesson around it.
   - xla:mcjax and xla:pathways · survey chapters whose depth is capped by closed
-    source; grade acceptable, revisit when public interfaces move.
+    source; grade stands, revisit when public interfaces move.
   - xla:capstone · a project brief, not teachable content; arcs do not apply.
 
 ## 6. Decisions (founder, 2026-08-07)
