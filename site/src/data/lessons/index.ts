@@ -15,6 +15,9 @@ export interface LessonCode {
   text: string
   /** Highlighter grammar; 'mlir' renders through MlirCode, not Shiki. */
   lang?: 'python' | 'haskell' | 'c' | 'mlir' | 'text'
+  /** The whole capture the excerpt was cut from, folded shut below the
+      panel; href points at a page that works the same capture live. */
+  full?: { text: string; label?: string; href?: string; hrefLabel?: string }
 }
 export interface LessonTable {
   caption: string

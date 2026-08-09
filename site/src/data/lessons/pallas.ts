@@ -4,6 +4,11 @@
 // quoted are jax 0.4.38 with debug=True; authored snippets ran under
 // interpret mode before shipping.
 import type { UnitLessons } from './index'
+import mosaicCorpus from '../mosaic-corpus.json'
+
+// The full Mosaic modules behind the trimmed excerpts below, joined once
+// from the corpus so the folds and the corpus file can never drift apart.
+const mosaic = (id: string): string => mosaicCorpus.kernels.find((k) => k.id === id)!.mosaic.join('\n')
 
 export const PALLAS_LESSONS: UnitLessons[] = [
   {
@@ -460,6 +465,12 @@ export const PALLAS_LESSONS: UnitLessons[] = [
               caption: 'one line of the tiled matmul\'s Mosaic module, captured on this repo (jax 0.4.38)',
               lang: 'mlir',
               text: "func.func @main(%arg0: i32, %arg1: i32, %arg2: i32, %arg3: memref<256x256xbf16, #tpu.memory_space<vmem>>, %arg4: memref<256x256xbf16, #tpu.memory_space<vmem>>, %arg5: memref<256x256xbf16, #tpu.memory_space<vmem>>) attributes {dimension_semantics = [#tpu.dimension_semantics<arbitrary>, #tpu.dimension_semantics<arbitrary>, #tpu.dimension_semantics<arbitrary>], iteration_bounds = array<i64: 2, 2, 2>, scalar_prefetch = 0 : i64, scratch_operands = 0 : i64, window_params = [{transform_indices = @transform_0, window_bounds = array<i64: 256, 256>}, {transform_indices = @transform_1, window_bounds = array<i64: 256, 256>}, {transform_indices = @transform_2, window_bounds = array<i64: 256, 256>}]}",
+              full: {
+                text: mosaic('matmul'),
+                label: 'the whole mosaic module',
+                href: '/gym/kernels#mosaic',
+                hrefLabel: 'the mosaic x-ray maps these lines back to the jaxpr',
+              },
             },
           },
           {
@@ -642,6 +653,12 @@ export const PALLAS_LESSONS: UnitLessons[] = [
               caption: 'the fused softmax body in Mosaic, captured on this repo (jax 0.4.38)',
               lang: 'mlir',
               text: "%1 = arith.extf %0 : vector<256x512xbf16> to vector<256x512xf32>\n%cst = arith.constant dense<0xFF800000> : vector<256xf32>\n%2 = vector.multi_reduction <maximumf>, %1, %cst [1] : vector<256x512xf32> to vector<256xf32>\n%3 = vector.shape_cast %2 : vector<256xf32> to vector<256x1xf32>\n%4 = vector.broadcast %3 : vector<256x1xf32> to vector<256x512xf32>\n%5 = arith.subf %1, %4 : vector<256x512xf32>\n%6 = math.exp %5 : vector<256x512xf32>",
+              full: {
+                text: mosaic('softmax'),
+                label: 'the whole mosaic module',
+                href: '/gym/kernels#mosaic',
+                hrefLabel: 'the mosaic x-ray maps these lines back to the jaxpr',
+              },
             },
           },
           {

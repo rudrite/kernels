@@ -5,6 +5,7 @@
 // from. One telling per fact lives here; hubs and lessons choose sections.
 import { Code } from 'astro:components'
 import MlirCode from './MlirCode.astro'
+import FullDump from './FullDump.astro'
 import BlockDiagram from './BlockDiagram.astro'
 import Rich from './Rich.astro'
 import SectionHead from './SectionHead.astro'
@@ -91,6 +92,7 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
                 <div class="codebody">
                   <Code code={(b.lines ? v.jaxpr.slice(b.lines[0], b.lines[1] + 1) : v.jaxpr).join('\n')} lang="haskell" theme="vesper" />
                 </div>
+                {b.lines && <FullDump text={v.jaxpr.join('\n')} lang="haskell" label="the full jaxpr" />}
               </figure>
             )
           }
@@ -112,6 +114,13 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
                     />
                   )}
                 </div>
+                {b.lines && (
+                  <FullDump
+                    text={text.join('\n')}
+                    lang={b.which === 'stablehlo' || b.which === undefined ? 'mlir' : b.which === 'jaxpr' ? 'haskell' : 'python'}
+                    label={`the full ${b.which ?? 'stablehlo'}`}
+                  />
+                )}
               </figure>
             )
           }

@@ -3,6 +3,22 @@
 // tree; HLO excerpts are verbatim from this repo's captures (hlo-pairs.json,
 // TPU v6 lite, jax 0.11.0; the CPU and TPU pass corpora under data/xla/).
 import type { UnitLessons } from './index'
+import cfCorpus from '../cf-corpus.json'
+import hloPairs from '../hlo-pairs.json'
+import pipelineCorpus from '../xla/pipeline-corpus.json'
+
+// The full captures behind the trimmed excerpts below, joined once from the
+// corpora so the folds and the corpus files can never drift apart.
+const cf = (id: string, which: 'source' | 'jaxpr' | 'stablehlo'): string =>
+  cfCorpus.programs.find((p) => p.id === id)![which].join('\n')
+const pair = (id: string, which: 'unopt' | 'opt'): string =>
+  hloPairs.programs.find((p) => p.id === id)![which].join('\n')
+const pipelineSteps = [
+  '  n  pipeline                                after                 before',
+  ...pipelineCorpus.steps.map(
+    (s) => `${String(s.n).padStart(3)}  ${s.pipeline.padEnd(38)}  ${s.after.padEnd(20)}  ${s.before}`,
+  ),
+].join('\n')
 
 export const XLA_LESSONS: UnitLessons[] = [
   {
@@ -142,6 +158,12 @@ export const XLA_LESSONS: UnitLessons[] = [
               caption: 'StableHLO at the door: the head of naive attention before any pass runs (site/src/data/hlo-pairs.json, TPU v6 lite, jax 0.11.0)',
               text: 'module @jit_naive_attention attributes {mhlo.num_partitions = 1 : i32, mhlo.num_replicas = 1 : i32} {\n  func.func public @main(%arg0: tensor<1024x128xbf16>, %arg1: tensor<1024x128xbf16>, %arg2: tensor<1024x128xbf16>) -> (tensor<1024x128xbf16> {jax.result_info = "result"}) {\n    %0 = stablehlo.transpose %arg1, dims = [1, 0] : (tensor<1024x128xbf16>) -> tensor<128x1024xbf16>\n    %1 = stablehlo.dot_general %arg0, %0, contracting_dims = [1] x [0], precision = [DEFAULT, DEFAULT] : (tensor<1024x128xbf16>, tensor<128x1024xbf16>) -> tensor<1024x1024xbf16>\n    %cst = stablehlo.constant dense<0xFF80> : tensor<bf16>\n    %2 = stablehlo.reduce(%1 init: %cst) applies stablehlo.maximum across dimensions = [1] : (tensor<1024x1024xbf16>, tensor<bf16>) -> tensor<1024xbf16>',
               lang: 'mlir',
+              full: {
+                text: pair('attention', 'unopt'),
+                label: 'the whole unoptimized module',
+                href: '/gym/xla#fusion',
+                hrefLabel: 'the fusion x-ray works these captures live',
+              },
             },
           },
           {
@@ -155,6 +177,12 @@ export const XLA_LESSONS: UnitLessons[] = [
               caption: "one reduce region, verbatim from the repo's own TPU capture of row softmax",
               text: '%region_0.1 (reduce_max.3: bf16[], reduce_max.4: bf16[]) -> bf16[] {\n %reduce_max.4 = bf16[]{:T(256)} parameter(1), metadata={op_name="reduce_max"}\n %reduce_max.3 = bf16[]{:T(256)} parameter(0), metadata={op_name="reduce_max"}\n ROOT %reduce_max.5 = bf16[]{:T(256)} maximum(%reduce_max.3, %reduce_max.4), metadata={op_name="jit(row_softmax)/reduce_max" stack_frame_id=20}\n}',
               lang: 'text',
+              full: {
+                text: pair('softmax', 'opt'),
+                label: 'the whole optimized softmax module',
+                href: '/gym/xla#fusion',
+                hrefLabel: 'the fusion x-ray works these captures live',
+              },
             },
           },
           {
@@ -188,6 +216,10 @@ export const XLA_LESSONS: UnitLessons[] = [
               caption: 'the header line of the optimized row-softmax module, verbatim',
               text: 'HloModule jit_row_softmax, is_scheduled=true, entry_computation_layout={(bf16[1024,512]{1,0:T(8,128)(2,1)})->bf16[1024,512]{1,0:T(8,128)(2,1)}}, allow_spmd_sharding_propagation_to_parameters={true}, allow_spmd_sharding_propagation_to_output={true}, frontend_attributes={arg_layout_modes="default",arg_memory_spaces="0",out_layout_modes="default",out_memory_spaces="0"}',
               lang: 'text',
+              full: {
+                text: pair('softmax', 'opt'),
+                label: 'the module under that header',
+              },
             },
           },
           {
@@ -280,6 +312,12 @@ export const XLA_LESSONS: UnitLessons[] = [
               caption: "the CPU pipeline as filenames, from this repo's own capture (site/src/data/xla/pipeline-corpus.json, jax 0.4.38, attention 64x64)",
               text: '  n  pipeline                                after            -> before\n  0  sharding-removal                        pipeline-start      sharding-remover\n  1  SubbytePacker_pipeline                  pipeline-start      sub-byte-size-setter\n  2  HLO_passes_through_layout_assignment    pipeline-start      gather_scatter_normalizer\n  3  simplification                          pipeline-start      algsimp\n  4  simplification                          algsimp             simplify-sorts\n  5  simplification                          tree_reduction_rewriter  zero_sized_hlo_elimination\n  6  simplification                          pipeline-start      algsimp\n  8  simplification                          pipeline-start      algsimp\n 12  HLO_passes_through_layout_assignment    flatten-call-graph  layout-assignment\n 13  HLO_passes_through_layout_assignment    layout-assignment   sub-byte-size-setter\n 15  HLO_passes_after_layout_assignment      pipeline-start      after_layout_assignment\n 16  after_layout_assignment                 pipeline-start      pipeline-end\n 17  HLO_passes_after_layout_assignment      fusion              simplification_after_layout_assignment\n 22  HLO_passes_after_layout_assignment      copy-insertion      dce',
               lang: 'text',
+              full: {
+                text: pipelineSteps,
+                label: 'all twenty steps',
+                href: '/xla/pipeline#instruments',
+                hrefLabel: 'EX·15 steps the same twenty files',
+              },
             },
           },
           {
@@ -364,6 +402,12 @@ export const XLA_LESSONS: UnitLessons[] = [
               caption: "one fusion, verbatim from the repo's TPU capture of row softmax, backend_config blocks trimmed",
               text: '%fused_computation.2 (param_0.9: bf16[1024,512], param_1.10: bf16[1024]) -> bf16[1024] {\n %param_0.9 = bf16[1024,512]{1,0:T(8,128)(2,1)S(1)} parameter(0)\n %convert.5 = f32[1024,512]{1,0:T(8,128)} convert(%param_0.9)\n %param_1.10 = bf16[1024]{0:T(1024)(128)(2,1)S(1)} parameter(1)\n %sub.10 = bf16[1024,512]{1,0:T(8,128)(2,1)} broadcast(%param_1.10), dimensions={0}\n %convert.6 = f32[1024,512]{1,0:T(8,128)} convert(%sub.10)\n %sub.8 = f32[1024,512]{1,0:T(8,128)} subtract(%convert.5, %convert.6)\n %exp.5 = f32[1024,512]{1,0:T(8,128)} exponential(%sub.8)\n %convert.7 = bf16[1024,512]{1,0:T(8,128)(2,1)} convert(%exp.5)\n %constant.6 = bf16[]{:T(256)} constant(0)\n ROOT %reduce.1 = bf16[1024]{0:T(1024)(128)(2,1)S(1)} reduce(%convert.7, %constant.6), dimensions={1}, to_apply=%region_1.2.clone\n}',
               lang: 'text',
+              full: {
+                text: pair('softmax', 'opt'),
+                label: 'the whole module, backend_config intact',
+                href: '/gym/xla#fusion',
+                hrefLabel: 'the fusion x-ray works these captures live',
+              },
             },
           },
           {
@@ -689,9 +733,13 @@ export const XLA_LESSONS: UnitLessons[] = [
               'Trace it and the recording shows the grammar the jaxpr lessons taught: one `scan` equation at the top level, with the step function as a nested jaxpr inside its params and the carry as explicit state. Notice what already happened here, before XLA saw anything: the tuple you wrote became positional values, the closure over nothing stayed empty, and every value carries its shape.',
             ],
             code: {
-            caption: 'the head of the traced jaxpr, verbatim (the full dump is in the gym corpus)',
+            caption: 'the head of the traced jaxpr, verbatim; the whole dump unfolds below',
             lang: 'haskell',
             text: "{ lambda ; a:f32[8,16]. let\n    b:f32[16] = broadcast_in_dim[\n      broadcast_dimensions=()\n      shape=(16,)\n      sharding=None\n    ] 0.0\n    _:f32[16] _:f32[] c:f32[8,16] = scan[\n      _split_transpose=False\n      jaxpr={ lambda ; d:f32[16] e:f32[] f:f32[16]. let\n          g:f32[16] = add d f\n          h:f32[] = add e 1.0\n          i:f32[16] = add d f\n          j:f32[] = add e 1.0\n          k:f32[] = convert_element_type[new_dtype=float32 weak_type=False] j",
+            full: {
+              text: cf('scan', 'jaxpr'),
+              label: 'the full jaxpr',
+            },
           },
           },
           {
@@ -703,6 +751,10 @@ export const XLA_LESSONS: UnitLessons[] = [
             caption: 'the while op with its carry tuple, verbatim from the same corpus entry',
             lang: 'mlir',
             text: "    %2:5 = stablehlo.while(%iterArg = %arg0, %iterArg_2 = %c, %iterArg_3 = %0, %iterArg_4 = %cst_0, %iterArg_5 = %1) : tensor<8x16xf32>, tensor<i32>, tensor<16xf32>, tensor<f32>, tensor<8x16xf32>\n     cond {\n      %c_6 = stablehlo.constant dense<8> : tensor<i32>\n      %3 = stablehlo.compare  LT, %iterArg_2, %c_6,  SIGNED : (tensor<i32>, tensor<i32>) -> tensor<i1>\n      stablehlo.return %3 : tensor<i1>\n    } do {",
+            full: {
+              text: cf('scan', 'stablehlo'),
+              label: 'the full stablehlo module',
+            },
           },
           },
           {

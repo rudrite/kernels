@@ -1,0 +1,65 @@
+---
+// The whole capture behind a trimmed excerpt, folded shut under the code
+// panel. The excerpt stays the readable head; the complete dump opens in
+// place instead of living only in a data file the reader never sees.
+import { Code } from 'astro:components'
+import MlirCode from './MlirCode.astro'
+
+interface Props {
+  text: string
+  /** Highlighter grammar; same vocabulary as LessonCode.lang. */
+  lang?: string
+  /** What the fold holds, e.g. 'the full jaxpr'; the line count is appended. */
+  label?: string
+  /** A page on this site that works the same capture live. */
+  href?: string
+  hrefLabel?: string
+}
+const { text, lang, label = 'the full dump', href, hrefLabel } = Astro.props
+const lineCount = text.split('\n').length
+---
+
+<details class="fulldump">
+  <summary>
+    <span class="fd-label">{label} · {lineCount} lines</span>
+    <span class="fd-marker" aria-hidden="true"></span>
+  </summary>
+  <div class="fd-body">
+    {
+      lang === 'mlir' ? (
+        <MlirCode code={text} />
+      ) : (
+        <Code code={text} lang={lang === 'text' || !lang ? 'txt' : lang} theme="vesper" />
+      )
+    }
+  </div>
+  {href && <a class="fd-link" href={href}>{hrefLabel ?? 'see this capture live'} →</a>}
+</details>
+
+<style>
+  .fulldump { border-top: 1px solid var(--panel-rule); }
+  .fulldump summary {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
+    padding: 0.5rem 0.875rem; cursor: pointer; list-style: none;
+  }
+  .fulldump summary::-webkit-details-marker { display: none; }
+  .fd-label, .fd-marker {
+    font-family: var(--mono); font-size: 0.6875rem; font-weight: 500;
+    letter-spacing: 0.09em; text-transform: uppercase; color: var(--panel-mute);
+  }
+  .fulldump summary:hover .fd-label, .fulldump summary:hover .fd-marker { color: var(--accent-bright); }
+  .fd-marker::before { content: 'unfold +'; }
+  .fulldump[open] .fd-marker::before { content: 'fold −'; }
+  .fd-body { border-top: 1px solid var(--panel-rule); }
+  .fd-body :global(pre) {
+    margin: 0; padding: 0.875rem; overflow-x: auto;
+    font-size: 0.8125rem; line-height: 1.65; background: transparent !important;
+    max-height: 32rem; overflow-y: auto;
+  }
+  .fd-link {
+    display: block; padding: 0.5rem 0.875rem; border-top: 1px solid var(--panel-rule);
+    font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.04em;
+    color: var(--panel-mute); text-decoration: none;
+  }
+  .fd-link:hover { color: var(--accent-bright); text-decoration: underline; }
+</style>

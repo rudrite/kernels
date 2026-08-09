@@ -114,6 +114,18 @@ describe('the lesson layer structure', () => {
         }
   })
 
+  it('folds hold more than their excerpts and link with absolute paths', () => {
+    for (const u of ALL_UNIT_LESSONS)
+      for (const l of u.lessons)
+        for (const sec of l.sections) {
+          const full = sec.code?.full
+          if (!full) continue
+          const where = `${l.id} · ${sec.h}`
+          expect(full.text.split('\n').length, where).toBeGreaterThan(sec.code!.text.split('\n').length)
+          if (full.href) expect(full.href, where).toMatch(/^\//)
+        }
+  })
+
   it('keeps checks well-formed: two or three per lesson, real questions, real answers', () => {
     for (const u of ALL_UNIT_LESSONS)
       for (const l of u.lessons) {

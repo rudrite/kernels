@@ -10,6 +10,7 @@ import ReadingRails from './ReadingRails.astro'
 import MasteryWork from './MasteryWork.astro'
 import BlockDiagram from './BlockDiagram.astro'
 import MlirCode from './MlirCode.astro'
+import FullDump from './FullDump.astro'
 import Exhibit from './Exhibit.astro'
 import SystolicArray from '../exhibits/SystolicArray'
 import TorusHops from '../exhibits/TorusHops'
@@ -130,6 +131,15 @@ const guideHeads = lesson.guide
                     <Code code={sec.code.text} lang={sec.code.lang === 'text' ? 'txt' : (sec.code.lang ?? 'python')} theme="vesper" />
                   )}
                 </div>
+                {sec.code.full && (
+                  <FullDump
+                    text={sec.code.full.text}
+                    lang={sec.code.lang}
+                    label={sec.code.full.label}
+                    href={sec.code.full.href}
+                    hrefLabel={sec.code.full.hrefLabel}
+                  />
+                )}
               </figure>
             )}
             {sec.table && (
