@@ -1293,13 +1293,12 @@ export const XLA_MASTERY: Record<string, WorkItem[]> = {
     },
     {
       "id": "labs",
-      "label": "run LAB·X5, then LAB·X7",
+      "label": "run LAB·X5",
       "href": "#labs",
       "auto": {
         "type": "labs",
         "ids": [
-          "LAB·X5",
-          "LAB·X7"
+          "LAB·X5"
         ]
       }
     }
@@ -1308,6 +1307,17 @@ export const XLA_MASTERY: Record<string, WorkItem[]> = {
     {
       "id": "read",
       "label": "Read this chapter in full before picking a project"
+    },
+    {
+      "id": "labs",
+      "label": "run LAB·X7, the dry-run device, as project A's warm-up",
+      "href": "#labs",
+      "auto": {
+        "type": "labs",
+        "ids": [
+          "LAB·X7"
+        ]
+      }
     },
     {
       "id": "plan",

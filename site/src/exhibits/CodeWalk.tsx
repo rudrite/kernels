@@ -27,14 +27,20 @@ export default function CodeWalk({ lines, steps, title }: Props) {
   const [i, setI] = useState(0)
   const codeRef = useRef<HTMLDivElement>(null)
 
-  // Long walks scroll inside .cw-code; each step brings its own lines into
-  // view. Scroll the container directly so the page itself never jumps.
+  // Long walks scroll inside .cw-code; each step centers its own lines.
+  // Positions come from getBoundingClientRect measured against the container
+  // (offsetTop would measure against a distant positioned ancestor and pin
+  // the scroll to the bottom), and only the container scrolls, never the page.
   useEffect(() => {
     const container = codeRef.current
-    const active = container?.querySelector<HTMLElement>('.cw-line.active')
-    if (!container || !active) return
-    const target = active.offsetTop - container.clientHeight / 2 + active.clientHeight / 2
-    container.scrollTo({ top: Math.max(0, target), behavior: 'smooth' })
+    if (!container) return
+    const actives = container.querySelectorAll<HTMLElement>('.cw-line.active')
+    if (actives.length === 0) return
+    const cRect = container.getBoundingClientRect()
+    const first = actives[0]!.getBoundingClientRect()
+    const last = actives[actives.length - 1]!.getBoundingClientRect()
+    const mid = (first.top + last.bottom) / 2 - cRect.top + container.scrollTop
+    container.scrollTo({ top: Math.max(0, mid - container.clientHeight / 2), behavior: 'smooth' })
   }, [i])
 
   useEffect(() => {
