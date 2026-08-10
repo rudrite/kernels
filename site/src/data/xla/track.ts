@@ -826,16 +826,15 @@ export const XLA_CHAPTERS: XlaChapter[] = [
       {
         "h": "How to read this chapter",
         "ps": [
-          "An abstract class is a list of promises with no bodies, so this chapter's body is code: two guided walks below step through working implementations line by line, first LAB·X5's mock plugin keeping every PJRT promise in plain C, then the real IFRT adapter from the tree keeping the same kind of promises by delegation. The walks carry the function-by-function story. The short sections here hold only what the walked code cannot show: what XLA's real clients do behind the same signatures, and how the ABI crossing works. Everything was read at openxla/xla commit `881f236` on 2026-08-10.",
+          "An abstract class is a list of promises with no bodies, so this chapter's body is code: two guided walks below step through the real implementations line by line. The first walks the CPU client, the in-process implementation you can single-step on a laptop, from `CompileAndLoad` down to the thunk run, with asides for where the GPU client does the same job with streams and NCCL. The second walks the PJRT-backed IFRT adapter keeping chapter 11's promises by delegation, and ends on the proxy keeping the very same promise over a wire. The short sections here hold only what the walked excerpts cannot show, and LAB·X5 at the bottom is the same interface implemented from scratch: a mock GPU you build in plain C. Everything was read at openxla/xla commit `881f236` on 2026-08-10.",
           "The cast, so every name has a home. `PjRtCpuClient` (`xla/pjrt/cpu/cpu_client.h`) and `StreamExecutorGpuClient` (`xla/pjrt/gpu/se_gpu_pjrt_client.h`, built on `PjRtStreamExecutorClient`, now under `xla/pjrt/se/`) implement PJRT in-process over a shared `CommonPjRtClient` base. The C API and its client-side wrapper sit in `xla/pjrt/c/` and `xla/pjrt/c_api_client/`. The PJRT-backed IFRT adapter is `xla/python/pjrt_ifrt/`, and the proxy pair is `xla/python/ifrt_proxy/`."
         ]
       },
       {
-        "h": "What the real client does behind the same functions",
+        "h": "The contract around the walked code",
         "ps": [
-          "The mock's `Compile` is a memcpy; the real one is every earlier chapter in order. Follow `PjRtCpuClient::CompileAndLoad` and it calls `CompileAndAssignDevices`, which resolves layouts and runs chapter 2's StableHLO-to-HLO setup, then `CompileInternal`, then a static function named `JitCompile` where the curtain pulls back: a `cpu::CpuCompiler` runs `RunHloPasses`, chapter 4's entire pass pipeline behind one method call, then `RunBackend`, chapter 9's thunk-emitting codegen behind another. `LoadInternal` binds the device assignment last; plain `Compile`, the unloaded flavor ahead-of-time compilation needs, is the same chain stopping just short of that step.",
-          "The mock's buffers are also hiding a real mechanism: the definition event. `CommonPjRtClient::BufferFromHostBuffer` branches on the `HostBufferSemantics` the caller declared. Zero-copy semantics call `ImportForeignMemory` and the host allocation simply becomes the buffer; otherwise `AllocateRawBuffer` gets device memory, `LinearizeHostBufferInto` starts the copy, and the `PjRtBuffer` returns immediately carrying an event that records when the bytes will actually be resident. Everything else queues behind that event: `ToLiteral` returns a `Future<>` because the data may not exist yet, `Delete()` drops the caller's claim at once but frees memory only after every enqueued reader finishes, and donation rides the same bookkeeping in reverse, an input surrendered to Execute becoming eligible output storage, with `non_donatable_input_indices` as the opt-out.",
-          "At execute time, the CPU's loaded executable holds the `cpu_executable_` chapter 9 named: its `buffer_assignment()` decides which allocation every thunk touches, and Execute's own work is bookkeeping around the thunk run, wait on input definition events, fire the dataflow graph, wrap each output allocation in a fresh buffer with a fresh event. The GPU path is the same shape with streams in it. The signature below is the contract both keep, and the walks' transpose step shows who assembles it."
+          "Read Execute's signature slowly, because every noun chapter 1 introduced is in it. Arguments arrive as a span of vectors of raw `PjRtBuffer` pointers, one inner vector per partition, exactly the nested list chapter 1 described, and the adapter walk's transpose step shows who assembles it. Results come back as vectors of `unique_ptr`, and the asymmetry is the ownership story: the caller lends its input buffers and owns every output outright. The optional futures are how a caller asks to be told, per device, when execution really completes.",
+          "The definition event the buffer walk-steps introduce reaches further than those excerpts show. Everything on a buffer queues behind it: `ToLiteral` returns a `Future<>` because the data may not exist yet, `Delete()` drops the caller's claim at once but frees memory only after every enqueued reader finishes, and donation rides the same bookkeeping in reverse, an input surrendered to Execute becoming eligible output storage, with `ExecuteOptions`' `non_donatable_input_indices` as the opt-out for arguments a caller wants to keep."
         ],
         "code": {
           "caption": "verbatim, from xla/pjrt/pjrt_client.h (openxla/xla @ 881f236, read 2026-08-10)",
@@ -1158,17 +1157,6 @@ export const XLA_MASTERY: Record<string, WorkItem[]> = {
       "label": "trace how a psum from the JAX path resolves down to a single participant's collective call"
     },
     {
-      "id": "labs",
-      "label": "run LAB·X6",
-      "href": "#labs",
-      "auto": {
-        "type": "labs",
-        "ids": [
-          "LAB·X6"
-        ]
-      }
-    },
-    {
       "id": "collective",
       "label": "name the collective: streak of 5",
       "href": "/gym/pytorch#collectives",
@@ -1307,17 +1295,6 @@ export const XLA_MASTERY: Record<string, WorkItem[]> = {
     {
       "id": "read",
       "label": "Read this chapter in full before picking a project"
-    },
-    {
-      "id": "labs",
-      "label": "run LAB·X7, the dry-run device, as project A's warm-up",
-      "href": "#labs",
-      "auto": {
-        "type": "labs",
-        "ids": [
-          "LAB·X7"
-        ]
-      }
     },
     {
       "id": "plan",

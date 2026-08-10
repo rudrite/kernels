@@ -15,7 +15,7 @@ import PipelineStepper from '../../exhibits/PipelineStepper'
 import CollectivePicker from '../../exhibits/CollectivePicker'
 import CodeWalk from '../../exhibits/CodeWalk'
 import { highlightLines } from '../../lib/highlight'
-import { walk as pjrtMockWalk } from '../../data/walks/pjrt-mock'
+import { walk as cpuClientWalk } from '../../data/walks/cpu-client'
 import { walk as ifrtAdapterWalk } from '../../data/walks/ifrt-adapter'
 import { XLA_CHAPTERS, XLA_PATH, xlaChapterAt, type XlaChapter } from '../../data/xla/track'
 import { XLA_DIAGRAMS } from '../../data/xla/diagrams'
@@ -47,9 +47,7 @@ const LABS: Record<string, Lab[]> = {
     lab('LAB·X4', 'Two loose ends', '~1 h', 'Colab TPU', 'labs/xla/lab-x4-two-loose-ends.ipynb'),
   ],
   spmd: [lab('LAB·X3', 'Collectives in the lowering', '~1.5 h', 'any machine', 'labs/xla/lab-x3-collectives-in-the-lowering.ipynb')],
-  interfaces: [lab('LAB·X5', 'The mock device', '~1.5 h', 'any machine', 'labs/xla/lab-x5-mock-pjrt-plugin.ipynb')],
-  capstone: [lab('LAB·X7', 'The dry-run device', '~1.5 h', 'any machine', 'labs/xla/lab-x7-the-dry-run-device.ipynb')],
-  collectives: [lab('LAB·X6', 'Collectives on a mock GPU', '~1.5 h', 'any machine', 'labs/xla/lab-x6-collectives-on-a-mock-gpu.ipynb')],
+  interfaces: [lab('LAB·X5', 'The mock GPU', '~2 h', 'any machine', 'labs/xla/lab-x5-the-mock-gpu.ipynb')],
 }
 
 export function getStaticPaths() {
@@ -82,8 +80,14 @@ const slot = chapter.diagram ?? EXTRA_DIAGRAMS[chapter.id]
 const diagram = slot ? XLA_DIAGRAMS[slot.id] : undefined
 
 // Line-by-line code walks for chapters that carry them.
-const WALKS: Record<string, (typeof pjrtMockWalk)[]> = {
-  interfaces: [pjrtMockWalk, ifrtAdapterWalk],
+const WALKS: Record<string, (typeof cpuClientWalk)[]> = {
+  interfaces: [cpuClientWalk, ifrtAdapterWalk],
+}
+const WALK_PROVENANCE: Record<string, string> = {
+  'cpu-client':
+    'excerpts from xla/pjrt/cpu and common_pjrt_client.cc at openxla/xla 881f236, trimmed where marked · step with the buttons or j/k',
+  'ifrt-adapter':
+    'excerpts from xla/python/pjrt_ifrt and ifrt_proxy at openxla/xla 881f236, trimmed where marked · step with the buttons or j/k',
 }
 const chapterWalks = await Promise.all(
   (WALKS[chapter.id] ?? []).map(async (w) => ({ walk: w, lines: await highlightLines(w.code, w.lang) })),
@@ -174,7 +178,7 @@ const chapterWalks = await Promise.all(
             <SectionHead id="walks" eyebrow="line by line, at your pace" title="Guided walks" />
             <div class="ex-stack">
               {chapterWalks.map((w) => (
-                <Exhibit designator={`WALK·${w.walk.id}`} title={w.walk.title} provenance={w.walk.id === 'pjrt-mock' ? 'code verbatim from LAB·X5, trimmed to the load-bearing functions · step with the buttons or j/k' : 'excerpts from xla/python/pjrt_ifrt at openxla/xla 881f236, trimmed where marked · step with the buttons or j/k'}>
+                <Exhibit designator={`WALK·${w.walk.id}`} title={w.walk.title} provenance={WALK_PROVENANCE[w.walk.id]}>
                   <CodeWalk lines={w.lines} steps={w.walk.steps} title={w.walk.title} client:visible />
                 </Exhibit>
               ))}
