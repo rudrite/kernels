@@ -820,57 +820,70 @@ export const XLA_CHAPTERS: XlaChapter[] = [
     "num": 14,
     "part": "ii",
     "title": "Two seams, four implementations",
-    "lede": "Every seam this path has named is an abstract class in a public header, and the headers are open. This chapter reads them.",
-    "goal": "Given either runtime interface, PJRT or IFRT, name its core classes and the headers they live in, and describe both ways each interface is implemented in the public tree.",
+    "lede": "The interfaces are lists of promises, and XLA ships working implementations of every one. This chapter walks them function by function.",
+    "goal": "For each core function of PjRtClient, PjRtBuffer, PjRtLoadedExecutable, and their IFRT counterparts, state what the function promises and what XLA's own implementation does to keep the promise.",
     "sections": [
       {
-        "h": "PJRT in three classes",
+        "h": "How to read this chapter",
         "ps": [
-          "One header carries nearly the whole contract this path has leaned on since chapter 1: `xla/pjrt/pjrt_client.h` declares `PjRtDevice`, `PjRtMemorySpace`, `PjRtClient`, `PjRtBuffer`, and `PjRtLoadedExecutable` in a single file. The prose version of the contract was simple, StableHLO in, buffers through, results out. The header states the same thing with types: `Compile` takes an MLIR module and `CompileOptions`; `BufferFromHostBuffer` takes a raw `void*`, a primitive type, and dimensions, and gives back a `PjRtBuffer` on one device.",
-          ">> The contract chapter 1 told in prose, retold in signatures.",
-          "The buffer's methods read like chapter 1's claims with the hedges removed. `device()` and `memory_space()` return exactly one of each, the single-device rule as accessors. `ToLiteral` hands back a `Future<>` rather than data, and that is the pattern almost everywhere in this header: calls return futures that resolve when the device actually finishes. Executables come in two flavors, and the tree keeps both: the loaded kind chapter 1 met, bound to its devices, and an unloaded `PjRtExecutable` (`xla/pjrt/pjrt_executable.h`) for ahead-of-time compiles that will be loaded onto devices later.",
-          "Read Execute's signature slowly, because every noun chapter 1 introduced is in it. Arguments arrive as a span of vectors of raw `PjRtBuffer` pointers, one inner vector per partition, exactly the nested list chapter 1 described. Results come back as vectors of `unique_ptr`, and the asymmetry is the ownership story: the caller lends its input buffers and owns every output outright. The optional vector of futures is how a caller asks to be told, per device, when execution really completes."
+          "An abstract class is a list of promises with no bodies. Reading one tells you what every implementation must do and nothing about how any of them does it, so this chapter pairs the two: for each function the interface declares, first the promise, then what XLA's own code does to keep it, with the CPU client as the main worked example because it is the implementation you can single-step on a laptop. Everything below was read at openxla/xla commit `881f236` on 2026-08-10; file paths drift between commits, and two named in earlier writing already have.",
+          "The cast, so every name below has a home. `PjRtCpuClient` (`xla/pjrt/cpu/cpu_client.h`) and `StreamExecutorGpuClient` (`xla/pjrt/gpu/se_gpu_pjrt_client.h`, built on `PjRtStreamExecutorClient`, now under `xla/pjrt/se/`) implement PJRT in-process over a shared `CommonPjRtClient` base. The C API and its client-side wrapper sit in `xla/pjrt/c/` and `xla/pjrt/c_api_client/`. The PJRT-backed IFRT adapter is `xla/python/pjrt_ifrt/`, and the proxy pair is `xla/python/ifrt_proxy/`."
+        ]
+      },
+      {
+        "h": "PjRtClient, function by function",
+        "ps": [
+          "`devices()` promises the job-wide device list and `addressable_devices()` the subset this process may launch work on, the split chapter 12 made load-bearing. `memory_spaces()` and `default_memory_space()` enumerate where a buffer may physically live, device memory or pinned host memory, and every buffer-creating call names one. `platform_id()`, `platform_name()`, and `platform_version()` are the strings chapter 1's probe surfaced from Python. The CPU client answers all of these from state built once at construction: it enumerated its devices and memory spaces when the client came up, and the accessors just read the lists.",
+          "`Compile` promises to turn a program, an MLIR module or an `XlaComputation`, into an unloaded `PjRtExecutable`: a compiled artifact you can serialize and ship, bound to no devices. `CompileAndLoad` promises the flavor chapter 1 met, a `PjRtLoadedExecutable` ready to run. The split exists because ahead-of-time compilation needs the first half without the second.",
+          "Follow the CPU implementation of `CompileAndLoad` and you land on every earlier chapter in order. It calls `CompileAndAssignDevices`, which resolves layouts and, for MLIR input, runs the StableHLO-to-HLO setup chapter 2 described. That calls `CompileInternal`, which calls a static function named `JitCompile`, and `JitCompile` is where the curtain pulls back: it constructs a `cpu::CpuCompiler`, calls `RunHloPasses`, chapter 4's entire pass pipeline behind one method call, then `RunBackend`, chapter 9's thunk-emitting codegen behind another. `CompileAndLoad` finishes by calling `LoadInternal` to bind the device assignment; plain `Compile` is the same chain stopping just short of that last step.",
+          "`BufferFromHostBuffer` promises one device buffer made from host memory, and its `HostBufferSemantics` parameter is the interesting half of the contract: the caller declares whether the runtime must copy the data out immediately, may keep reading the host pointer until a callback fires, or may use the host memory in place forever. `CommonPjRtClient`'s implementation branches on exactly that declaration. For the zero-copy semantics it calls `ImportForeignMemory` and never copies a byte; the host allocation becomes the buffer. Otherwise it calls `AllocateRawBuffer` for device memory, hands the host data to `LinearizeHostBufferInto`, and receives a definition event back: the `PjRtBuffer` returns to the caller immediately, while the event records when the bytes will actually be resident. `DefineBuffer` staples memory and event together into the object you get."
+        ]
+      },
+      {
+        "h": "PjRtBuffer: a handle plus a definition event",
+        "ps": [
+          "`device()` and `memory_space()` promise exactly one of each, chapter 1's single-device rule as accessors. `ToLiteral` promises the reverse of `BufferFromHostBuffer`, device bytes into a host literal, and returns a `Future<>` rather than blocking, because the buffer it reads may not exist yet: nearly every method on this class queues behind the definition event the previous section introduced. `CopyToMemorySpace` promises the same contents somewhere else, another device or host memory, which is how device-to-device transfer surfaces in the API.",
+          "`Delete()` and `IsDeleted()` carry a subtlety worth pausing on. Deletion drops this process's claim immediately, but the runtime frees the device memory only after every operation already enqueued against the buffer has finished, tracked through the same event machinery. Donation rides the same bookkeeping in the other direction: an input handed to Execute with donation allowed is dead to the caller the moment the call issues, its memory eligible for reuse as output storage, and `ExecuteOptions` carries a `non_donatable_input_indices` list for exactly the arguments a caller wants to keep."
+        ]
+      },
+      {
+        "h": "Execute, decoded, then run",
+        "ps": [
+          "Read Execute's signature slowly, because every noun chapter 1 introduced is in it. Arguments arrive as a span of vectors of raw `PjRtBuffer` pointers, one inner vector per partition, exactly the nested list chapter 1 described. Results come back as vectors of `unique_ptr`, and the asymmetry is the ownership story: the caller lends its input buffers and owns every output outright. The optional vector of futures is how a caller asks to be told, per device, when execution really completes.",
+          "Underneath, the CPU's loaded executable holds the `cpu_executable_` chapter 9 named. Its `buffer_assignment()`, chapter 6's offsets, decides which allocation every thunk reads and writes, and Execute's own work is the bookkeeping around the thunk run: wait on each input's definition event, hand allocations to the thunk executor, fire the dataflow graph on the thread pool, and wrap each output allocation in a fresh `PjRtBuffer` with a fresh definition event. The GPU path has the same shape with streams in it: thunks enqueue onto a `Stream` through StreamExecutor, and the returned futures resolve when the stream drains past the corresponding marker."
         ],
         "code": {
-          "caption": "verbatim, from xla/pjrt/pjrt_client.h (openxla/xla main, read 2026-08-10)",
+          "caption": "verbatim, from xla/pjrt/pjrt_client.h (openxla/xla @ 881f236, read 2026-08-10)",
           "text": "virtual absl::StatusOr<std::vector<std::vector<std::unique_ptr<PjRtBuffer>>>>\nExecute(absl::Span<const std::vector<PjRtBuffer*>> argument_handles,\n        const ExecuteOptions& options,\n        std::optional<std::vector<Future<>>>& returned_futures) const = 0;",
           "lang": "cpp"
         }
       },
       {
-        "h": "Implementing PJRT, way one: subclass and link",
+        "h": "The second implementation is the first one, wrapped",
         "ps": [
-          "The first way to implement the interface is the obvious one: write a C++ class that fills in the virtuals. `PjRtStreamExecutorClient` (`xla/pjrt/pjrt_stream_executor_client.h`) is that class in the tree, the in-process implementation chapter 1 named, and its name says where the work goes: the virtuals bottom out in StreamExecutor, the per-device seam chapter 9 walked. The CPU and GPU clients under `xla/pjrt/cpu/` and `xla/pjrt/gpu/` build this way, and linking one into a frontend links the whole compiler in with it.",
-          "The cost of this route is the coupling. Frontend and backend compile together, ship together, and version together, one binary; a vendor who wants in must either land their backend in the XLA tree or maintain a fork of every frontend they care about. That coupling is the exact problem the second way exists to remove."
-        ]
-      },
-      {
-        "h": "Implementing PJRT, way two: a struct of function pointers",
-        "ps": [
-          "`xla/pjrt/c/pjrt_c_api.h` has no classes at all. It defines one struct, `PJRT_Api`, holding a C function pointer for every capability: `PJRT_Client_Create`, `PJRT_Client_Compile`, `PJRT_LoadedExecutable_Execute`, each taking a single args struct that carries its own `struct_size`. That size field is the compatibility mechanism in miniature: a newer caller can pass a bigger struct to an older plugin, and each side reads only as much of it as the size it knows.",
-          "Versioning is explicit and numeric. `PJRT_Api_Version` carries a major and a minor (major 0, minor 114 on main as of this reading), the major moving only for ABI breaks, and a plugin reports the pair it was compiled against so the framework can decide compatibility instead of discovering it by crashing. Optional capability rides a linked list of `PJRT_Extension_Base` structs, profiling, FFI, and the rest, chained off the core table so extensions never touch the ABI everyone depends on.",
-          "What closes the loop is that no frontend calls this table directly. `PjRtCApiClient` (`xla/pjrt/pjrt_c_api_client.h`) wraps the function pointers back into the same C++ `PjRtClient` interface from the first section, so code holding a client cannot tell whether a virtual call lands in-process or crosses into a shared library a vendor shipped. A plugin, then, is exactly this: a shared library exporting one function that returns a filled-in `PJRT_Api`, found at import time through the entry points chapter 12 described."
-        ]
-      },
-      {
-        "h": "IFRT in four headers",
-        "ps": [
-          "IFRT spreads its contract across four headers where PJRT concentrated in one: `client.h`, `array.h`, `compiler.h`, and `executable.h`, all under `xla/python/ifrt/`. Chapter 11 already walked `array.h`. The client is where the difference from PJRT becomes one visible parameter: `MakeArrayFromHostBuffer` takes a `DType`, a `Shape`, and a sharding, and hands back one array, where `BufferFromHostBuffer` took dimensions and gave back one device's buffer. The sharding rides in at construction because the array owns it from birth.",
-          "Compilation moves out of the client into an object of its own. `ifrt::Client` exposes `GetDefaultCompiler()`, and `ifrt::Compiler` speaks in futures: `CompileAndLoad` takes an abstract `Program` and options and returns a future of a loaded executable, while a topology-taking `Compile` covers the ahead-of-time case with no devices attached. Notice what the abstraction buys. A `Program` is not a StableHLO module; it is a base class, one of whose kinds wraps StableHLO, which is how a runtime whose programs are not XLA programs can still stand behind this interface.",
-          "And notice what is still absent. Neither Compile carries a pass, a pipeline, or an optimization anywhere in its type. Both are doors, and everything behind the door belongs to whichever implementation is standing there."
+          "`xla/pjrt/c/pjrt_c_api.h` defines no classes, only one struct, `PJRT_Api`, holding a C function pointer per capability, each taking an args struct that carries its own `struct_size`. The size field is the compatibility mechanism in miniature, and `PJRT_Api_Version`'s major and minor (0 and 114 at this reading) are it at full size: a plugin reports the pair it compiled against so the framework can decide compatibility instead of discovering it by crashing. Optional capability chains off a linked list of `PJRT_Extension_Base` structs so extensions never touch the core ABI.",
+          "The implementation file behind that table, `xla/pjrt/c/pjrt_c_api_wrapper_impl.cc`, is one honest pattern repeated a few hundred times. `PJRT_Client_Compile` validates `struct_size` on its arguments, deserializes `CompileOptions` from a protobuf the caller serialized, parses the program field as either MLIR bytecode or an `HloModuleProto`, and then makes the call the whole file exists for: `args->client->client->CompileAndLoad(...)`. Two `client`s, because the outer one is the C struct and the inner one is a real C++ `PjRtClient`. The C API implementation is not a second runtime; it is the first implementation wearing an ABI.",
+          "`PjRtCApiClient` (`xla/pjrt/c_api_client/pjrt_c_api_client.h`) is the mirror image on the frontend side: its `CompileAndLoad` serializes the same options proto, fills a `PJRT_Client_Compile_Args`, and calls `c_api->PJRT_Client_Compile(&args)` through the table. So a program crossing the plugin boundary meets the C++ interface twice, once as the wrapper the frontend holds, once as the implementation the plugin wraps, with a struct of function pointers and two protobufs in between and nothing else."
         ],
         "code": {
-          "caption": "verbatim, from xla/python/ifrt/client.h (openxla/xla main, read 2026-08-10)",
-          "text": "virtual absl::StatusOr<ArrayRef> MakeArrayFromHostBuffer(\n    const void* data, DType dtype, Shape shape,\n    std::optional<absl::Span<const int64_t>> byte_strides,\n    ShardingRef sharding, LayoutRef layout, HostBufferSemantics semantics,\n    std::function<void()> on_done_with_host_buffer) = 0;",
+          "caption": "verbatim, trimmed, from xla/pjrt/c/pjrt_c_api_wrapper_impl.cc (openxla/xla @ 881f236)",
+          "text": "PJRT_ASSIGN_OR_RETURN(\n    std::unique_ptr<xla::PjRtLoadedExecutable> executable,\n    std::visit(absl::Overload{\n                   [args, &options](xla::MaybeOwningMlirModule module) {\n                     return args->client->client->CompileAndLoad(\n                         std::move(module), options);\n                   },\n                   [args, &options](xla::XlaComputation program) {\n                     return args->client->client->CompileAndLoad(program,\n                                                                 options);\n                   },\n               },\n               std::move(module_or_hlo)));",
           "lang": "cpp"
         }
       },
       {
-        "h": "Implementing IFRT, the same split",
+        "h": "The IFRT adapter, function by function",
         "ps": [
-          "The first implementation is an adapter, not a runtime. `xla/python/pjrt_ifrt/` holds one file per interface class, `pjrt_client.h`, `pjrt_array.h`, `pjrt_compiler.h`, `pjrt_executable.h`, and each wraps its PJRT counterpart: the array holds chapter 11's pile of per-device `PjRtBuffer`s and presents them as one object, the compiler forwards to the wrapped client's compile, and the client owns a real `PjRtClient` underneath. Every IFRT promise is kept by delegating to a PJRT object that already knew how.",
-          "The second implementation is a wire. `xla/python/ifrt_proxy/client/` keeps the same promises by serializing every call over gRPC to `xla/python/ifrt_proxy/server/`, which keeps them by holding some other in-process `ifrt::Client` and replaying the calls into it. Stack the two and you get chapter 13's open scaffolding: a proxy server wrapping a PJRT-backed client is a working remote runtime built from nothing but parts in the public tree.",
-          "The third route is the one the tree only implies. The core IFRT headers name no PJRT type anywhere in their signatures, so nothing stops an implementation from keeping the promises with machinery that never touches PJRT at all. That is not hypothetical; it is chapter 13's whole subject, standing behind a proxy server. Two seams, two implementations each in the open tree, and one closed existence proof that the seams are real."
+          "`ifrt::Client::MakeArrayFromHostBuffer` promises one array built from host bytes, sharding handed in at construction because the array owns it from birth. The adapter's implementation (`xla/python/pjrt_ifrt/pjrt_client.cc`) opens with two guards worth knowing: string dtypes detour to a dedicated path, and the sharding must be single-device or fully replicated or the call refuses. Then the fan-out: one loop over the sharding's addressable devices, one `pjrt_client_->BufferFromHostBuffer` per device, the memory space resolved per device when the sharding names a memory kind, and the resulting pile of buffers wrapped into a `PjRtArray`. A genuinely sharded array never comes through here at all; the framework uploads each shard as its own single-device array and calls `AssembleArrayFromSingleDeviceArrays`, which wraps existing buffers into one object and moves no data.",
+          "`PjRtCompiler::CompileAndLoad` keeps its promise by refusing everything it cannot delegate: the program must be an `HloProgram`, the options must carry XLA compile options, device ids get translated from IFRT's numbering to PJRT's, and then the wrapped client's `CompileAndLoad` runs the chain this chapter already walked. The adapter adds no compilation of its own, which is the concrete form of chapter 11's claim that IFRT has no passes.",
+          "`LoadedExecutable::Execute` is the adapter's richest function because the two interfaces disagree about shape. IFRT hands it arrays, one object per argument; PJRT wants buffers grouped per computation. So the body is a transpose: for each argument array, push shard j's buffer onto computation j's argument list, then call the wrapped executable's `Execute` with the nested lists the previous section decoded, then zip the outputs back, wrapping each output's per-device buffers into a fresh `PjRtArray`. What comes back is an `ExecuteResult`: the output arrays plus a status future, the same async contract surfacing one level up."
+        ]
+      },
+      {
+        "h": "The proxy, and the third route",
+        "ps": [
+          "The proxy client (`xla/python/ifrt_proxy/client/client.cc`) implements the same `ifrt::Client` functions a second way: each one serializes its arguments into a protobuf request, `MakeArrayFromHostBufferRequest`, `AssembleArrayFromSingleDeviceArraysRequest`, one message type per interface function, and sends it. On the far side, the server's `IfrtBackend` (`xla/python/ifrt_proxy/server/ifrt_backend.cc`) is a switch over every request case, each arm deserializing and replaying the call onto whichever in-process `ifrt::Client` it wraps. Read the two files side by side and the interface appears a third time, as a protocol: every promise in `client.h` has a proto twin.",
+          "Which is the general lesson this chapter has been circling. An interface can be implemented by doing the work, the CPU client; by delegating to something that does, the adapter and the C API wrapper; or by shipping the call to a process that does, the proxy. XLA's tree holds all three in the open. The fourth, keeping the promises with machinery that is not XLA's at all, is chapter 13 standing behind the same seams, and nothing in the headers you just read would notice."
         ]
       }
     ],
@@ -878,7 +891,12 @@ export const XLA_CHAPTERS: XlaChapter[] = [
       {
         "label": "pjrt_client.h",
         "url": "https://github.com/openxla/xla/blob/main/xla/pjrt/pjrt_client.h",
-        "note": "the three classes, primary source"
+        "note": "the promises, primary source"
+      },
+      {
+        "label": "cpu_client.cc",
+        "url": "https://github.com/openxla/xla/blob/main/xla/pjrt/cpu/cpu_client.cc",
+        "note": "the worked example: CompileAndLoad down to RunHloPasses"
       },
       {
         "label": "The PJRT C ABI",
