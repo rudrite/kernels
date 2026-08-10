@@ -13,6 +13,10 @@ import LabCard from '../../components/LabCard.astro'
 import Exhibit from '../../components/Exhibit.astro'
 import PipelineStepper from '../../exhibits/PipelineStepper'
 import CollectivePicker from '../../exhibits/CollectivePicker'
+import CodeWalk from '../../exhibits/CodeWalk'
+import { highlightLines } from '../../lib/highlight'
+import { walk as pjrtMockWalk } from '../../data/walks/pjrt-mock'
+import { walk as ifrtAdapterWalk } from '../../data/walks/ifrt-adapter'
 import { XLA_CHAPTERS, XLA_PATH, xlaChapterAt, type XlaChapter } from '../../data/xla/track'
 import { XLA_DIAGRAMS } from '../../data/xla/diagrams'
 import type { Lab } from '../../data/track'
@@ -75,6 +79,14 @@ const EXTRA_DIAGRAMS: Record<string, { id: string; after: number }> = {
 }
 const slot = chapter.diagram ?? EXTRA_DIAGRAMS[chapter.id]
 const diagram = slot ? XLA_DIAGRAMS[slot.id] : undefined
+
+// Line-by-line code walks for chapters that carry them.
+const WALKS: Record<string, (typeof pjrtMockWalk)[]> = {
+  interfaces: [pjrtMockWalk, ifrtAdapterWalk],
+}
+const chapterWalks = await Promise.all(
+  (WALKS[chapter.id] ?? []).map(async (w) => ({ walk: w, lines: await highlightLines(w.code, w.lang) })),
+)
 ---
 
 <Base
@@ -112,6 +124,7 @@ const diagram = slot ? XLA_DIAGRAMS[slot.id] : undefined
         <span class="mono-label toc-head">on this page</span>
         <ol>
           {chapter.sections.map((sec) => <li><a href={`#${slug(sec.h)}`}>{sec.h}</a></li>)}
+          {chapterWalks.length > 0 && <li><a href="#walks">guided walks</a></li>}
         </ol>
       </nav>
     </aside>
@@ -152,6 +165,21 @@ const diagram = slot ? XLA_DIAGRAMS[slot.id] : undefined
             )}
           </section>
         ))
+      }
+
+      {
+        chapterWalks.length > 0 && (
+          <section class="block">
+            <SectionHead id="walks" eyebrow="line by line, at your pace" title="Guided walks" />
+            <div class="ex-stack">
+              {chapterWalks.map((w) => (
+                <Exhibit designator={`WALK·${w.walk.id}`} title={w.walk.title} provenance={w.walk.id === 'pjrt-mock' ? 'code verbatim from LAB·X5, trimmed to the load-bearing functions · step with the buttons or j/k' : 'excerpts from xla/python/pjrt_ifrt at openxla/xla 881f236, trimmed where marked · step with the buttons or j/k'}>
+                  <CodeWalk lines={w.lines} steps={w.walk.steps} title={w.walk.title} client:visible />
+                </Exhibit>
+              ))}
+            </div>
+          </section>
+        )
       }
 
       {
