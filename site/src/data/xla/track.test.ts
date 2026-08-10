@@ -73,7 +73,7 @@ describe('the required public source set', () => {
     'https://arxiv.org/abs/2203.12533',
     'https://arxiv.org/abs/2105.04663',
     'https://docs.jax.dev/en/latest/multi_process.html',
-    'https://cloud.google.com/ai-hypercomputer/docs/workloads/pathways-on-cloud/pathways-intro',
+    'https://docs.cloud.google.com/ai-hypercomputer/docs/workloads/pathways-on-cloud/pathways-intro',
     'https://github.com/openxla/xla/tree/main/xla/python/ifrt',
     'https://github.com/openxla/xla/blob/main/xla/pjrt/c/pjrt_c_api.h',
   ]

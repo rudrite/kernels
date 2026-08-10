@@ -759,9 +759,31 @@ export const XLA_CHAPTERS: XlaChapter[] = [
         ]
       },
       {
+        "h": "Two IFRT implementations, stacked",
+        "ps": [
+          "Set `JAX_PLATFORMS=proxy` and JAX's backend becomes the open-source IFRT proxy client, the wire half of chapter 11's split. The product documentation names what sits on the other side, component by component: a proxy server, a gRPC front that receives the client's requests, and behind it a component the docs call the Pathways client, described there as an IFRT implementation in its own right, one that receives HLO programs and works with a resource manager to place them. Read that list twice and the shape appears: two IFRT implementations stacked in one chain, the open proxy pair doing transport, the closed Pathways one behind it doing the work.",
+          "The resource manager is the piece McJAX never had. It runs on plain CPUs, owns allocation across every worker, monitors their health, pauses and resumes jobs, and serves as the single place errors surface. Chapter 12's architecture had no process that could play this role, because every process was busy being a peer."
+        ]
+      },
+      {
+        "h": "Life of a program, as the paper tells it",
+        "ps": [
+          "The paper fills in what the product page abstracts away. A traced program becomes a location-agnostic intermediate representation, a custom MLIR dialect, in which each compiled function is one node in a dataflow graph; a tracer can wrap a Python block that calls several jitted functions and capture the whole block as one program, which is what makes MPMD expressible at all. Buffers enter that IR through a sharded-buffer abstraction, one logical array distributed over many devices, bookkept once. Chapter 11 built exactly this instinct into IFRT, and the resemblance runs in that direction, paper first.",
+          "Placement is a negotiation with the resource manager. The client asks for virtual devices, optionally constrained by type, location, or interconnect topology; the manager maps virtual onto physical, and the IR is lowered until it carries real device locations plus explicit transfer operations, scatters and gathers, between computation shards. The lowered program then becomes a dataflow program on PLAQUE, a closed-source production sharded dataflow system that carries all cross-host coordination over the data center network.",
+          "Execution is gang-scheduled per island: one centralized scheduler consistently orders every computation on its island, so two programs contending for the same chips cannot deadlock holding half each. Each host runs an executor and a sharded object store, an HBM-aware cousin of Ray's, holding buffers behind opaque handles the system can migrate. And the controller does not wait its turn per operation. A compiled function's resource needs are statically known, so host-side setup for a successor runs before its predecessor finishes, and one message describing an entire subgraph lets the scheduler sequence all of its shards back to back. That is the paper's answer to the objection its own design invites, one controller in front of thousands of chips, and it is the reason the system is asynchronous dataflow rather than remote procedure calls."
+        ]
+      },
+      {
         "h": "What a single controller buys you",
         "ps": [
           "Centralizing control is not free, but what it buys is real. MPMD becomes possible: different programs running on different islands of the same job, the shape pipelining needs. The controller also outlives any individual worker, so a worker failing is a recoverable event instead of a gang-wide one, the elasticity chapter 12 explicitly could not offer. And the scale ceiling moves: a single gang-scheduled program is no longer the largest unit of work the system can express, because one controller can orchestrate many gangs across many pods at once."
+        ]
+      },
+      {
+        "h": "What actually sits on a worker",
+        "ps": [
+          "The product documentation gives the worker one sentence of contract: a process on a TPU VM that receives compiled executables and performs the computations. Sit with the first half of that sentence, because it inverts chapter 12. Executables arrive at the worker already compiled; compilation happens once, in the head components, instead of once per host across the whole job, and McJAX's thousand-identical-compiles problem simply does not exist here. A sidecar gRPC server on the same VM rounds out the picture, running user-supplied Python next to the chips so data-adjacent work skips the round trip through the controller.",
+          "What launches those executables is the part no public source names. Whatever it is must do a PJRT client's exact job, load a compiled program, hold device buffers, fire execution through the TPU runtime, and the paper says Pathways builds on XLA to represent and execute TPU computations. Whether that layer speaks the literal PJRT C API or Google-internal machinery that predates it is stated nowhere you can read, and this track will not guess. What is certain is that the XLA compiler never left the loop: IFRT receives HLO programs, workers receive compiled executables, and something in between is running the same passes chapter 4 dumped. Pathways replaced the runtime and the coordination, not the codegen."
         ]
       },
       {
@@ -779,8 +801,13 @@ export const XLA_CHAPTERS: XlaChapter[] = [
       },
       {
         "label": "Pathways on Cloud",
-        "url": "https://cloud.google.com/ai-hypercomputer/docs/workloads/pathways-on-cloud/pathways-intro",
-        "note": "the product surface of the same system"
+        "url": "https://docs.cloud.google.com/ai-hypercomputer/docs/workloads/pathways-on-cloud/pathways-intro",
+        "note": "the component list: proxy client and server, Pathways client, resource manager, workers, sidecar"
+      },
+      {
+        "label": "Port JAX workloads to Pathways",
+        "url": "https://docs.cloud.google.com/ai-hypercomputer/docs/workloads/pathways-on-cloud/porting-jax-workloads",
+        "note": "JAX_PLATFORMS=proxy and the worker's one-sentence contract"
       }
     ],
     "diagram": {
