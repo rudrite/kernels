@@ -1293,12 +1293,13 @@ export const XLA_MASTERY: Record<string, WorkItem[]> = {
     },
     {
       "id": "labs",
-      "label": "run LAB·X5",
+      "label": "run LAB·X5, then LAB·X7",
       "href": "#labs",
       "auto": {
         "type": "labs",
         "ids": [
-          "LAB·X5"
+          "LAB·X5",
+          "LAB·X7"
         ]
       }
     }
