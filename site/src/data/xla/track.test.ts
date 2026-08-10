@@ -16,8 +16,8 @@ const proseOf = () => {
 }
 
 describe('the XLA path structure', () => {
-  it('has fourteen chapters, numbered in order, split i/ii at chapter 11', () => {
-    expect(XLA_CHAPTERS).toHaveLength(14)
+  it('has fifteen chapters, numbered in order, split i/ii at chapter 11', () => {
+    expect(XLA_CHAPTERS).toHaveLength(15)
     XLA_CHAPTERS.forEach((c, i) => {
       expect(c.num).toBe(i + 1)
       expect(c.part).toBe(c.num <= 10 ? 'i' : 'ii')
@@ -28,7 +28,7 @@ describe('the XLA path structure', () => {
     const ids = XLA_CHAPTERS.map((c) => c.id)
     expect(new Set(ids).size).toBe(ids.length)
     for (const id of ids) expect(id).toMatch(/^[a-z][a-z-]*$/)
-    expect(XLA_PATH).toHaveLength(14)
+    expect(XLA_PATH).toHaveLength(15)
     XLA_PATH.forEach((p, i) => {
       expect(p.key).toBe(`xla:${XLA_CHAPTERS[i]!.id}`)
       expect(p.href).toBe(`/xla/${XLA_CHAPTERS[i]!.id}`)

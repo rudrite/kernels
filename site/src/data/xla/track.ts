@@ -1,4 +1,4 @@
-// The XLA path: fourteen chapters from the PJRT seam down through the pass
+// The XLA path: fifteen chapters from the PJRT seam down through the pass
 // pipeline and back up the runtime stack (IFRT, multi-controller JAX,
 // Pathways). Facts are anchored to the public source tree at a verified
 // commit; the pass dump and HLO excerpts are real captures (jax 0.4.38,
@@ -816,8 +816,90 @@ export const XLA_CHAPTERS: XlaChapter[] = [
     }
   },
   {
-    "id": "capstone",
+    "id": "interfaces",
     "num": 14,
+    "part": "ii",
+    "title": "Two seams, four implementations",
+    "lede": "Every seam this path has named is an abstract class in a public header, and the headers are open. This chapter reads them.",
+    "goal": "Given either runtime interface, PJRT or IFRT, name its core classes and the headers they live in, and describe both ways each interface is implemented in the public tree.",
+    "sections": [
+      {
+        "h": "PJRT in three classes",
+        "ps": [
+          "One header carries nearly the whole contract this path has leaned on since chapter 1: `xla/pjrt/pjrt_client.h` declares `PjRtDevice`, `PjRtMemorySpace`, `PjRtClient`, `PjRtBuffer`, and `PjRtLoadedExecutable` in a single file. The prose version of the contract was simple, StableHLO in, buffers through, results out. The header states the same thing with types: `Compile` takes an MLIR module and `CompileOptions`; `BufferFromHostBuffer` takes a raw `void*`, a primitive type, and dimensions, and gives back a `PjRtBuffer` on one device.",
+          ">> The contract chapter 1 told in prose, retold in signatures.",
+          "The buffer's methods read like chapter 1's claims with the hedges removed. `device()` and `memory_space()` return exactly one of each, the single-device rule as accessors. `ToLiteral` hands back a `Future<>` rather than data, and that is the pattern almost everywhere in this header: calls return futures that resolve when the device actually finishes. Executables come in two flavors, and the tree keeps both: the loaded kind chapter 1 met, bound to its devices, and an unloaded `PjRtExecutable` (`xla/pjrt/pjrt_executable.h`) for ahead-of-time compiles that will be loaded onto devices later.",
+          "Read Execute's signature slowly, because every noun chapter 1 introduced is in it. Arguments arrive as a span of vectors of raw `PjRtBuffer` pointers, one inner vector per partition, exactly the nested list chapter 1 described. Results come back as vectors of `unique_ptr`, and the asymmetry is the ownership story: the caller lends its input buffers and owns every output outright. The optional vector of futures is how a caller asks to be told, per device, when execution really completes."
+        ],
+        "code": {
+          "caption": "verbatim, from xla/pjrt/pjrt_client.h (openxla/xla main, read 2026-08-10)",
+          "text": "virtual absl::StatusOr<std::vector<std::vector<std::unique_ptr<PjRtBuffer>>>>\nExecute(absl::Span<const std::vector<PjRtBuffer*>> argument_handles,\n        const ExecuteOptions& options,\n        std::optional<std::vector<Future<>>>& returned_futures) const = 0;",
+          "lang": "cpp"
+        }
+      },
+      {
+        "h": "Implementing PJRT, way one: subclass and link",
+        "ps": [
+          "The first way to implement the interface is the obvious one: write a C++ class that fills in the virtuals. `PjRtStreamExecutorClient` (`xla/pjrt/pjrt_stream_executor_client.h`) is that class in the tree, the in-process implementation chapter 1 named, and its name says where the work goes: the virtuals bottom out in StreamExecutor, the per-device seam chapter 9 walked. The CPU and GPU clients under `xla/pjrt/cpu/` and `xla/pjrt/gpu/` build this way, and linking one into a frontend links the whole compiler in with it.",
+          "The cost of this route is the coupling. Frontend and backend compile together, ship together, and version together, one binary; a vendor who wants in must either land their backend in the XLA tree or maintain a fork of every frontend they care about. That coupling is the exact problem the second way exists to remove."
+        ]
+      },
+      {
+        "h": "Implementing PJRT, way two: a struct of function pointers",
+        "ps": [
+          "`xla/pjrt/c/pjrt_c_api.h` has no classes at all. It defines one struct, `PJRT_Api`, holding a C function pointer for every capability: `PJRT_Client_Create`, `PJRT_Client_Compile`, `PJRT_LoadedExecutable_Execute`, each taking a single args struct that carries its own `struct_size`. That size field is the compatibility mechanism in miniature: a newer caller can pass a bigger struct to an older plugin, and each side reads only as much of it as the size it knows.",
+          "Versioning is explicit and numeric. `PJRT_Api_Version` carries a major and a minor (major 0, minor 114 on main as of this reading), the major moving only for ABI breaks, and a plugin reports the pair it was compiled against so the framework can decide compatibility instead of discovering it by crashing. Optional capability rides a linked list of `PJRT_Extension_Base` structs, profiling, FFI, and the rest, chained off the core table so extensions never touch the ABI everyone depends on.",
+          "What closes the loop is that no frontend calls this table directly. `PjRtCApiClient` (`xla/pjrt/pjrt_c_api_client.h`) wraps the function pointers back into the same C++ `PjRtClient` interface from the first section, so code holding a client cannot tell whether a virtual call lands in-process or crosses into a shared library a vendor shipped. A plugin, then, is exactly this: a shared library exporting one function that returns a filled-in `PJRT_Api`, found at import time through the entry points chapter 12 described."
+        ]
+      },
+      {
+        "h": "IFRT in four headers",
+        "ps": [
+          "IFRT spreads its contract across four headers where PJRT concentrated in one: `client.h`, `array.h`, `compiler.h`, and `executable.h`, all under `xla/python/ifrt/`. Chapter 11 already walked `array.h`. The client is where the difference from PJRT becomes one visible parameter: `MakeArrayFromHostBuffer` takes a `DType`, a `Shape`, and a sharding, and hands back one array, where `BufferFromHostBuffer` took dimensions and gave back one device's buffer. The sharding rides in at construction because the array owns it from birth.",
+          "Compilation moves out of the client into an object of its own. `ifrt::Client` exposes `GetDefaultCompiler()`, and `ifrt::Compiler` speaks in futures: `CompileAndLoad` takes an abstract `Program` and options and returns a future of a loaded executable, while a topology-taking `Compile` covers the ahead-of-time case with no devices attached. Notice what the abstraction buys. A `Program` is not a StableHLO module; it is a base class, one of whose kinds wraps StableHLO, which is how a runtime whose programs are not XLA programs can still stand behind this interface.",
+          "And notice what is still absent. Neither Compile carries a pass, a pipeline, or an optimization anywhere in its type. Both are doors, and everything behind the door belongs to whichever implementation is standing there."
+        ],
+        "code": {
+          "caption": "verbatim, from xla/python/ifrt/client.h (openxla/xla main, read 2026-08-10)",
+          "text": "virtual absl::StatusOr<ArrayRef> MakeArrayFromHostBuffer(\n    const void* data, DType dtype, Shape shape,\n    std::optional<absl::Span<const int64_t>> byte_strides,\n    ShardingRef sharding, LayoutRef layout, HostBufferSemantics semantics,\n    std::function<void()> on_done_with_host_buffer) = 0;",
+          "lang": "cpp"
+        }
+      },
+      {
+        "h": "Implementing IFRT, the same split",
+        "ps": [
+          "The first implementation is an adapter, not a runtime. `xla/python/pjrt_ifrt/` holds one file per interface class, `pjrt_client.h`, `pjrt_array.h`, `pjrt_compiler.h`, `pjrt_executable.h`, and each wraps its PJRT counterpart: the array holds chapter 11's pile of per-device `PjRtBuffer`s and presents them as one object, the compiler forwards to the wrapped client's compile, and the client owns a real `PjRtClient` underneath. Every IFRT promise is kept by delegating to a PJRT object that already knew how.",
+          "The second implementation is a wire. `xla/python/ifrt_proxy/client/` keeps the same promises by serializing every call over gRPC to `xla/python/ifrt_proxy/server/`, which keeps them by holding some other in-process `ifrt::Client` and replaying the calls into it. Stack the two and you get chapter 13's open scaffolding: a proxy server wrapping a PJRT-backed client is a working remote runtime built from nothing but parts in the public tree.",
+          "The third route is the one the tree only implies. The core IFRT headers name no PJRT type anywhere in their signatures, so nothing stops an implementation from keeping the promises with machinery that never touches PJRT at all. That is not hypothetical; it is chapter 13's whole subject, standing behind a proxy server. Two seams, two implementations each in the open tree, and one closed existence proof that the seams are real."
+        ]
+      }
+    ],
+    "readings": [
+      {
+        "label": "pjrt_client.h",
+        "url": "https://github.com/openxla/xla/blob/main/xla/pjrt/pjrt_client.h",
+        "note": "the three classes, primary source"
+      },
+      {
+        "label": "The PJRT C ABI",
+        "url": "https://github.com/openxla/xla/blob/main/xla/pjrt/c/pjrt_c_api.h",
+        "note": "the struct of function pointers, verbatim"
+      },
+      {
+        "label": "The PJRT-backed IFRT adapter",
+        "url": "https://github.com/openxla/xla/tree/main/xla/python/pjrt_ifrt",
+        "note": "way one, one file per wrapped class"
+      },
+      {
+        "label": "The IFRT proxy",
+        "url": "https://github.com/openxla/xla/tree/main/xla/python/ifrt_proxy",
+        "note": "way two, client and server halves"
+      }
+    ]
+  },
+  {
+    "id": "capstone",
+    "num": 15,
     "part": "ii",
     "title": "The dump is the referee",
     "lede": "Three projects, one deliverable each, and one rule that applies to all three: no claim survives without a dump or a measurement standing behind it.",
@@ -1185,6 +1267,24 @@ export const XLA_MASTERY: Record<string, WorkItem[]> = {
     {
       "id": "ifrt",
       "label": "Write one paragraph explaining why IFRT had to exist for this chapter to be possible"
+    }
+  ],
+  "xla:interfaces": [
+    {
+      "id": "read",
+      "label": "Read this chapter and open both quoted headers in the tree while you do"
+    },
+    {
+      "id": "match-classes",
+      "label": "Open pjrt_client.h and ifrt/client.h side by side and match each PJRT class to the IFRT class that wraps it"
+    },
+    {
+      "id": "name-four",
+      "label": "From memory, name both implementation routes for each interface and the header or directory where each lives"
+    },
+    {
+      "id": "trace-compile",
+      "label": "Follow one Compile call from PjRtCApiClient through the function table into a plugin and back"
     }
   ],
   "xla:capstone": [
