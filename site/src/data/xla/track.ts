@@ -1303,6 +1303,17 @@ export const XLA_MASTERY: Record<string, WorkItem[]> = {
     {
       "id": "trace-compile",
       "label": "Follow one Compile call from PjRtCApiClient through the function table into a plugin and back"
+    },
+    {
+      "id": "labs",
+      "label": "run LAB·X5",
+      "href": "#labs",
+      "auto": {
+        "type": "labs",
+        "ids": [
+          "LAB·X5"
+        ]
+      }
     }
   ],
   "xla:capstone": [
