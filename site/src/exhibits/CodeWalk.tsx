@@ -2,7 +2,7 @@
 // underneath. Each step names the line range it's about; CodeWalk lights
 // those lines and dims everything else so the reader's eye lands where the
 // explanation is pointing. No autoplay: the reader drives every step.
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const COPPER = '#c88a70'
 const PANEL_INK = '#d6d9dc'
@@ -25,6 +25,17 @@ interface Props {
 
 export default function CodeWalk({ lines, steps, title }: Props) {
   const [i, setI] = useState(0)
+  const codeRef = useRef<HTMLDivElement>(null)
+
+  // Long walks scroll inside .cw-code; each step brings its own lines into
+  // view. Scroll the container directly so the page itself never jumps.
+  useEffect(() => {
+    const container = codeRef.current
+    const active = container?.querySelector<HTMLElement>('.cw-line.active')
+    if (!container || !active) return
+    const target = active.offsetTop - container.clientHeight / 2 + active.clientHeight / 2
+    container.scrollTo({ top: Math.max(0, target), behavior: 'smooth' })
+  }, [i])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -49,7 +60,7 @@ export default function CodeWalk({ lines, steps, title }: Props) {
         <span className="cw-title">{title}</span>
       </div>
 
-      <div className="cw-code">
+      <div className="cw-code" ref={codeRef}>
         <pre>
           {lines.map((html, idx) => {
             const lineNo = idx + 1
