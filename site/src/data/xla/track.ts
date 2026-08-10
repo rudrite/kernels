@@ -1182,6 +1182,17 @@ export const XLA_MASTERY: Record<string, WorkItem[]> = {
       "label": "trace how a psum from the JAX path resolves down to a single participant's collective call"
     },
     {
+      "id": "labs",
+      "label": "run LAB·X6",
+      "href": "#labs",
+      "auto": {
+        "type": "labs",
+        "ids": [
+          "LAB·X6"
+        ]
+      }
+    },
+    {
       "id": "collective",
       "label": "name the collective: streak of 5",
       "href": "/gym/pytorch#collectives",
