@@ -617,6 +617,172 @@ export const XLA_LESSONS: UnitLessons[] = [
           { label: 'libtpu on PyPI', url: 'https://pypi.org/project/libtpu/', note: 'compilation, ICI, and runtime, in one wheel' },
         ],
       },
+      {
+        id: 'triton-end-to-end',
+        num: 2,
+        title: 'Triton, end to end',
+        lede: 'One kernel, compiled once, leaves five files behind. Each file is the same program one level closer to the card, and the levels are named by the code that writes them.',
+        goal: 'Name the four IR levels between a Triton kernel and a loadable binary, say what appears at each level that was not there before, and point at the exact place XLA:GPU enters that pipeline instead of running an emitter of its own.',
+        sections: [
+          {
+            h: 'five files with the same stem',
+            ps: [
+              "Compile one Triton kernel with `TRITON_KERNEL_DUMP=1` and a directory fills with files that share a stem and differ only in extension: `.ttir`, `.ttgir`, `.llir`, `.ptx`, `.cubin`. Nobody wrote that list down as documentation. It is the set of keys a backend registers in a dictionary, and the compiler writes one file per key, in insertion order.",
+              "The NVIDIA backend fills that dictionary in `add_stages`, and the whole shape of Triton's compiler is legible in ten lines of it. Five entries for the Triton language, each mapping a name to the function that produces that level from the one above. The Gluon branch is a second front end entering the same table one row lower: it hands back TTGIR directly, so a Gluon kernel never has a `.ttir` file at all.",
+              ">> The stage names and the file extensions are the same list.",
+              "Two knobs hang off the loop that walks those stages, and the second one is stranger than it looks. `TRITON_KERNEL_DUMP` copies each stage's output into `TRITON_DUMP_DIR` as it is produced. `TRITON_KERNEL_OVERRIDE` reads files back: if the override directory holds a file with the matching name, the compiler parses that instead of what the previous stage just produced, prints `Overriding kernel with file`, and continues down. An edited `.ttgir` is a supported input to the rest of the pipeline.",
+              "Handing the compiler an IR file directly works the same way, through one line: `first_stage = list(stages.keys()).index(src.ext)`. The extension you passed in decides where the walk begins, and the comment above it says why the pipeline then skips that stage's own passes: `when the source is an IR file, don't apply the passes related to this stage. This makes it easier to write IR level tests.`",
+            ],
+            code: {
+              caption: 'verbatim, triton-lang/triton at 087e972 · third_party/nvidia/backend/compiler.py, the stage table (the knobs inspection hook trimmed)',
+              lang: 'python',
+              text: "    def add_stages(self, stages, options, language):\n        capability = self._parse_arch(options.arch)\n        if language == Language.TRITON:\n            stages[\"ttir\"] = lambda src, metadata: self.make_ttir(src, metadata, options, capability)\n            stages[\"ttgir\"] = lambda src, metadata: self.make_ttgir(src, metadata, options, capability)\n        elif language == Language.GLUON:\n            stages[\"ttgir\"] = lambda src, metadata: self.gluon_to_ttgir(src, metadata, options, capability)\n        stages[\"llir\"] = lambda src, metadata: self.make_llir(src, metadata, options, capability)\n        stages[\"ptx\"] = lambda src, metadata: self.make_ptx(src, metadata, options, self.target.arch)\n        stages[\"cubin\"] = lambda src, metadata: self.make_cubin(src, metadata, options, self.target.arch)",
+            },
+            table: {
+              caption: 'the five files, and what each level knows that the one above it did not',
+              cols: ['stage', 'what the file holds', 'what is new here'],
+              rows: [
+                ['ttir', "the kernel in Triton's own MLIR dialect, `tt` ops over whole tensors", 'nothing about the chip, apart from one pre-Hopper rewrite'],
+                ['ttgir', 'the same kernel with `ttg` layout attributes hanging off its tensor types', 'warps, CTAs, a target string, and a memory layout per tensor'],
+                ['llir', 'LLVM IR, after the last MLIR dialect is converted away', 'shared memory allocated, warp groups assigned, structured control flow flattened'],
+                ['ptx', "NVIDIA's virtual ISA, as text", 'a `.version`, a `.target sm_XX`, and exactly one `.visible .entry`'],
+                ['cubin', 'the binary `ptxas` produced from that text', 'an object built for one chip, which the driver can load'],
+              ],
+            },
+          },
+          {
+            h: 'TTIR, where the kernel is still hardware-free',
+            ps: [
+              'Read the first stage as a list of what it does not do. An inliner, a canonicalizer, an op combiner, a broadcast reorderer, common subexpression elimination, symbol dead-code elimination, loop unrolling. Every one of those is a transformation you could run on any array program, and the types they operate on are plain tensors.',
+              ">> Nothing in the TTIR pass list mentions a warp, a CTA, or a chip.",
+              "One line breaks that, and it is worth knowing which. `if capability // 10 < 9` guards a rewrite of tensor descriptors into pointers, because the descriptor machinery it lowers is Hopper hardware. So even at the level that has no layouts and no warps, the compiler already knows which generation it is aiming at, and uses that knowledge exactly once.",
+              "The pass manager runs under a name, `pm.run(mod, 'make_ttir')`, and hands the module back unchanged in type. Same MLIR module, same dialect, fewer redundancies. The level has not moved yet.",
+            ],
+            code: {
+              caption: 'verbatim, triton-lang/triton at 087e972 · third_party/nvidia/backend/compiler.py, make_ttir',
+              lang: 'python',
+              text: "    @staticmethod\n    def make_ttir(mod, metadata, opt, capability):\n        pm = ir.pass_manager(mod.context)\n        pm.enable_debug()\n        passes.common.add_inliner(pm)\n        if capability // 10 < 9:\n            passes.ttir.add_rewrite_tensor_descriptor_to_pointer(pm)\n        passes.common.add_canonicalizer(pm)\n        passes.ttir.add_combine(pm)\n        passes.ttir.add_reorder_broadcast(pm)\n        passes.common.add_cse(pm)\n        passes.common.add_symbol_dce(pm)\n        passes.ttir.add_loop_unroll(pm)\n        pm.run(mod, 'make_ttir')\n        return mod",
+            },
+          },
+          {
+            h: 'TTGIR, where warps and layouts arrive',
+            ps: [
+              "The move from the first file to the second happens in one pass call, and every argument in it is a decision somebody made before compilation started: `passes.ttir.add_convert_to_ttgpuir(pm, f\"cuda:{capability}\", opt.num_warps, 32, opt.num_ctas)`. A target string, a warp count, a threads-per-warp constant of 32, a CTA count. Everything after it in `make_ttgir` is optimization that could not have been written at the level above, because it argues about layouts.",
+              "The result carries those four decisions in its own header. A real TTGIR module from Triton's checked-in golden samples opens with `\"ttg.num-ctas\" = 1`, `\"ttg.num-warps\" = 8`, `ttg.target = \"cuda:90\"`, `\"ttg.threads-per-warp\" = 32`. Read the module attributes and you know the shape of the launch before you read a single operation.",
+              "The other new thing is attached to types rather than to the module. A tensor at this level is written `tensor<128x256xf32, #ttg.nvidia_mma<{versionMajor = 3, versionMinor = 0, warpsPerCTA = [8, 1], instrShape = [16, 256, 16]}>>`, so the value's element type and shape now travel with a statement about which registers of which warps hold it. The named layout at the top of the sample, `#ttg.nvmma_shared<{swizzlingByteWidth = 128, ...}>`, is the same idea for shared memory, swizzle included. A layout mismatch between two ops is now a thing the IR can express, which is why so many TTGIR passes are named after removing layout conversions.",
+            ],
+            code: {
+              caption: 'verbatim head, triton-lang/triton at 087e972 · test/TritonGPU/samples/simulated-grouped-gemm.mlir.in (regenerated by `make golden-samples`)',
+              lang: 'mlir',
+              text: "#nvmma_128 = #ttg.nvmma_shared<{swizzlingByteWidth = 128, transposed = false, elementBitWidth = 16}>\n\nmodule attributes {\"ttg.num-ctas\" = 1 : i32, \"ttg.num-warps\" = 8 : i32, ttg.target = \"cuda:90\", \"ttg.threads-per-warp\" = 32 : i32} {\n  tt.func public @matmul_kernel_descriptor_persistent(%arg0: !tt.ptr<f16> {tt.divisibility = 16 : i32}, %arg1: !tt.ptr<f16> {tt.divisibility = 16 : i32}, %arg2: !tt.ptr<f16> {tt.divisibility = 16 : i32}, %arg3: i32 {tt.divisibility = 16 : i32}, %arg4: i32 {tt.divisibility = 16 : i32}, %arg5: i32 {tt.divisibility = 16 : i32}) attributes {noinline = false} {",
+            },
+          },
+          {
+            h: 'out of MLIR, into text, then into a binary',
+            ps: [
+              "`make_llir` is the stage where the dialects stop. Its own comment says `TritonGPU -> LLVM-IR (MLIR)`, and the passes underneath it do the four things that make an LLVM module possible: structured control flow flattened to branches, warp groups allocated, shared memory allocated with the compute capability and PTX version in hand, and then the conversion to the LLVM dialect itself.",
+              "The stage that produces PTX is shorter than you expect, because the hard part belongs to LLVM. One call to `translate_to_asm` with the triple `nvptx64-nvidia-cuda` produces the assembly text. What follows is bookkeeping worth reading closely: a regex pulls the kernel name out of the `.visible .entry` line and asserts there is exactly one, and two more regexes rewrite the `.version` and the `.target sm_` lines that LLVM already printed.",
+              "Those rewrites say something about what PTX is. The version and the target in the text are not properties of the code LLVM generated, they are policy stamped on afterward, and the four lines above them show why that matters: capability 107 is handed to LLVM as 100, then the finished text is relabeled `.target sm_107`. The file that comes out is text, portable, and unrunnable. `make_cubin` writes it to a temporary file and runs `ptxas` over it, and the binary that comes back is the first artifact in this whole chain that belongs to one chip.",
+            ],
+            code: {
+              caption: 'verbatim, triton-lang/triton at 087e972 · third_party/nvidia/backend/compiler.py, make_ptx down to the target rewrite',
+              lang: 'python',
+              text: "    def make_ptx(self, src, metadata, opt, capability):\n        ptx_version = get_ptx_version_from_options(opt, self.target.arch)\n\n        triple = 'nvptx64-nvidia-cuda'\n\n        if capability == 107:\n            cap_llvm = 100\n        else:\n            cap_llvm = capability\n\n        proc = sm_arch_from_capability(cap_llvm)\n        features = get_features(opt, cap_llvm)\n        flags = [\"nvptx-mad-wide-opt\"]\n        canonicalize_gep = \"fpsan\" in opt.instrumentation_mode\n        ret = llvm.translate_to_asm(src, triple, proc, features, flags, opt.enable_fp_fusion, False, canonicalize_gep)\n        # Find kernel names (there should only be one)\n        names = re.findall(r\".visible .entry ([a-zA-Z_][a-zA-Z0-9_]*)\", ret)\n        assert len(names) == 1\n        metadata[\"name\"] = names[0]\n        # post-process\n        ptx_version = f'{ptx_version//10}.{ptx_version%10}'\n        ret = re.sub(r'\\.version \\d+\\.\\d+', f'.version {ptx_version}', ret, flags=re.MULTILINE)\n        ret = re.sub(r'\\.target sm_\\d+', f'.target sm_{capability}', ret, flags=re.MULTILINE)",
+            },
+          },
+          {
+            h: 'the whole descent, on an empty kernel',
+            ps: [
+              "XLA has a lit test that runs its entire Triton pipeline over a kernel that does nothing, and it is the shortest honest picture of the descent anyone has published. The input is a `tt.func` with a `tt.return` in it, which is TTIR. The output the checks demand is an `llvm.func` with an `llvm.return`, which is the LLVM dialect. Between them the module has to acquire a `ttg.target` attribute, which only exists at the middle level.",
+              "The kernel being empty is what makes the test readable. No arithmetic survives to distract from the fact that the three names, `tt.func`, `ttg.target`, `llvm.func`, are the same program written at three heights. Run the file with `target=9.0` and the attribute reads `cuda:90`; run it with `target=gfx950` and it reads `hip:gfx950`, from the same source, through the same pipeline.",
+            ],
+            code: {
+              caption: 'verbatim, openxla/xla at a6c8e17 · xla/backends/gpu/codegen/triton/transforms/tests/triton_pipeline.mlir (license header trimmed)',
+              lang: 'mlir',
+              text: "// RUN: xla-opt %s --triton-xla-pipeline='target=9.0' \\\n// RUN:   | FileCheck %s --check-prefix=CHECK --check-prefix=CUDA\n//\n// RUN: xla-opt %s --triton-xla-pipeline='target=gfx950' \\\n// RUN:   | FileCheck %s --check-prefix=CHECK --check-prefix=ROCM\n\n// CHECK: module attributes\n// CUDA: ttg.target = \"cuda:90\"\n// ROCM: ttg.target = \"hip:gfx950\"\n\n// CHECK: llvm.func @func\ntt.func @func() {\n  // CHECK: llvm.return\n  tt.return\n}",
+            },
+          },
+          {
+            h: 'the stamp that hands a fusion to Triton',
+            ps: [
+              "The chapter above this lesson sorts the fusions: a backend config already stamped for Triton or cuDNN goes straight to that emitter, and everything else falls through `GetFusionEmitter`'s decision tree to a reduction, transpose, scatter, or loop kernel. What a chapter cannot do is show you the stamp. It is a string and five numbers inside `backend_config`, and XLA keeps small examples of it checked in as test data.",
+              "The fusion below computes an elementwise minimum over an `f32[8,4]`, which is deliberately too small to be interesting. What matters is the annotation: `kind=kCustom` marks the fusion as claimed by something other than the generic emitters, `\"kind\":\"__triton\"` names which one, and the `block_level_fusion_config` carries the numbers the Triton pipeline will run on. The `CHECK` line in the same file is an assertion about the TTIR that comes out, and it closes the loop on the tile sizes: `output_tiles` of `[\"1\", \"4\"]` becomes `tensor<1x4xf32>` in the emitted IR.",
+              "Where those numbers come from is the autotuning unit's story, and the cache entry read at /xla/autotuning/reading-the-autotune-cache is the same vocabulary from the other end: a race's verdict, in block sizes, warps, and stages. This config is the input side. Someone chose these numbers, by default or by measurement, before any IR existed.",
+            ],
+            code: {
+              caption: 'verbatim, openxla/xla at a6c8e17 · xla/backends/gpu/codegen/triton/tests/elementwise/minimum.hlo',
+              lang: 'text',
+              text: "// RUN: fusion_to_triton %s --xla_gpu_experimental_enable_tiling_propagation | FileCheck %s\n// RUN: triton_test_correctness %s --xla_gpu_experimental_enable_tiling_propagation\n\nfusion {\n  p0 = f32[8,4] parameter(0)\n  p1 = f32[8,4] parameter(1)\n  ROOT minimum = f32[8,4] minimum(p0, p1)\n}\n// CHECK: arith.minimumf %{{.*}}, %{{.*}} : tensor<1x4xf32>\n\nENTRY main {\n  p0 = f32[8,4] parameter(0)\n  p1 = f32[8,4] parameter(1)\n  ROOT fusion = f32[8,4] fusion(p0, p1), kind=kCustom, calls=fusion,\n    backend_config={\n      \"fusion_backend_config\":{\n        \"kind\":\"__triton\",\n        \"block_level_fusion_config\":{\n          \"output_tiles\":[{\"sizes\":[\"1\", \"4\"]}],\n          \"num_warps\":\"1\",\n          \"num_ctas\":\"1\",\n          \"num_tiles_per_pid\":\"2\",\n          \"num_stages\":\"1\"}}}",
+            },
+            table: {
+              caption: 'each field of block_level_fusion_config, and where it lands downstream',
+              cols: ['field', 'where it goes'],
+              rows: [
+                ['`"kind":"__triton"`', 'selects the Triton emitter for this fusion at all'],
+                ['`output_tiles` sizes', 'the tile shape the emitted tensors are built around; `["1", "4"]` here, `tensor<1x4xf32>` in the CHECK'],
+                ['`num_warps`', 'third argument of `createConvertTritonToTritonGPU`, the TTIR to TTGIR pass'],
+                ['`num_ctas`', "same call's last argument; threads-per-warp between them is hard-coded 32"],
+                ['`num_stages`', 'the software pipeliner in `MakeTTGIR`, `createTritonGPUPipeline({num_stages})`'],
+                ['`num_tiles_per_pid`', "XLA's own field, defaulting to 1 and written into the config only when it exceeds 1"],
+              ],
+            },
+          },
+          {
+            h: "XLA runs Triton's passes without running Triton",
+            ps: [
+              "Nothing in the paragraphs above involved Python, and that is not an accident of how the example was written. XLA builds Triton from source at a pinned commit, `TRITON_COMMIT = \"96bc7e783a19958182794f477d5f72f9a77d5924\"` in `third_party/triton/workspace.bzl`, applies thirty patch files from `third_party/triton/common` on the way in, and then calls the C++ passes directly. `CreateTritonCudaPipeline` is three function calls: `MakeTTIR`, `MakeTTGIR`, `MakeLLIR`.",
+              "Those three functions carry a comment that tells you exactly what they are. `// Based on make_ttir() in @triton//:third_party/nvidia/backend/compiler.py`, and the same line for `make_ttgir()`. Compare the two side by side and the pass order matches, with XLA's own passes spliced in at the ends: a TF32 rounding rewrite before the inliner, a TMA info extraction pass at the end of TTGIR, an extern-elementwise implementation pass after the LLVM conversion.",
+              "There is also a level above TTIR that belongs to XLA alone. The comment in `fusion_to_triton.cc` states it in two lines: `CreateTritonModule creates an xtile dialect module that CreateTritonXlaPipeline() will lower to TTIR.` So an HLO fusion becomes `xtile` first, and `xtile.dot_scaled` still carries `#stablehlo.dot<...>` dimension numbers on it before anything lowers it to a `tt.dot_scaled`. The frontend's vocabulary survives one level further down than the chapter's diagram suggests.",
+              "Two consequences are worth carrying out of this lesson. A Triton version bump inside XLA is a source-level merge with thirty patches to reapply, not a package upgrade. And the dumps this lesson opened with are Triton's own format, so reading them for an XLA-generated kernel means reading exactly the same `.ttir` and `.ttgir` a hand-written Triton kernel produces.",
+            ],
+            code: {
+              caption: 'verbatim, openxla/xla at a6c8e17 · xla/backends/gpu/codegen/triton/compilation_pipeline_cuda.cc, the three stages and their attribution comments (pass bodies trimmed)',
+              lang: 'c',
+              text: "// Based on make_ttir() in\n// @triton//:third_party/nvidia/backend/compiler.py\nstatic void MakeTTIR(mlir::OpPassManager* pm,\n                     const stream_executor::CudaComputeCapability& cuda_cc) {\n  pm->addPass(mt_xla::createRoundF32ToTF32ForTf32DotRewritePass());\n  pm->addPass(mlir::createInlinerPass());\n  if (!cuda_cc.IsAtLeastHopper()) {\n    pm->addPass(mt::createTritonRewriteTensorDescriptorToPointer());\n  }\n  pm->addPass(mlir::createCanonicalizerPass());\n  // ...\n}\n\nvoid CreateTritonCudaPipeline(\n    mlir::OpPassManager* pm,\n    const stream_executor::CudaComputeCapability& cuda_cc, int num_warps,\n    int num_ctas, int num_stages) {\n  MakeTTIR(pm, cuda_cc);\n  MakeTTGIR(pm, cuda_cc, num_warps, num_ctas, num_stages);\n  MakeLLIR(pm, cuda_cc);\n}",
+            },
+          },
+        ],
+        readings: [
+          {
+            label: "the NVIDIA backend's stage table",
+            url: 'https://github.com/triton-lang/triton/blob/087e97245b3d4e3349487ad71ff6cce7396efc9f/third_party/nvidia/backend/compiler.py',
+            note: 'make_ttir, make_ttgir, make_llir, make_ptx, make_cubin, in that order',
+          },
+          {
+            label: 'the loop that writes the dumps',
+            url: 'https://github.com/triton-lang/triton/blob/087e97245b3d4e3349487ad71ff6cce7396efc9f/python/triton/compiler/compiler.py',
+            note: 'one file per stage, plus the override path that reads an edited one back',
+          },
+          {
+            label: "XLA's Triton pipeline, in C++",
+            url: 'https://github.com/openxla/xla/blob/a6c8e1767d219fc6dbc3493f0e02a8b345a2e7b4/xla/backends/gpu/codegen/triton/compilation_pipeline_cuda.cc',
+            note: 'the same three stages, rebuilt against a pinned Triton and annotated as such',
+          },
+          {
+            label: 'Triton dialect reference',
+            url: 'https://triton-lang.org/main/dialects/dialects.html',
+            note: 'the tt and ttg op sets, if you want the vocabulary rather than the descent',
+          },
+        ],
+        check: [
+          {
+            q: 'What changes between the TTIR and TTGIR dumps of one kernel?',
+            a: 'Layouts land on the tensor types and the launch shape lands on the module: ttg.num-warps, ttg.num-ctas, ttg.threads-per-warp, ttg.target. One pass does it, createConvertTritonToTritonGPU, taking the target string, num_warps, a hard-coded 32 threads per warp, and num_ctas.',
+          },
+          {
+            q: 'A fusion in an HLO dump says kind=kCustom with "kind":"__triton". What do the numbers beside it decide?',
+            a: 'output_tiles fixes the tile shape the emitted tensors are built around (sizes 1 and 4 become tensor<1x4xf32>), num_warps and num_ctas are arguments to the TTIR to TTGIR conversion, and num_stages drives the software pipeliner inside the TTGIR stage.',
+          },
+          {
+            q: 'Does XLA:GPU compile Triton kernels by calling Triton?',
+            a: "Not through its Python compiler. XLA builds a pinned Triton commit with thirty patches applied and calls the passes from C++: MakeTTIR, MakeTTGIR, MakeLLIR, each commented as based on the matching function in the NVIDIA backend, with an xtile dialect of XLA's own sitting one level above TTIR.",
+          },
+        ],
+        work: [
+          { id: 'stages', label: 'read add_stages in the nvidia backend and name the file extension each stage writes', href: '#five-files-with-the-same-stem' },
+          { id: 'check', label: 'answer the checks without opening them', href: '#check' },
+        ],
+      },
     ],
   },
   {
