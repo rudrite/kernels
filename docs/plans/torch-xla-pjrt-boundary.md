@@ -110,8 +110,13 @@ Owning units, per the audit rule (deepen, never duplicate):
       ReshardArrays not metadata-only, the array.h RTTI line); R1 and R2
       agree on the seam
 - [x] Phase 1 encoded as LAB·P5 "The boundary trace" (labs/pytorch/): the
-      three-mode trace with the seam table as its reading frame. The Colab
-      TPU run and its paste-backs are the reader-driven half, still to run
+      three-mode trace with the seam table as its reading frame. Run end to
+      end on a Colab v6e-1 (torch_xla 2.9.0, 2026-08-14) after two ordering
+      fixes the run itself surfaced (the one-process rule applied to the
+      kernel, and the ordinal suffix on XLA_SAVE_TENSORS_FILE); the lab now
+      carries the reference captures. The three-way diff confirmed the arc's
+      claims: eager renames the same seam calls, dynamo extracts three FX
+      graphs per step, every mode moves the same 4 bytes each way
 - [x] Phase 2 complete 2026-08-14: the pt:bridges arc (five lessons with
       the first pt: lesson route), the xla reconcile pass applied, the
       chapter-14 third walk shipped (torch-client, nine steps over one
