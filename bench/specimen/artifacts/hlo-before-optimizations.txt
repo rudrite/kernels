@@ -1,0 +1,48 @@
+HloModule jit_block, entry_computation_layout={(f32[16,32]{1,0}, f32[32,32]{1,0}, f32[32,32]{1,0}, f32[32,32]{1,0})->f32[16,32]{1,0}}, allow_spmd_sharding_propagation_to_parameters={true,true,true,true}, allow_spmd_sharding_propagation_to_output={true}
+
+region_0.17 {
+  Arg_0.18 = f32[] parameter(0), metadata={op_name="jit(block)/jit(main)/reduce_max"}
+  Arg_1.19 = f32[] parameter(1), metadata={op_name="jit(block)/jit(main)/reduce_max"}
+  ROOT maximum.20 = f32[] maximum(Arg_0.18, Arg_1.19), metadata={op_name="jit(block)/jit(main)/reduce_max"}
+}
+
+region_1.29 {
+  Arg_0.30 = f32[] parameter(0), metadata={op_name="jit(block)/jit(main)/reduce_sum"}
+  Arg_1.31 = f32[] parameter(1), metadata={op_name="jit(block)/jit(main)/reduce_sum"}
+  ROOT add.32 = f32[] add(Arg_0.30, Arg_1.31), metadata={op_name="jit(block)/jit(main)/reduce_sum"}
+}
+
+ENTRY main.40 {
+  Arg_0.1 = f32[16,32]{1,0} parameter(0), metadata={op_name="x"}
+  Arg_1.2 = f32[32,32]{1,0} parameter(1), metadata={op_name="wq"}
+  dot.11 = f32[16,32]{1,0} dot(Arg_0.1, Arg_1.2), lhs_contracting_dims={1}, rhs_contracting_dims={0}, metadata={op_name="jit(block)/jit(main)/dot_general"}
+  Arg_2.3 = f32[32,32]{1,0} parameter(2), metadata={op_name="wk"}
+  dot.12 = f32[16,32]{1,0} dot(Arg_0.1, Arg_2.3), lhs_contracting_dims={1}, rhs_contracting_dims={0}, metadata={op_name="jit(block)/jit(main)/dot_general"}
+  transpose.14 = f32[32,16]{0,1} transpose(dot.12), dimensions={1,0}, metadata={op_name="jit(block)/jit(main)/transpose"}
+  dot.15 = f32[16,16]{1,0} dot(dot.11, transpose.14), lhs_contracting_dims={1}, rhs_contracting_dims={0}, metadata={op_name="jit(block)/jit(main)/dot_general"}
+  constant.7 = f32[] constant(5.65685415)
+  broadcast.8 = f32[16,16]{1,0} broadcast(constant.7), dimensions={}
+  divide.16 = f32[16,16]{1,0} divide(dot.15, broadcast.8), metadata={op_name="jit(block)/jit(main)/div"}
+  constant.10 = f32[] constant(-inf)
+  reduce.21 = f32[16]{0} reduce(divide.16, constant.10), dimensions={1}, to_apply=region_0.17, metadata={op_name="jit(block)/jit(main)/reduce_max"}
+  constant.5 = f32[] constant(-inf)
+  broadcast.6 = f32[16]{0} broadcast(constant.5), dimensions={}
+  maximum.22 = f32[16]{0} maximum(reduce.21, broadcast.6), metadata={op_name="jit(block)/jit(main)/max"}
+  reshape.23 = f32[16,1]{1,0} reshape(maximum.22), metadata={op_name="jit(block)/jit(main)/broadcast_in_dim"}
+  broadcast.24 = f32[16,1]{1,0} broadcast(reshape.23), dimensions={0,1}, metadata={op_name="jit(block)/jit(main)/sub"}
+  reshape.25 = f32[16]{0} reshape(broadcast.24), metadata={op_name="jit(block)/jit(main)/sub"}
+  broadcast.26 = f32[16,16]{1,0} broadcast(reshape.25), dimensions={0}, metadata={op_name="jit(block)/jit(main)/sub"}
+  subtract.27 = f32[16,16]{1,0} subtract(divide.16, broadcast.26), metadata={op_name="jit(block)/jit(main)/sub"}
+  exponential.28 = f32[16,16]{1,0} exponential(subtract.27), metadata={op_name="jit(block)/jit(main)/exp"}
+  constant.9 = f32[] constant(0)
+  reduce.33 = f32[16]{0} reduce(exponential.28, constant.9), dimensions={1}, to_apply=region_1.29, metadata={op_name="jit(block)/jit(main)/reduce_sum"}
+  reshape.34 = f32[16,1]{1,0} reshape(reduce.33), metadata={op_name="jit(block)/jit(main)/broadcast_in_dim"}
+  broadcast.35 = f32[16,1]{1,0} broadcast(reshape.34), dimensions={0,1}, metadata={op_name="jit(block)/jit(main)/div"}
+  reshape.36 = f32[16]{0} reshape(broadcast.35), metadata={op_name="jit(block)/jit(main)/div"}
+  broadcast.37 = f32[16,16]{1,0} broadcast(reshape.36), dimensions={0}, metadata={op_name="jit(block)/jit(main)/div"}
+  divide.38 = f32[16,16]{1,0} divide(exponential.28, broadcast.37), metadata={op_name="jit(block)/jit(main)/div"}
+  Arg_3.4 = f32[32,32]{1,0} parameter(3), metadata={op_name="wv"}
+  dot.13 = f32[16,32]{1,0} dot(Arg_0.1, Arg_3.4), lhs_contracting_dims={1}, rhs_contracting_dims={0}, metadata={op_name="jit(block)/jit(main)/dot_general"}
+  ROOT dot.39 = f32[16,32]{1,0} dot(divide.38, dot.13), lhs_contracting_dims={1}, rhs_contracting_dims={0}, metadata={op_name="jit(block)/jit(main)/dot_general"}
+} // main.40
+

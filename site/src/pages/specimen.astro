@@ -1,0 +1,142 @@
+---
+import Base from '../layouts/Base.astro'
+import ArtifactExplorer from '../components/ArtifactExplorer.astro'
+import { SPECIMEN, SPECIMEN_LEVELS } from '../data/specimen'
+
+const captured = SPECIMEN_LEVELS.filter((l) => l.status === 'captured')
+const pending = SPECIMEN_LEVELS.filter((l) => l.status === 'pending')
+const versions = Object.entries(SPECIMEN.capture.versions)
+---
+
+<Base
+  title="The specimen · Rudrite Kernels"
+  description="One attention block, captured at every level the CPU backend can reach: source, jaxpr, StableHLO, HLO before and after optimization, and the LLVM IR pair."
+>
+  <div class="ws-ground">
+    <section class="wband">
+      <div class="wrap wgrid">
+        <span class="wtag">the specimen</span>
+        <div>
+          <p class="mono-label serves">
+            {captured.length} artifacts from one run on the CPU backend · {pending.length} levels pending · jax {
+              SPECIMEN.capture.versions.jax
+            } · regenerate with {SPECIMEN.capture.command}
+          </p>
+          <h1 class="wh1">One program, all the way down.</h1>
+          <p class="wlede">
+            {SPECIMEN.specimen.title}, {SPECIMEN.specimen.shapes}. Every chapter on this site used to
+            open a fresh toy example. This is the one program the site keeps coming back to, and what
+            you scrub through below is not a diagram of a compiler: it is that program written down
+            again at each level, by the machine, on a run whose command and versions are printed at the
+            bottom of this page.
+          </p>
+          <p class="wlede">
+            Read down the rail and watch what survives. The transpose you wrote is a real operation in
+            StableHLO and gone by the optimized HLO, because a dot contracts along whichever dimension
+            it is told to. The square root of thirty-two is an instruction at one level and the literal
+            0.176776692 at the next. Five dot products go into the backend and none of them come out as
+            LLVM IR, since the CPU backend calls a library kernel instead of generating one.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="wband alt" id="explorer">
+      <div class="wrap wgrid">
+        <span class="wtag">explorer</span>
+        <div>
+          <ArtifactExplorer levels={SPECIMEN_LEVELS} command={SPECIMEN.capture.command} />
+        </div>
+      </div>
+    </section>
+
+    <section class="wband" id="pending">
+      <div class="wrap wgrid">
+        <span class="wtag">pending<br />{String(pending.length).padStart(2, '0')}</span>
+        <div>
+          <h2 class="wh2">The levels this machine cannot reach</h2>
+          <p class="wlede narrow">
+            A CPU has no Triton stack and no torch_xla device, so four floors of the map stay empty
+            here. Each one waits on a specific capture rather than on a drawing of what the dump would
+            probably look like.
+          </p>
+          <div class="panel table-panel">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">level</th>
+                  <th scope="col">lane</th>
+                  <th scope="col">artifact</th>
+                  <th scope="col">what will produce it</th>
+                </tr>
+              </thead>
+              <tbody>
+                {
+                  pending.map((p) => (
+                    <tr>
+                      <td class="val">L{p.level}</td>
+                      <td>{p.lane}</td>
+                      <td>{p.title}</td>
+                      <td class="wide">{p.pending}</td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="wband alt" id="provenance">
+      <div class="wrap wgrid">
+        <span class="wtag">provenance</span>
+        <div>
+          <h2 class="wh2">What produced these files</h2>
+          <div class="panel prov-panel">
+            <dl>
+              <dt>command</dt>
+              <dd>{SPECIMEN.capture.command}, from {SPECIMEN.capture.cwd}</dd>
+              <dt>program</dt>
+              <dd>{SPECIMEN.specimen.source}, seed {SPECIMEN.specimen.seed}, {SPECIMEN.specimen.checksum}</dd>
+              <dt>versions</dt>
+              <dd>{versions.map(([k, v]) => `${k} ${v}`).join(' · ')}</dd>
+              <dt>machine</dt>
+              <dd>{SPECIMEN.capture.platform} · {SPECIMEN.capture.backend} backend · {SPECIMEN.capture.devices.join(', ')}</dd>
+              <dt>edits</dt>
+              <dd>{SPECIMEN.capture.scrub}</dd>
+              <dt>files</dt>
+              <dd>
+                {captured.map((c) => `${c.file} (${c.lines} lines)`).join(' · ')}
+              </dd>
+            </dl>
+            <div class="provenance">
+              The capture script clears its output directory before it writes, so running it again on
+              the same versions leaves the committed files unchanged. LAB·L1 walks the same descent
+              cell by cell in a notebook.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .serves { margin-bottom: 1rem; letter-spacing: 0.04em; max-width: 70ch; }
+  h2.wh2 { margin-bottom: 1rem; }
+  .wlede.narrow { margin-bottom: 1.25rem; }
+  .wlede + .wlede { margin-top: 1rem; }
+
+  .table-panel { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+  th { text-align: left; font-weight: 500; font-size: 0.6875rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--panel-mute); padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--panel-rule); }
+  td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--panel-rule); vertical-align: top; }
+  td.wide { min-width: 26rem; line-height: 1.55; color: var(--panel-mute); }
+  .val { color: var(--accent); }
+
+  .prov-panel dl { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: 0.4rem 1rem; margin: 0; padding: 0.875rem; font-size: 0.75rem; line-height: 1.6; }
+  @media (max-width: 700px) { .prov-panel dl { grid-template-columns: minmax(0, 1fr); gap: 0.15rem; } }
+  .prov-panel dt { color: var(--panel-mute); letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.6875rem; padding-top: 0.1rem; }
+  .prov-panel dd { margin: 0; color: var(--panel-ink); overflow-wrap: anywhere; }
+</style>

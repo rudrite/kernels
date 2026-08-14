@@ -1,0 +1,61 @@
+HloModule jit_block, is_scheduled=true, entry_computation_layout={(f32[16,32]{1,0}, f32[32,32]{1,0}, f32[32,32]{1,0}, f32[32,32]{1,0})->f32[16,32]{1,0}}, allow_spmd_sharding_propagation_to_parameters={true,true,true,true}, allow_spmd_sharding_propagation_to_output={true}
+
+region_1.29 {
+  Arg_0.30 = f32[] parameter(0), metadata={op_name="jit(block)/jit(main)/reduce_sum"}
+  Arg_1.31 = f32[] parameter(1), metadata={op_name="jit(block)/jit(main)/reduce_sum"}
+  ROOT add.32 = f32[] add(Arg_0.30, Arg_1.31), metadata={op_name="jit(block)/jit(main)/reduce_sum"}
+}
+
+fused_computation {
+  param_0 = f32[16,16]{1,0} parameter(0)
+  param_1.1 = f32[16]{0} parameter(1)
+  broadcast.3 = f32[16,16]{1,0} broadcast(param_1.1), dimensions={0}, metadata={op_name="jit(block)/jit(main)/div"}
+  ROOT divide.0 = f32[16,16]{1,0} divide(param_0, broadcast.3), metadata={op_name="jit(block)/jit(main)/div"}
+}
+
+fused_computation.1 {
+  param_1.5 = f32[16,16]{1,0} parameter(1)
+  constant.2 = f32[] constant(0.176776692)
+  broadcast.7 = f32[16,16]{1,0} broadcast(constant.2), dimensions={}
+  multiply.1 = f32[16,16]{1,0} multiply(param_1.5, broadcast.7), metadata={op_name="jit(block)/jit(main)/div"}
+  param_0.3 = f32[16]{0} parameter(0)
+  constant.1 = f32[] constant(-inf)
+  broadcast.5 = f32[16]{0} broadcast(constant.1), dimensions={}
+  maximum.0 = f32[16]{0} maximum(param_0.3, broadcast.5), metadata={op_name="jit(block)/jit(main)/max"}
+  broadcast.4 = f32[16,16]{1,0} broadcast(maximum.0), dimensions={0}, metadata={op_name="jit(block)/jit(main)/sub"}
+  subtract.0 = f32[16,16]{1,0} subtract(multiply.1, broadcast.4), metadata={op_name="jit(block)/jit(main)/sub"}
+  ROOT exponential.0 = f32[16,16]{1,0} exponential(subtract.0), metadata={op_name="jit(block)/jit(main)/exp"}
+} // fused_computation.1
+
+region_0.17 {
+  Arg_0.18 = f32[] parameter(0), metadata={op_name="jit(block)/jit(main)/reduce_max"}
+  Arg_1.19 = f32[] parameter(1), metadata={op_name="jit(block)/jit(main)/reduce_max"}
+  ROOT maximum.20 = f32[] maximum(Arg_0.18, Arg_1.19), metadata={op_name="jit(block)/jit(main)/reduce_max"}
+}
+
+fused_computation.2 {
+  param_0.6 = f32[16,16]{1,0} parameter(0)
+  constant.4 = f32[] constant(0.176776692)
+  broadcast.9 = f32[16,16]{1,0} broadcast(constant.4), dimensions={}
+  multiply.2 = f32[16,16]{1,0} multiply(param_0.6, broadcast.9), metadata={op_name="jit(block)/jit(main)/div"}
+  constant.3 = f32[] constant(-inf)
+  ROOT reduce.0 = f32[16]{0} reduce(multiply.2, constant.3), dimensions={1}, to_apply=region_0.17, metadata={op_name="jit(block)/jit(main)/reduce_max"}
+} // fused_computation.2
+
+ENTRY main.40 {
+  Arg_0.1 = f32[16,32]{1,0} parameter(0), metadata={op_name="x"}
+  Arg_2.3 = f32[32,32]{1,0} parameter(2), metadata={op_name="wk"}
+  dot = f32[32,16]{1,0} dot(Arg_2.3, Arg_0.1), lhs_contracting_dims={0}, rhs_contracting_dims={1}, metadata={op_name="jit(block)/jit(main)/transpose"}
+  Arg_1.2 = f32[32,32]{1,0} parameter(1), metadata={op_name="wq"}
+  dot.11 = f32[16,32]{1,0} dot(Arg_0.1, Arg_1.2), lhs_contracting_dims={1}, rhs_contracting_dims={0}, metadata={op_name="jit(block)/jit(main)/dot_general"}
+  dot.15 = f32[16,16]{1,0} dot(dot.11, dot), lhs_contracting_dims={1}, rhs_contracting_dims={0}, metadata={op_name="jit(block)/jit(main)/dot_general"}
+  multiply_reduce_fusion = f32[16]{0} fusion(dot.15), kind=kLoop, calls=fused_computation.2, metadata={op_name="jit(block)/jit(main)/reduce_max"}
+  subtract_exponential_fusion = f32[16,16]{1,0} fusion(multiply_reduce_fusion, dot.15), kind=kLoop, calls=fused_computation.1, metadata={op_name="jit(block)/jit(main)/exp"}
+  constant.9 = f32[] constant(0)
+  reduce.33 = f32[16]{0} reduce(subtract_exponential_fusion, constant.9), dimensions={1}, to_apply=region_1.29, metadata={op_name="jit(block)/jit(main)/reduce_sum"}
+  broadcast_divide_fusion = f32[16,16]{1,0} fusion(subtract_exponential_fusion, reduce.33), kind=kLoop, calls=fused_computation, metadata={op_name="jit(block)/jit(main)/div"}
+  Arg_3.4 = f32[32,32]{1,0} parameter(3), metadata={op_name="wv"}
+  dot.13 = f32[16,32]{1,0} dot(Arg_0.1, Arg_3.4), lhs_contracting_dims={1}, rhs_contracting_dims={0}, metadata={op_name="jit(block)/jit(main)/dot_general"}
+  ROOT dot.39 = f32[16,32]{1,0} dot(broadcast_divide_fusion, dot.13), lhs_contracting_dims={1}, rhs_contracting_dims={0}, metadata={op_name="jit(block)/jit(main)/dot_general"}
+} // main.40
+

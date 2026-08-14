@@ -161,6 +161,7 @@ const pages: SearchEntry[] = [
   { t: 'the museum · xla wing', h: '/mistakes/xla', k: 'sharding spmd mesh errors' },
   { t: 'the museum · pytorch wing', h: '/mistakes/pytorch', k: 'torch autograd inplace errors' },
   { t: 'the bench', h: '/bench', k: 'numbers provenance records compare' },
+  { t: 'the specimen', h: '/specimen', k: 'one program every level jaxpr stablehlo hlo llvm artifacts' },
 ].map((x) => ({ kind: 'page' as const, title: x.t, href: x.h, hint: 'page', keywords: x.k }))
 
 export const SEARCH_INDEX: SearchEntry[] = [

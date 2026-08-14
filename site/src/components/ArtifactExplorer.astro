@@ -1,0 +1,179 @@
+---
+// One program, scrubbed through vertically. The rail on the left is the
+// descent: pick a floor and the panel under it shows what the machine wrote
+// down there, in the same code presentation the lessons use. Every level is
+// rendered at build time from the committed capture, so stepping costs
+// nothing and a reader without JS gets the whole descent stacked in order.
+// Levels the capture could not reach say pending and name what will fill
+// them; nothing stands in for a dump that does not exist.
+import { Code } from 'astro:components'
+import MlirCode from './MlirCode.astro'
+import { GRAMMAR, type SpecimenLevel } from '../data/specimen'
+
+interface Props {
+  levels: SpecimenLevel[]
+  /** The command that produced the captured levels. */
+  command: string
+}
+const { levels, command } = Astro.props
+const total = levels.length
+---
+
+<div class="axp panel" data-explorer>
+  <div class="axp-head">
+    <span class="axp-kicker">the specimen, level by level</span>
+    <span class="axp-count" data-axp-count>{`01 / ${String(total).padStart(2, '0')}`}</span>
+  </div>
+
+  <div class="axp-body">
+    <ol class="axp-rail" data-axp-rail>
+      {
+        levels.map((level, i) => (
+          <li>
+            <button
+              type="button"
+              class="axp-pick"
+              data-axp-pick={i}
+              aria-controls={`axp-level-${i}`}
+              aria-current={i === 0 ? 'true' : 'false'}
+            >
+              <span class="axp-lvl">L{level.level}</span>
+              <span class="axp-name">{level.title}</span>
+              <span class="axp-lane">{level.status === 'pending' ? 'pending' : level.lane}</span>
+            </button>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="axp-stage">
+      {
+        levels.map((level, i) => (
+          <section class="axp-level" id={`axp-level-${i}`} data-axp-level={i}>
+            <div class="axp-meta">
+              <span class="axp-meta-title">
+                L{level.level} · {level.title}
+              </span>
+              <span class="axp-meta-src">
+                {level.status === 'pending' ? 'not captured' : `${level.produced_by} · ${level.lines} lines`}
+              </span>
+            </div>
+            {level.status === 'pending' ? (
+              <p class="axp-pending">{level.pending}</p>
+            ) : level.lang === 'mlir' ? (
+              <MlirCode code={level.text} />
+            ) : (
+              <Code code={level.text} lang={GRAMMAR[level.lang!] ?? 'txt'} theme="vesper" />
+            )}
+            {level.status === 'captured' && <div class="axp-file">{level.file}</div>}
+          </section>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="axp-controls">
+    <button type="button" data-axp-step="-1" aria-label="Previous level">« up</button>
+    <button type="button" data-axp-step="1" aria-label="Next level">down »</button>
+    <span class="axp-hint">j and k step too</span>
+  </div>
+
+  <div class="provenance">captured by {command} · every level below the source is machine output</div>
+</div>
+
+<script>
+  const explorer = document.querySelector<HTMLElement>('[data-explorer]')
+  if (explorer) {
+    const picks = Array.from(explorer.querySelectorAll<HTMLButtonElement>('[data-axp-pick]'))
+    const panels = Array.from(explorer.querySelectorAll<HTMLElement>('[data-axp-level]'))
+    const count = explorer.querySelector<HTMLElement>('[data-axp-count]')
+    const steps = Array.from(explorer.querySelectorAll<HTMLButtonElement>('[data-axp-step]'))
+    let at = 0
+
+    // Only with the script running does the stage show one level at a time;
+    // without it every level stays in the page, stacked.
+    explorer.classList.add('axp-live')
+
+    const show = (next: number) => {
+      at = Math.max(0, Math.min(panels.length - 1, next))
+      picks.forEach((b, i) => b.setAttribute('aria-current', i === at ? 'true' : 'false'))
+      panels.forEach((p, i) => p.classList.toggle('on', i === at))
+      if (count) count.textContent = `${String(at + 1).padStart(2, '0')} / ${String(panels.length).padStart(2, '0')}`
+      steps.forEach((b) => {
+        const delta = Number(b.dataset.axpStep)
+        b.disabled = at + delta < 0 || at + delta > panels.length - 1
+      })
+    }
+
+    picks.forEach((b, i) => b.addEventListener('click', () => show(i)))
+    steps.forEach((b) => b.addEventListener('click', () => show(at + Number(b.dataset.axpStep))))
+    window.addEventListener('keydown', (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      const target = e.target as HTMLElement | null
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return
+      if (e.key === 'j') show(at + 1)
+      else if (e.key === 'k') show(at - 1)
+    })
+
+    show(0)
+  }
+</script>
+
+<style>
+  .axp { font-family: var(--mono); }
+  .axp-head {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
+    padding: 0.625rem 0.875rem; border-bottom: 1px solid var(--panel-rule);
+  }
+  .axp-kicker, .axp-count {
+    font-size: 0.6875rem; letter-spacing: 0.11em; text-transform: uppercase; color: var(--panel-mute);
+  }
+  .axp-body { display: grid; grid-template-columns: 17rem minmax(0, 1fr); }
+  @media (max-width: 860px) { .axp-body { grid-template-columns: minmax(0, 1fr); } }
+
+  .axp-rail { list-style: none; margin: 0; padding: 0; border-right: 1px solid var(--panel-rule); }
+  @media (max-width: 860px) {
+    .axp-rail { border-right: none; border-bottom: 1px solid var(--panel-rule); }
+  }
+  .axp-pick {
+    display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; align-items: baseline; gap: 0.625rem;
+    width: 100%; text-align: left; cursor: pointer;
+    background: transparent; border: 0; border-bottom: 1px solid var(--panel-rule);
+    border-left: 2px solid transparent;
+    padding: 0.5rem 0.75rem; font-family: inherit; color: var(--panel-ink);
+  }
+  .axp-pick:hover { color: var(--accent-bright); }
+  .axp-pick[aria-current='true'] { border-left-color: var(--accent); background: #20150f; }
+  .axp-lvl { font-size: 0.6875rem; color: var(--accent); letter-spacing: 0.06em; }
+  .axp-name { font-size: 0.75rem; line-height: 1.4; }
+  .axp-lane { font-size: 0.625rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--panel-mute); }
+
+  .axp-stage { min-width: 0; }
+  .axp-level { border-bottom: 1px solid var(--panel-rule); }
+  .axp-level:last-child { border-bottom: 0; }
+  .axp-live .axp-level { display: none; }
+  .axp-live .axp-level.on { display: block; }
+
+  .axp-meta {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap;
+    padding: 0.5rem 0.875rem; border-bottom: 1px solid var(--panel-rule);
+  }
+  .axp-meta-title { font-size: 0.75rem; color: var(--panel-ink); }
+  .axp-meta-src { font-size: 0.6875rem; color: var(--panel-mute); overflow-wrap: anywhere; }
+  .axp-file { padding: 0.4rem 0.875rem; border-top: 1px solid var(--panel-rule); font-size: 0.6875rem; color: var(--panel-mute); }
+  .axp-pending { margin: 0; padding: 1.25rem 0.875rem; font-size: 0.8125rem; line-height: 1.6; color: var(--panel-mute); max-width: 68ch; }
+
+  .axp-stage :global(pre) {
+    margin: 0; padding: 0.875rem; overflow-x: auto; overflow-y: auto;
+    max-height: 30rem; font-size: 0.8125rem; line-height: 1.6; background: transparent !important;
+  }
+
+  .axp-controls { display: flex; gap: 0.5rem; align-items: center; padding: 0.75rem 0.875rem; border-top: 1px solid var(--panel-rule); }
+  .axp-controls button {
+    background: transparent; color: var(--panel-ink); border: 1px solid var(--panel-rule); border-radius: 2px;
+    font-family: inherit; font-size: 0.75rem; padding: 0.25rem 0.625rem; cursor: pointer;
+  }
+  .axp-controls button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .axp-controls button:disabled { opacity: 0.35; cursor: default; }
+  .axp-hint { font-size: 0.6875rem; color: var(--panel-mute); letter-spacing: 0.06em; }
+</style>
