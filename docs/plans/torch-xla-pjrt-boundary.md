@@ -33,8 +33,14 @@ each producing a notes file (local scratch, not tracked) with every claim
 cited to a path, plus a 15-file reading order:
 
 - [ ] R1 · frontend: tracing → lowering → compile → modes
-- [ ] R2 · runtime seam: ComputationClient, both clients, plugin loading,
-      transfers, threading
+- [x] R2 · runtime seam: ComputationClient, both clients, plugin loading,
+      transfers, threading. Landed 2026-08-14 against pytorch/xla 41398bf.
+      Headline verdicts to reconcile in Phase 2: the IFRT client is compiled
+      but switched off in runtime.cpp (a hard-coded false, not a flag), and
+      SPMD-only with a dozen unimplemented methods; no in-tree GPU runtime
+      remains, GPU means an out-of-tree plugin; buffer donation travels
+      inside the HLO as buffer-donor annotations, never in ExecuteOptions;
+      collectives lower into the graph and never cross the seam at runtime.
 - [ ] R3 · PJRT + IFRT interfaces, C API/ABI, plugin ecosystem
 
 Pin the commits inspected; site quotes carry those commit ids, matching the
