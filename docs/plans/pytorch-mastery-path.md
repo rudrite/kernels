@@ -73,5 +73,9 @@ Part ii, the practice, aimed at TPU (this site's home ground):
 - [x] Name-the-collective station (GYM·11): five collectives captured
       from a real world-of-4 gloo run, streak wired into the pytorch
       distributed chapter and the xla collectives chapter
-- [ ] Real-chip captures: LAB·X2's museum section and LAB·P4's numbers
-      await a Colab TPU run (reader-driven; paste-backs become exhibits)
+- [x] Real-chip captures closed 2026-08-14, all from one v6e-1 session set:
+      LAB·X2's museum exhibit reproduced exactly (same byte counts as the
+      2026-07-27 capture), LAB·P4's capstone numbers landed (kill at step 99
+      loss 0.01456, first resumed step 0.01437, curve continuous) and now
+      ship as the lab's reference block, and LAB·P5 gained its full
+      reference run the day it was authored

@@ -1,0 +1,67 @@
+== lazy IR (torch_xla._XLAC._get_xla_tensors_text) ==
+IR {
+  %0 = f32[32,32]{1,0} xla::device_data(), xla_shape=f32[32,32]{1,0}
+  %1 = f32[16,32]{1,0} xla::device_data(), xla_shape=f32[16,32]{1,0}
+  %2 = f32[16,32]{1,0} aten::mm(%1, %0), xla_shape=f32[16,32]{1,0}
+  %3 = f32[] xla::device_data(), xla_shape=f32[]
+  %4 = f32[] aten::sqrt(%3), xla_shape=f32[]
+  %5 = f32[32,32]{1,0} xla::device_data(), xla_shape=f32[32,32]{1,0}
+  %6 = f32[16,32]{1,0} aten::mm(%1, %5), xla_shape=f32[16,32]{1,0}
+  %7 = f32[32,16]{0,1} aten::permute(%6), xla_shape=f32[32,16]{0,1}
+  %8 = f32[32,32]{1,0} xla::device_data(), xla_shape=f32[32,32]{1,0}
+  %9 = f32[16,32]{1,0} aten::mm(%1, %8), xla_shape=f32[16,32]{1,0}
+  %10 = f32[16,16]{1,0} aten::mm(%9, %7), xla_shape=f32[16,16]{1,0}
+  %11 = f32[16,16]{1,0} aten::div(%10, %4), xla_shape=f32[16,16]{1,0}
+  %12 = f32[16,16]{1,0} aten::softmax(%11), xla_shape=f32[16,16]{1,0}
+  %13 = f32[16,32]{1,0} aten::mm(%12, %2), xla_shape=f32[16,32]{1,0}, ROOT=0
+}
+
+== HLO (torch_xla._XLAC._get_xla_tensors_hlo) ==
+HloModule IrToHlo.33, entry_computation_layout={(f32[32,32]{1,0}, f32[16,32]{1,0}, f32[], f32[32,32]{1,0}, f32[32,32]{1,0})->(f32[16,32]{1,0})}
+
+%MaxComputation.15 (x.16: f32[], y.17: f32[]) -> f32[] {
+  %x.16 = f32[] parameter(0)
+  %y.17 = f32[] parameter(1)
+  ROOT %maximum.18 = f32[] maximum(f32[] %x.16, f32[] %y.17)
+}
+
+%AddComputation.24 (x.25: f32[], y.26: f32[]) -> f32[] {
+  %x.25 = f32[] parameter(0)
+  %y.26 = f32[] parameter(1)
+  ROOT %add.27 = f32[] add(f32[] %x.25, f32[] %y.26)
+}
+
+ENTRY %IrToHlo.33 (p0.1: f32[32,32], p1.2: f32[16,32], p2.4: f32[], p3.6: f32[32,32], p4.9: f32[32,32]) -> (f32[16,32]) {
+  %p1.2 = f32[16,32]{1,0} parameter(1)
+  %p4.9 = f32[32,32]{1,0} parameter(4)
+  %dot.10 = f32[16,32]{1,0} dot(f32[16,32]{1,0} %p1.2, f32[32,32]{1,0} %p4.9), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+  %p3.6 = f32[32,32]{1,0} parameter(3)
+  %dot.7 = f32[16,32]{1,0} dot(f32[16,32]{1,0} %p1.2, f32[32,32]{1,0} %p3.6), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+  %transpose.8 = f32[32,16]{0,1} transpose(f32[16,32]{1,0} %dot.7), dimensions={1,0}
+  %dot.11 = f32[16,16]{1,0} dot(f32[16,32]{1,0} %dot.10, f32[32,16]{0,1} %transpose.8), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+  %p2.4 = f32[] parameter(2)
+  %sqrt.5 = f32[] sqrt(f32[] %p2.4)
+  %broadcast.12 = f32[16,16]{1,0} broadcast(f32[] %sqrt.5), dimensions={}
+  %divide.13 = f32[16,16]{1,0} divide(f32[16,16]{1,0} %dot.11, f32[16,16]{1,0} %broadcast.12)
+  %constant.14 = f32[] constant(-inf)
+  %reduce.19 = f32[16]{0} reduce(f32[16,16]{1,0} %divide.13, f32[] %constant.14), dimensions={1}, to_apply=%MaxComputation.15
+  %broadcast.20 = f32[16,16]{1,0} broadcast(f32[16]{0} %reduce.19), dimensions={0}
+  %subtract.21 = f32[16,16]{1,0} subtract(f32[16,16]{1,0} %divide.13, f32[16,16]{1,0} %broadcast.20)
+  %exponential.22 = f32[16,16]{1,0} exponential(f32[16,16]{1,0} %subtract.21)
+  %constant.23 = f32[] constant(0)
+  %reduce.28 = f32[16]{0} reduce(f32[16,16]{1,0} %exponential.22, f32[] %constant.23), dimensions={1}, to_apply=%AddComputation.24
+  %broadcast.29 = f32[16,16]{1,0} broadcast(f32[16]{0} %reduce.28), dimensions={0}
+  %divide.30 = f32[16,16]{1,0} divide(f32[16,16]{1,0} %exponential.22, f32[16,16]{1,0} %broadcast.29)
+  %p0.1 = f32[32,32]{1,0} parameter(0)
+  %dot.3 = f32[16,32]{1,0} dot(f32[16,32]{1,0} %p1.2, f32[32,32]{1,0} %p0.1), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+  %dot.31 = f32[16,32]{1,0} dot(f32[16,16]{1,0} %divide.30, f32[16,32]{1,0} %dot.3), lhs_contracting_dims={1}, rhs_contracting_dims={0}
+  ROOT %tuple.32 = (f32[16,32]{1,0}) tuple(f32[16,32]{1,0} %dot.31)
+}
+
+== seam (torch_xla.debug.metrics, TotalSamples after one sync and one read) ==
+CompileTime 1
+ExecuteTime 2
+TransferToDeviceTime 1
+TransferFromDeviceTime 1
+OutboundData 1
+InboundData 1

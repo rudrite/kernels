@@ -1,150 +1,155 @@
 {
-  "specimen": {
-    "id": "attention-block",
-    "title": "one attention block, sixteen rows, no batch axis",
-    "source": "bench/specimen/specimen.py",
-    "shapes": "x f32[16,32], three weights f32[32,32]",
-    "seed": 0,
-    "checksum": "the block sums to -269.723755 on this run"
+ "specimen": {
+  "id": "attention-block",
+  "title": "one attention block, sixteen rows, no batch axis",
+  "source": "bench/specimen/specimen.py",
+  "shapes": "x f32[16,32], three weights f32[32,32]",
+  "seed": 0,
+  "checksum": "the block sums to -269.723755 on this run"
+ },
+ "capture": {
+  "command": "python3 bench/specimen/capture.py",
+  "cwd": "the repo root",
+  "backend": "cpu",
+  "devices": [
+   "TFRT_CPU_0"
+  ],
+  "platform": "macOS-26.5.2-x86_64-i386-64bit",
+  "versions": {
+   "python": "3.12.0",
+   "jax": "0.4.38",
+   "jaxlib": "0.4.38"
   },
-  "capture": {
-    "command": "python3 bench/specimen/capture.py",
-    "cwd": "the repo root",
-    "backend": "cpu",
-    "devices": [
-      "TFRT_CPU_0"
-    ],
-    "platform": "macOS-26.5.2-x86_64-i386-64bit",
-    "versions": {
-      "python": "3.12.0",
-      "jax": "0.4.38",
-      "jaxlib": "0.4.38"
-    },
-    "scrub": "HLO instruction metadata keeps op_name and drops source_file and source_line, because those name the machine that ran the compile rather than the program. The LLVM IR and the StableHLO module carry no paths and are written verbatim. Nothing else is edited."
+  "scrub": "HLO instruction metadata keeps op_name and drops source_file and source_line, because those name the machine that ran the compile rather than the program. The LLVM IR and the StableHLO module carry no paths and are written verbatim. Nothing else is edited."
+ },
+ "levels": [
+  {
+   "id": "source",
+   "level": 0,
+   "lane": "the program",
+   "title": "the program you wrote",
+   "file": "bench/specimen/artifacts/source.py",
+   "lang": "python",
+   "lines": 40,
+   "bytes": 1520,
+   "sha256": "0a21cd25db979628",
+   "produced_by": "bench/specimen/specimen.py, copied verbatim",
+   "status": "captured"
   },
-  "levels": [
-    {
-      "id": "source",
-      "level": 0,
-      "lane": "the program",
-      "title": "the program you wrote",
-      "file": "bench/specimen/artifacts/source.py",
-      "lang": "python",
-      "lines": 40,
-      "bytes": 1520,
-      "sha256": "0a21cd25db979628",
-      "produced_by": "bench/specimen/specimen.py, copied verbatim",
-      "status": "captured"
-    },
-    {
-      "id": "jaxpr",
-      "level": 1,
-      "lane": "jax",
-      "title": "the jaxpr",
-      "file": "bench/specimen/artifacts/jaxpr.txt",
-      "lang": "jaxpr",
-      "lines": 42,
-      "bytes": 1264,
-      "sha256": "5b8214bac49f7818",
-      "produced_by": "jax.make_jaxpr(block)(x, wq, wk, wv)",
-      "status": "captured"
-    },
-    {
-      "id": "torch-lazy-ir",
-      "level": 1,
-      "lane": "torch",
-      "title": "the torch_xla lazy trace and its seam calls",
-      "pending": "A Colab TPU runtime runs the same block under torch_xla and pastes back _XLAC._get_xla_tensors_hlo plus the PJRT calls torch_xla.debug.metrics counts, the way the reader-driven labs already hand numbers back.",
-      "status": "pending"
-    },
-    {
-      "id": "stablehlo",
-      "level": 2,
-      "lane": "waist",
-      "title": "StableHLO, as the program leaves JAX",
-      "file": "bench/specimen/artifacts/stablehlo.mlir",
-      "lang": "mlir",
-      "lines": 29,
-      "bytes": 2650,
-      "sha256": "ea67ff4ab9469314",
-      "produced_by": "jax.jit(block).lower(x, wq, wk, wv).as_text()",
-      "status": "captured"
-    },
-    {
-      "id": "hlo-before-optimizations",
-      "level": 3,
-      "lane": "waist",
-      "title": "HLO, before the backend pipeline",
-      "file": "bench/specimen/artifacts/hlo-before-optimizations.txt",
-      "lang": "hlo",
-      "lines": 48,
-      "bytes": 4053,
-      "sha256": "32b77599c1639636",
-      "produced_by": "XLA_FLAGS=--xla_dump_to=... \u00b7 jit_block.before_optimizations.txt",
-      "status": "captured"
-    },
-    {
-      "id": "hlo-after-optimizations",
-      "level": 3,
-      "lane": "waist",
-      "title": "HLO, fused and scheduled",
-      "file": "bench/specimen/artifacts/hlo-after-optimizations.txt",
-      "lang": "hlo",
-      "lines": 61,
-      "bytes": 4358,
-      "sha256": "2034cab14e8952c1",
-      "produced_by": "XLA_FLAGS=--xla_dump_to=... \u00b7 jit_block.cpu_after_optimizations.txt",
-      "status": "captured"
-    },
-    {
-      "id": "triton-ir",
-      "level": 4,
-      "lane": "gpu",
-      "title": "the Triton kernel, TTIR and TTGIR",
-      "pending": "A cited public capture from a CUDA machine, taken with TRITON_ALWAYS_COMPILE and the XLA:GPU Triton dump, pinned to its driver and GPU generation.",
-      "status": "pending"
-    },
-    {
-      "id": "llvm-ir-no-opt",
-      "level": 5,
-      "lane": "cpu",
-      "title": "LLVM IR, as XLA emits it",
-      "file": "bench/specimen/artifacts/llvm-ir-no-opt.ll",
-      "lang": "llvm",
-      "lines": 479,
-      "bytes": 27468,
-      "sha256": "b8cb8a4616504ba0",
-      "produced_by": "XLA_FLAGS=--xla_dump_to=... \u00b7 jit_block.ir-no-opt*.ll",
-      "status": "captured"
-    },
-    {
-      "id": "llvm-ir-with-opt",
-      "level": 5,
-      "lane": "cpu",
-      "title": "LLVM IR, after LLVM's own passes",
-      "file": "bench/specimen/artifacts/llvm-ir-with-opt.ll",
-      "lang": "llvm",
-      "lines": 282,
-      "bytes": 16631,
-      "sha256": "a4ff1ef17de12f4c",
-      "produced_by": "XLA_FLAGS=--xla_dump_to=... \u00b7 jit_block.ir-with-opt*.ll",
-      "status": "captured"
-    },
-    {
-      "id": "ptx",
-      "level": 5,
-      "lane": "gpu",
-      "title": "PTX",
-      "pending": "A cited public capture: the .ptx file --xla_dump_to leaves on a CUDA machine, pinned to the CUDA toolkit that emitted it.",
-      "status": "pending"
-    },
-    {
-      "id": "sass",
-      "level": 5,
-      "lane": "gpu",
-      "title": "SASS",
-      "pending": "A cited public capture: nvdisasm over the cubin from the same CUDA run, pinned to the GPU generation, since SASS is one generation wide.",
-      "status": "pending"
-    }
-  ]
+  {
+   "id": "jaxpr",
+   "level": 1,
+   "lane": "jax",
+   "title": "the jaxpr",
+   "file": "bench/specimen/artifacts/jaxpr.txt",
+   "lang": "jaxpr",
+   "lines": 42,
+   "bytes": 1264,
+   "sha256": "5b8214bac49f7818",
+   "produced_by": "jax.make_jaxpr(block)(x, wq, wk, wv)",
+   "status": "captured"
+  },
+  {
+   "id": "torch-lazy-ir",
+   "level": 1,
+   "lane": "torch",
+   "title": "the torch_xla lazy trace and its seam calls",
+   "status": "captured",
+   "file": "bench/specimen/artifacts/torch-trace.txt",
+   "lang": "hlo",
+   "lines": 67,
+   "bytes": 3821,
+   "sha256": "610b424ab0258d19",
+   "produced_by": "pasted back from a Colab TPU v6e-1 (torch 2.8.0, torch_xla 2.8.0, 2026-08-14): the torch equivalent of specimen.py traced in-kernel, printed via _XLAC._get_xla_tensors_text and _get_xla_tensors_hlo with the seam counters after one sync and one host read. Leading indentation restored; the copy channel strips it. The second ExecuteTime sample is the traced scalar sqrt operand materializing."
+  },
+  {
+   "id": "stablehlo",
+   "level": 2,
+   "lane": "waist",
+   "title": "StableHLO, as the program leaves JAX",
+   "file": "bench/specimen/artifacts/stablehlo.mlir",
+   "lang": "mlir",
+   "lines": 29,
+   "bytes": 2650,
+   "sha256": "ea67ff4ab9469314",
+   "produced_by": "jax.jit(block).lower(x, wq, wk, wv).as_text()",
+   "status": "captured"
+  },
+  {
+   "id": "hlo-before-optimizations",
+   "level": 3,
+   "lane": "waist",
+   "title": "HLO, before the backend pipeline",
+   "file": "bench/specimen/artifacts/hlo-before-optimizations.txt",
+   "lang": "hlo",
+   "lines": 48,
+   "bytes": 4053,
+   "sha256": "32b77599c1639636",
+   "produced_by": "XLA_FLAGS=--xla_dump_to=... \u00b7 jit_block.before_optimizations.txt",
+   "status": "captured"
+  },
+  {
+   "id": "hlo-after-optimizations",
+   "level": 3,
+   "lane": "waist",
+   "title": "HLO, fused and scheduled",
+   "file": "bench/specimen/artifacts/hlo-after-optimizations.txt",
+   "lang": "hlo",
+   "lines": 61,
+   "bytes": 4358,
+   "sha256": "2034cab14e8952c1",
+   "produced_by": "XLA_FLAGS=--xla_dump_to=... \u00b7 jit_block.cpu_after_optimizations.txt",
+   "status": "captured"
+  },
+  {
+   "id": "triton-ir",
+   "level": 4,
+   "lane": "gpu",
+   "title": "the Triton kernel, TTIR and TTGIR",
+   "pending": "A cited public capture from a CUDA machine, taken with TRITON_ALWAYS_COMPILE and the XLA:GPU Triton dump, pinned to its driver and GPU generation.",
+   "status": "pending"
+  },
+  {
+   "id": "llvm-ir-no-opt",
+   "level": 5,
+   "lane": "cpu",
+   "title": "LLVM IR, as XLA emits it",
+   "file": "bench/specimen/artifacts/llvm-ir-no-opt.ll",
+   "lang": "llvm",
+   "lines": 479,
+   "bytes": 27468,
+   "sha256": "b8cb8a4616504ba0",
+   "produced_by": "XLA_FLAGS=--xla_dump_to=... \u00b7 jit_block.ir-no-opt*.ll",
+   "status": "captured"
+  },
+  {
+   "id": "llvm-ir-with-opt",
+   "level": 5,
+   "lane": "cpu",
+   "title": "LLVM IR, after LLVM's own passes",
+   "file": "bench/specimen/artifacts/llvm-ir-with-opt.ll",
+   "lang": "llvm",
+   "lines": 282,
+   "bytes": 16631,
+   "sha256": "a4ff1ef17de12f4c",
+   "produced_by": "XLA_FLAGS=--xla_dump_to=... \u00b7 jit_block.ir-with-opt*.ll",
+   "status": "captured"
+  },
+  {
+   "id": "ptx",
+   "level": 5,
+   "lane": "gpu",
+   "title": "PTX",
+   "pending": "A cited public capture: the .ptx file --xla_dump_to leaves on a CUDA machine, pinned to the CUDA toolkit that emitted it.",
+   "status": "pending"
+  },
+  {
+   "id": "sass",
+   "level": 5,
+   "lane": "gpu",
+   "title": "SASS",
+   "pending": "A cited public capture: nvdisasm over the cubin from the same CUDA run, pinned to the GPU generation, since SASS is one generation wide.",
+   "status": "pending"
+  }
+ ]
 }
