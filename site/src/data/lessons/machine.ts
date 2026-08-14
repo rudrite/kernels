@@ -602,8 +602,169 @@ export const MACHINE_LESSONS: UnitLessons[] = [
     unit: 's:machine',
     lessons: [
       {
-        id: "gpu-chip",
+        id: "die-and-reticle",
         num: 1,
+        title: "The die and the reticle",
+        lede: "Every headline number on a chip starts inside one rectangle: the largest area a lithography scanner can expose in a single shot, 26 by 33 millimetres.",
+        goal: "Given a chip's die area, transistor count and HBM figures, work out what the reticle limit and the yield curve allowed the designer to build, and name which of those numbers the vendor never published.",
+        sections: [
+          {
+            h: "one exposure, 26 by 33",
+            ps: [
+              "A scanner prints a chip by shining light through a mask onto the wafer, one rectangle at a time, and that rectangle has a fixed size. ASML publishes it per machine rather than as an industry constant: the TWINSCAN NXT:2050i lists a `full 26 x 33 mm field size` with `4X reduction`, so the pattern drawn on the six-inch mask blank is demagnified four times on its way down to the resist. Multiply the field out and you get `858 mm2`. That is the ceiling every chip designer works under, and NVIDIA's own phrase for Blackwell, `the largest die possible within the limits of reticle size`, is a designer telling you they hit it.",
+              "Put those fields on a wafer and the second constraint appears. A 300 mm wafer has `706 cm2` of area, so at most `82` full-field dies fit on it before you account for the round edge, and a die half that size gets you at most `164`. The edge is not a rounding detail. Leachman's yield note lists edge loss as a mechanism of its own, films deposited poorly near the rim causing `wholesale die yield losses` that have nothing to do with a particle landing on the die.",
+              "Lithography is not about to relax the limit either. High-NA EUV, the generation after the current one, uses anamorphic optics and exposes a half field of `26 x 16.5 mm`, so a design that wants the full width has to be printed as two stitched exposures. Semiconductor Engineering's survey of the question is the readable account. The size limit that shapes the largest AI chips gets tighter before it gets looser.",
+            ],
+          },
+          {
+            h: "yield falls faster than area grows",
+            ps: [
+              "Defects land on a wafer roughly at random, and one landing in the wrong place kills the die under it. Write `D0` for defects per square centimetre and `A` for die area, and the simplest model of the survivors is Poisson, `DY = exp(-D0 * A)`. Double the area and you square the survival probability. That single fact is why a reticle-sized die costs much more than twice a half-sized one, and it is the pressure behind every packaging trick in this lesson.",
+              "Poisson is also the pessimistic model. Leachman is explicit that it `tends to underestimate die yield when the expected number of defects per chip is greater than one or when the die area is relatively large`, because real defects cluster, and a wafer that dumps six particles onto one die leaves its neighbours clean. Murphy's fix at Bell Labs was to let `D0` itself be a distribution and integrate over it. A triangular distribution gives the model that carries his name, `DY = ((1 - exp(-A*D0)) / (A*D0))^2`. An exponential one gives Seeds, `DY = 1 / (1 + A*D0)`.",
+              "One model absorbs the others. Assume a Gamma distribution and the integral collapses to the negative binomial, `DY = (1 + A*D0/alpha)^(-alpha)`, where `alpha` is a cluster parameter you estimate from defect data as mean squared over variance. Leachman gives the correspondence outright: at `alpha >= 10` it is essentially Poisson, at `alpha = 5` it closely approximates Murphy, at `alpha = 1` it closely approximates Seeds. Choosing `alpha` is choosing how clustered you believe the defects are, and nothing more.",
+              "Foundries do not publish defect density for a leading node, so the `D0 = 0.1` below is a teaching value you can vary, not a TSMC figure. The shape of the answer survives whatever you set it to.",
+            ],
+            code: {
+              caption: "the three models at one illustrative defect density; formulas from Leachman, IEOR 130, equations 2, 9, 10 and 12",
+              lang: "python",
+              text: `from math import exp
+
+D0 = 0.10              # defects/cm2: a teaching value, not a TSMC figure
+FULL = 26 * 33 / 100   # 8.58 cm2, one full reticle field
+HALF = FULL / 2
+
+poisson = lambda a: exp(-D0 * a)
+murphy = lambda a: ((1 - exp(-D0 * a)) / (D0 * a)) ** 2
+negbin = lambda a, k: (1 + D0 * a / k) ** -k
+
+for name, f in [("poisson", poisson), ("murphy", murphy),
+                ("negbin k=5", lambda a: negbin(a, 5))]:
+    print(f"{name:11} full {f(FULL):.3f}  half {f(HALF):.3f}")
+
+# dual-die parts per cm2 of wafer: harvested halves against whole dies
+pairs = poisson(HALF) / HALF / 2
+whole = poisson(FULL) / FULL
+print(f"pairs / whole = {pairs / whole:.2f}")
+
+# poisson     full 0.424  half 0.651
+# murphy      full 0.451  half 0.661
+# negbin k=5  full 0.453  half 0.663
+# pairs / whole = 1.54`,
+            },
+          },
+          {
+            h: "cut it in half and harvest the wafer",
+            ps: [
+              "The yield argument for splitting a die is easy to state wrongly. Under Poisson, the probability that one specific pair of half-dies are both good is exactly the yield of the undivided die, because the exponents add and nothing has changed. You are never required to use a specific pair. You test every half on the wafer, discard the dead ones, and assemble parts from any two survivors.",
+              "So count parts per unit of wafer rather than per die site. At `D0 = 0.1` a full-field die yields `0.42` and a half-field die yields `0.65`, and pairing harvested halves gives `1.54x` as many dual-die parts out of the same silicon area. Murphy, being kinder to large dies, puts the same ratio at `1.47x`. The gain is real and it is not enormous, which is why yield on its own rarely decides the question.",
+              "Harvesting also happens inside a single die, and that version ships in the highest volume of all. Draw the design with more SMs, more memory controllers and more L2 than any part will be sold with, test what comes off the wafer, then sort each die by how much of it works. A die with a few dead SMs is not scrap, it is a cheaper part. NVIDIA sells no full GH100 at all, and both H100 SKUs run with SMs switched off. The SM lesson prints the whitepaper's three configurations of that one design side by side, and works from them. Designing in redundancy and then selling by what survived is how a reticle-sized die stays economically viable, which means the SM count printed on a datasheet is a yield outcome as much as a design decision.",
+              "Two other reasons carry more weight. One is the wall from the first section: once a design wants more transistors than `858 mm2` can hold, there is no single-die version left to compare against, so no yield argument is needed. The other is that different circuits want different processes. TSMC advertises CoWoS as designed `for both heterogeneous and homogeneous integration`, which is the packaging way of saying the logic can sit on a leading node while I/O and analog blocks stay on an older, cheaper one.",
+              "Every cut has a price, and it is paid in the join. A wire that used to run inside a die now crosses a package boundary, costing energy per bit and latency, and it needs a physical interface at each end that occupies area on both dies. That is why the number worth looking up on any multi-die part is the bandwidth of the join, and why the Blackwell worked example below starts there.",
+            ],
+          },
+          {
+            h: "the interposer and the stacks",
+            ps: [
+              "The join happens on a slab of silicon underneath. TSMC describes CoWoS as `TSMC's proprietary chip-last on interposer process`, and ships it as three families, CoWoS-S, CoWoS-L and CoWoS-R. Whatever the process details, a multi-die part only pays off if each die can be tested before it is committed to a package, because one bad die would otherwise take every good die on the same interposer down with it.",
+              "The interposer itself runs well past a single reticle field. TSMC says it `completed the certification of CoWoS advanced packaging solution for 5.5 times mask/reticle size interposers` in 2025 and will start volume production in 2026. Reporting points further, at a nine-reticle carrier with twelve HBM4 stacks around 2027, though that is press rather than a TSMC statement and should be read as such.",
+              "Around the dies sit the memory stacks, and their arithmetic is division. An H100 SXM5 carries five HBM3 stacks for `80 GB` and `3.35 TB/s`, so each stack is `16 GB` at `670 GB/s`. A B200 carries eight HBM3e stacks for `192 GB` and `8 TB/s`, so each is `24 GB` at `1.0 TB/s`. The GPU chip lesson quotes those same totals rounded to `3.4e12` and `8.0e12` bytes per second; this is where the totals come from.",
+              "Divide once more and you learn something about headroom. JEDEC's HBM3 update sets `6.4 Gb/s` per pin and `819 GB/s` per device, which is a 1024-bit interface if you do that division too. The H100's `670 GB/s` per stack works out to `5.23 Gb/s` per pin, about `82%` of what the standard allows, so five stacks at the ceiling would have been `4.1 TB/s`. The B200's `1.0 TB/s` per stack needs `7.8 Gb/s` per pin, past anything HBM3 permitted, which is what the E generation was for.",
+              "Blackwell Ultra makes the last point on its own. It keeps eight stacks and the same `8 TB/s` but moves to 12-high stacks at `36 GB` each, `288 GB` in total. Capacity grew by stacking more dies in each tower. Bandwidth did not move at all, because bandwidth is set by the interface width and the pin rate rather than by how tall the stack is.",
+            ],
+            table: {
+              caption: "HBM per part; the per-stack and per-pin columns are division, not vendor lines (H100 whitepaper p.18 and Table 3 · nvidia.com H100 datasheet · NVIDIA, Inside NVIDIA Blackwell Ultra · JEDEC JESD238)",
+              cols: ["part", "stacks", "per stack", "total", "per pin"],
+              rows: [
+                ["H100 SXM5", "5 x HBM3", "16 GB, 670 GB/s", "80 GB, 3.35 TB/s", "5.23 Gb/s"],
+                ["H100 PCIe", "5 x HBM2e", "16 GB, 400 GB/s", "80 GB, 2.0 TB/s (preliminary)", "3.13 Gb/s"],
+                ["B200", "8 x HBM3e", "24 GB, 1.0 TB/s", "192 GB, 8 TB/s", "7.81 Gb/s"],
+                ["B300", "8 x HBM3e, 12-Hi", "36 GB, 1.0 TB/s", "288 GB, 8 TB/s", "7.81 Gb/s"],
+                ["JEDEC HBM3 ceiling", "n/a", "up to 64 GB, 819 GB/s", "n/a", "6.4 Gb/s"],
+              ],
+            },
+          },
+          {
+            h: "SRAM buys area, DRAM buys a trip",
+            ps: [
+              "Every level of the memory hierarchy is one tradeoff applied at a different scale. An SRAM bit is a latch of a few transistors sitting on the same die as the logic, fast to reach and stable as long as the power is on. A DRAM bit is a capacitor whose charge leaks away, so it has to be refreshed, and it is small enough that you can afford billions of them on a die of their own.",
+              "The area cost shows up plainly in a published floorplan. TPU v1 put `24 MiB` of Unified Buffer on chip, and Jouppi's ISCA paper describes that one block as `almost a third of the die`, on a 28 nm part whose total area Google withheld beyond a footnote saying `The TPU die is <= half the Haswell die size`. Twenty-four mebibytes of SRAM cost a third of a chip.",
+              "Set that against the DRAM beside it. An H100 carries roughly `50 MB` of L2 on its `814 mm2` die and `80 GB` of HBM3 in five stacks around it, a capacity ratio near `1600` to one. The hierarchy exists because the cheap memory cannot be on the die and the fast memory cannot be large, and no amount of design cleverness moves either half of that sentence.",
+              "The GPU chip lesson walks the ladder from registers down to HBM with the H100's capacities and bandwidths on it, and stage 0 turns the bottom rung into a ridge. What sits underneath both is the economics above: the fast levels are paid for in die area under a reticle limit, and the large level is paid for in stacks of a different kind of silicon placed on the same interposer.",
+            ],
+          },
+          {
+            h: "Blackwell: two dies at the limit",
+            ps: [
+              "NVIDIA states the whole design decision in one paragraph of the Blackwell technical brief.",
+              ">> Each of the two dies are the largest die possible within the limits of reticle size, as big as can possibly be built today. The two dies are connected and unified with a single 10 terabyte-per-second (TB/s) chip-to-chip NVIDIA High-Bandwidth Interface (NV-HBI), providing one fully coherent, unified GPU.",
+              "Read that against the three reasons for splitting a die and only one of them applies. Both halves sit at the reticle limit, so the harvest argument buys nothing here, and NVIDIA names a single process for the part, TSMC's 4NP, so it is not mixed-node integration either. Blackwell is split because the design wanted more transistors than one exposure can print: `208` billion of them, which the brief notes is `more than 2.5x the amount of transistors in NVIDIA Hopper GPUs`.",
+              "You cannot get a per-die area out of NVIDIA. The brief says only `the largest die possible within the limits of reticle size` and prints no square millimetres, so a B200 die area quoted anywhere is somebody's estimate. A bound is still available. If both dies sat exactly at `858 mm2` the package would hold `1716 mm2` of silicon, and `208e9 / 1716` is `121` million transistors per mm2. An H100 puts `80` billion on `814 mm2`, which is `98` million per mm2, and an A100 put `54.2` billion on `826 mm2`, which is `66` million. So Blackwell's density is at least `1.23x` Hopper's, and higher still if the dies come in under the full field. That is a floor derived from a limit rather than a measurement, and it is worth more than a guessed area.",
+              "The `10 TB/s` on NV-HBI has a gap of its own. NVIDIA does not say whether the figure is per direction or the sum of both, and publishes neither the width of the interface nor its signalling rate. Compare it to a number the same brief does decompose. For fifth-generation NVLink it prints the link count, the per-link rate, the direction and the total those multiply out to, so every term of the product is checkable by hand. NV-HBI gets none of that, so quote it as 10 TB/s with the direction unspecified and stop there.",
+              "Both gaps are worth keeping as a habit rather than a complaint. A vendor brief is a marketing document that happens to contain engineering, and the parts it decomposes are the parts you can check by hand. Where the decomposition stops, saying so is the honest move, and it is the same discipline the TPU chapters apply to Google's unpublished clocks.",
+            ],
+            diagram: "blackwell-package",
+          },
+        ],
+        readings: [
+          {
+            label: "ASML · TWINSCAN NXT:2050i",
+            url: "https://www.asml.com/en/products/duv-lithography-systems/twinscan-nxt2050i",
+            note: "the 26 x 33 mm field and the 4X reduction, from the company that builds the scanner",
+          },
+          {
+            label: "Leachman · Yield modeling and analysis (IEOR 130, Berkeley)",
+            url: "https://fog.misty.com/perry/cod/references/yield_models.pdf",
+            note: "Poisson, Murphy, Seeds and the negative binomial, with the derivations and the cluster parameter",
+          },
+          {
+            label: "Semiconductor Engineering · are larger reticle sizes on the horizon?",
+            url: "https://semiengineering.com/are-larger-reticle-sizes-on-the-horizon/",
+            note: "secondary, and the readable account of the high-NA half field and mask blank geometry",
+          },
+          {
+            label: "TSMC · wafer-level system integration",
+            url: "https://www.tsmc.com/english/dedicatedFoundry/technology/platform_HPC_tech_WLSI",
+            note: "TSMC's own CoWoS wording, the three families, and the 5.5x reticle interposer certification",
+          },
+          {
+            label: "NVIDIA · Blackwell architecture technical brief",
+            url: "https://nvdam.widen.net/s/xqt56dflgh/nvidia-blackwell-architecture-technical-brief",
+            note: "the two-die paragraph, NV-HBI, and the 208 billion transistors, early in the document",
+          },
+          {
+            label: "NVIDIA · H100 Tensor Core GPU architecture whitepaper",
+            url: "https://www.hpctech.co.jp/assets/images/info/catalog/pdf/gtc22-whitepaper-hopper_v1.02.pdf",
+            note: "a mirror of NVIDIA's gated PDF; Table 3 carries the die areas and transistor counts used above",
+          },
+          {
+            label: "JEDEC · HBM3 standard update",
+            url: "https://www.jedec.org/news/pressreleases/jedec-publishes-hbm3-update-high-bandwidth-memory-hbm-standard",
+            note: "6.4 Gb/s per pin and 819 GB/s per device, the ceiling every stack is measured against",
+          },
+        ],
+        check: [
+          {
+            q: "Why does splitting a reticle-sized die into halves raise the number of dual-die parts per wafer, when the odds on any specific pair of halves are unchanged?",
+            a: "Because you pair harvested survivors rather than fixed neighbours. Every half is tested and the dead ones are discarded, so the yield that counts is the per-half yield, 0.65 against 0.42 at D0 = 0.1, which is 1.54x as many parts from the same wafer area under Poisson.",
+          },
+          {
+            q: "What is a B200 die's area, and what can you derive in its place?",
+            a: "NVIDIA never publishes it; the brief says only that each die is the largest possible within the limits of reticle size. Assuming both dies sit at the 858 mm2 field gives a density floor of 121 million transistors per mm2, at least 1.23x an H100's 98 million.",
+          },
+          {
+            q: "An H100 stack runs 5.23 Gb/s per pin against a JEDEC HBM3 ceiling of 6.4. What does that say about the 3.35 TB/s?",
+            a: "That the total is about 82 percent of what the standard allowed, so it reflects a product decision rather than a hard limit of HBM3. Five stacks at the ceiling would have delivered 4.1 TB/s instead.",
+          },
+        ],
+        work: [
+          { id: 'yield', label: 'run the three yield models at D0 = 0.05 and 0.2 and say where the split stops paying', href: '#yield-falls-faster-than-area-grows' },
+          { id: 'stacks', label: 'derive per-stack capacity and bandwidth for one part not in the table, from vendor figures only', href: '#the-interposer-and-the-stacks' },
+          { id: 'bound', label: 'redo the Blackwell density floor assuming 800 mm2 per die and name what changes', href: '#blackwell-two-dies-at-the-limit' },
+        ],
+      },
+      {
+        id: "gpu-chip",
+        num: 2,
         title: "The GPU chip",
         lede: "A TPU v5p has at most two big compute units. An H100 has 132 small ones, and most of the other differences follow from that count.",
         goal: "Given an H100 SM, name what sits in each of its four subpartitions and say which resource (registers, SMEM, or resident warps) your kernel runs out of first.",
@@ -611,7 +772,7 @@ export const MACHINE_LESSONS: UnitLessons[] = [
           {
             h: "a hundred and thirty-two small machines",
             ps: [
-              "Count the independent compute units on each chip and the two designs separate on the first line. A TPU has at most two TensorCores. An H100 has `132` streaming multiprocessors and a B200 has `148`, each one independent of the others, so a GPU can run hundreds of separate tasks at once. Any single SM is much weaker than a TPU TensorCore. The chip as a whole is much more flexible.",
+              "Count the independent compute units on each chip and the two designs separate on the first line. A TPU has at most two TensorCores. An H100 has `132` streaming multiprocessors and a B200 measures at `148` (a microbenchmark figure; NVIDIA publishes no count), each one independent of the others, so a GPU can run hundreds of separate tasks at once. Any single SM is much weaker than a TPU TensorCore. The chip as a whole is much more flexible.",
               "That independence has a ceiling, and the ceiling is the L2 cache. All `132` SMs share roughly `50 MB` of it, which means units that are architecturally independent still end up coordinating in practice, because they are competing for the same lines. You change a memory access pattern in one kernel and a different kernel's throughput moves. The scaling book's phrasing for this is action at a distance, and it is the reason GPU programmers talk about cache behavior the way TPU programmers talk about block sizes.",
             ],
           },
@@ -642,7 +803,7 @@ export const MACHINE_LESSONS: UnitLessons[] = [
               caption: "per-chip capacities, from the scaling book's spec tables",
               cols: ["level", "H100", "B200"],
               rows: [
-                ["SMs / chip", "132", "148"],
+                ["SMs / chip", "132", "148, measured"],
                 ["registers / SM", "256 kB", "256 kB"],
                 ["SMEM / SM", "256 kB", "256 kB"],
                 ["TMEM / SM", "none", "256 kB"],
@@ -657,7 +818,7 @@ export const MACHINE_LESSONS: UnitLessons[] = [
             ps: [
               "One term does two different jobs across the two vendors, and it causes real confusion when you read both sets of docs in a week. On a TPU, the TensorCore is the umbrella unit: it contains the MXU, the VPU, and the machinery around them. On a GPU, the Tensor Core is only the matrix multiplication sub-unit inside a subpartition, one of four in an SM. The unit that plays the TPU TensorCore's role on a GPU is the SM itself.",
               ">> A TPU TensorCore contains an MXU. A GPU Tensor Core is one.",
-              "Hold that straight and the rest of the vocabulary lines up cleanly: warp scheduler against VPU, CUDA core against VPU ALU, SMEM against VMEM, HBM against HBM. The next lesson puts the counts side by side, which is where the two designs stop looking alike.",
+              "Hold that straight and the rest of the vocabulary lines up cleanly: warp scheduler against VPU, CUDA core against VPU ALU, SMEM against VMEM, HBM against HBM. The two-machines lesson later in this stage puts the counts side by side, which is where the two designs stop looking alike.",
             ],
           },
         ],
@@ -699,8 +860,160 @@ export const MACHINE_LESSONS: UnitLessons[] = [
           ],
       },
       {
+        id: 'inside-the-sm',
+        num: 3,
+        title: 'Inside the SM, multiplied out',
+        lede: "Multiply an H100's SM contents by a clock and NVIDIA's headline FLOPS come back out. NVIDIA never prints the clock, and the rates that would tell you one disagree with each other on the same page.",
+        goal: 'Re-derive a chip’s headline FLOPS from unit counts and a clock, and when the arithmetic misses, name which SKU, which sparsity convention, which document, or which unpublished constant is responsible.',
+        sections: [
+          {
+            h: 'the die you were shipped',
+            ps: [
+              "Read the H100 whitepaper's own configuration list and there are three chips on the page, not one. The full GH100 carries `144` SMs across 8 GPCs, `6` HBM stacks behind `12` 512-bit memory controllers, and `60 MB` of L2. The SXM5 part in the rack carries `132` SMs, `5` HBM3 stacks behind `10` controllers, `50 MB` of L2. The PCIe part carries `114` SMs and HBM2e. One design, three harvests, and the SKU decides which counts your arithmetic is allowed to start from.",
+              'Twelve SMs and one memory stack are switched off somewhere between the drawing and the server. Why an `814 mm²` die ships with pieces disabled is the yield story, and this lesson needs only the consequence: put `144` into a FLOPS calculation for a part that has `132` and every number after it is high by about 9%.',
+              'The tour of one SM, the SIMT model, and the divergence a TPU cannot have are the previous lesson (`/s/machine/gpu-chip`). What follows treats the same silicon as a parts list with a missing constant in it.',
+            ],
+            table: {
+              caption: 'three configurations of one design · H100 whitepaper p.18',
+              cols: ['unit', 'GH100 full', 'H100 SXM5', 'H100 PCIe'],
+              rows: [
+                ['SMs', '144', '132', '114'],
+                ['FP32 cores', '18,432', '16,896', '14,592'],
+                ['Tensor Cores', '576', '528', '456'],
+                ['memory', '6 stacks', '5 x HBM3, 80 GB', '5 x HBM2e, 80 GB'],
+                ['memory controllers', '12 x 512-bit', '10 x 512-bit', '10 x 512-bit'],
+                ['L2', '60 MB', '50 MB', '50 MB'],
+              ],
+            },
+          },
+          {
+            h: 'the parts list you multiply',
+            ps: [
+              'An SM is four processing blocks and a shared floor. Each block holds an L0 instruction cache, one warp scheduler issuing `32 thread/clk`, one dispatch unit at the same rate, a register file of `16,384` 32-bit words, `32` FP32 lanes, `16` INT32, `16` FP64, `8` load/store units, one SFU, and one fourth-generation Tensor Core. The floor underneath them is `256 KB` of combined L1 data cache and shared memory, plus a Tensor Memory Accelerator and four texture units.',
+              'Multiply the blocks out and the whitepaper’s comparison table confirms every total in text: `128` FP32 cores per SM, `64` FP64 excluding the Tensor Cores, `64` INT32, `4` Tensor Cores, and `65,536` 32-bit registers, which is the `256 KB` register file. Shared memory is carved out of the `256 KB` block and is "configurable up to 228 KB"; the whitepaper describes the block itself only as "1.33x larger than A100", which is how you get A100’s `192 KB`.',
+              'Keep the A100 column in view. It is the one that carries a clock, and that is what makes it useful for anything past nostalgia.',
+            ],
+            table: {
+              caption: 'per SM · whitepaper Table 3 (p.39) and Table 4 (p.41); the last row is what this lesson is about',
+              cols: ['per SM', 'A100', 'H100'],
+              rows: [
+                ['FP32 cores', '64', '128'],
+                ['FP64 cores, excluding Tensor', '32', '64'],
+                ['INT32 cores', '64', '64'],
+                ['Tensor Cores', '4', '4'],
+                ['register file', '256 KB (65,536 x 32-bit)', '256 KB (65,536 x 32-bit)'],
+                ['L1 + shared block', '192 KB', '256 KB'],
+                ['shared memory', 'configurable up to 164 KB', 'configurable up to 228 KB'],
+                ['max resident warps', '64', '64'],
+                ['GPU boost clock', '1410 MHz', 'Not Finalized'],
+              ],
+            },
+          },
+          {
+            h: 'sparse or dense, on the same line',
+            ps: [
+              'The shipping datasheet lists BF16 Tensor Core at `1,979 TFLOPS` with an asterisk, and the asterisk resolves at the bottom of the page to "With sparsity". The whitepaper writes the same kind of entry as a pair, `1000/2000`, under footnote 2: "Effective TOPS / TFLOPS using the Sparsity feature". Two notations, one convention, and the larger number is never the one you multiply against.',
+              'What is being assumed is 2:4 structured sparsity, a Tensor Core mode that the whitepaper says works by "exploit[ing] fine-grained structured sparsity in deep learning networks, doubling the performance of standard Tensor Core operations". Half of every group of four weights is zero, the hardware skips them, and the marketing number doubles. Dense is the starred value halved. FP32, FP64 and FP64 Tensor Core carry no asterisk and no multiplier.',
+              'Get this wrong and the error is loud rather than subtle. Feed `1,979` into the clock derivation below and it asks for `3.66 GHz`, which no GPU has ever run at. On a narrower question the same mistake would have passed quietly, which is the argument for doing the multiplication at all.',
+            ],
+          },
+          {
+            h: 'predict the clock',
+            ps: [
+              'One constant is missing and NVIDIA does not publish it: FLOPs per SM per clock through the Tensor Cores. Pin it on the chip whose clock is printed. The A100 row gives `108` SMs at `1410 MHz` and FP16 Tensor `312/624`, so dense is `312 TFLOPS`, and `312e12 / (108 x 1.41e9)` is `2048.9`. Call it `2048` and the A100 reproduces itself to a tenth of a TFLOP.',
+              'Hopper is then one sentence away. The whitepaper says its Tensor Cores "deliver 2x the MMA (Matrix Multiply-Accumulate) computational rates of the A100 SM on equivalent data types", per SM and per clock, so the constant is `4096` per SM, `1024` per Tensor Core. Across `132` SMs that is `540,672` FLOPs per clock, and the datasheet’s dense BF16 rate of `989.5 TFLOPS` divides out to `1.830 GHz`.',
+              'The previous lesson runs the same equation with the other unknown fixed: it takes the scaling book’s `1.76 GHz` as given and solves for the per-Tensor-Core rate, landing near `1024`. Pinning the constant instead and solving for the clock is the version you can source end to end, because `2048` comes from a table that prints its own clock. Third-party GPU databases list `1830 MHz` boost for H100 SXM5, which agrees. Treat that agreement as a check on the arithmetic, not as the missing datasheet line.',
+            ],
+            code: {
+              caption: 'the derivation, pinned on A100 and carried to Hopper',
+              lang: 'text',
+              text: `pin the constant where the clock is published
+  A100    108 SMs x 2048 FP16 FLOP/SM/clk x 1.41 GHz = 311.9 TFLOPS
+  printed                                              312   TFLOPS   [Table 3, p.39]
+
+carry it across one documented sentence
+  "2x the MMA ... rates of the A100 SM"             -> 4096 FLOP/SM/clk [p.22]
+  132 SMs x 4096                                    =  540,672 FLOP/clk
+  datasheet BF16 Tensor  1,979 TFLOPS "* With sparsity"
+  dense                                             =  989.5 TFLOPS
+  implied clock  989.5e12 / 540,672                 =  1.830 GHz`,
+            },
+          },
+          {
+            h: 'the datasheet that does not close',
+            ps: [
+              'Now run the same move on the rates that do not go through a Tensor Core. FP32 is `67 TFLOPS` over `132 x 128 x 2 = 33,792` FLOPs per clock, which asks for `1.983 GHz`. FP64 is `34 TFLOPS` over `132 x 64 x 2 = 16,896`, which asks for `2.012 GHz`. Neither is `1.830`.',
+              'Some of that spread is rounding, and the reconciliation is worth doing rather than waving at. A printed `67` covers any clock from `1.968` to `1.998 GHz`, and a printed `34` covers `1.983` to `2.042`, so FP32 and FP64 are both consistent with a single clock in a narrow band just under `2 GHz`. The `1.830 GHz` the Tensor rows demand is nowhere near that band. Two families of numbers, two clocks, one page.',
+              'One row on the same page cannot be run through this arithmetic at all. FP64 Tensor Core prints `67 TFLOPS`, which is the FP32 number over again, and the whitepaper repeats that coincidence in all three of its columns: `60` for both on SXM5, `48` for both on PCIe, `19.5` for both on A100. Set it against the plain FP64 row instead and the ratio is exactly two in the whitepaper’s H100 columns, `60` over `30` and `48` over `24`, and only roughly two on the shipping datasheet, where doubling `34` gives `68` against a printed `67`. Rounding accounts for that gap: a single underlying rate between `33.5` and `33.75 TFLOPS` prints as `34` and doubles into a `67`, the same way A100’s `9.7` is a rounded `9.746`. But NVIDIA never prints an FP64 rate per clock through the Tensor Cores, so that row’s divisor can only be inferred from the doubling rather than counted off a table, and the table below records it as unavailable rather than filling it in.',
+              'The whitepaper’s preliminary column does the same thing with different values: its FP32 `60` and its FP64 `30 TFLOPS` both imply `1.776 GHz` to four figures, while its dense FP16 Tensor rate of `1000` implies `1.850`. The PCIe column repeats the pattern, `48` and `24` both giving `1.645 GHz` against `1.713` from its Tensor row. The gap survives the change of document and of SKU, and it even flips direction between the preliminary table and the shipping one.',
+              'Which leaves the clock itself. The whitepaper prints "Not Finalized" where the boost clock goes, for both H100 parts, and the shipping datasheet page lists no clock at all. So there is no vendor number to reconcile these two families against, and the honest end of the chain is to say that. A derivation that fails to close and reports why is worth more than one that quietly picks the clock that made it work.',
+              '>> A peak-FLOPS table is not necessarily quoted at one clock.',
+            ],
+            table: {
+              caption: 'every clock the two documents imply, and neither document prints one',
+              cols: ['rate on the page', 'value', 'FLOPs per clock', 'implied clock'],
+              rows: [
+                ['datasheet BF16/FP16 Tensor, dense', '989.5 TFLOPS', '132 x 4096 = 540,672', '1.830 GHz'],
+                ['datasheet FP32', '67 TFLOPS', '132 x 128 x 2 = 33,792', '1.983 GHz'],
+                ['datasheet FP64', '34 TFLOPS', '132 x 64 x 2 = 16,896', '2.012 GHz'],
+                ['datasheet FP64 Tensor Core', '67 TFLOPS', 'not published', 'cannot be derived'],
+                ['whitepaper preliminary FP32', '60 TFLOPS', '33,792', '1.776 GHz'],
+                ['whitepaper preliminary FP64', '30 TFLOPS', '16,896', '1.776 GHz'],
+                ['whitepaper preliminary FP16 Tensor, dense', '1,000 TFLOPS', '540,672', '1.850 GHz'],
+                ['printed clock, either document', 'none', 'n/a', 'Not Finalized'],
+              ],
+            },
+          },
+          {
+            h: 'the same move on the memory side',
+            ps: [
+              'Bandwidth divides as cleanly as FLOPS multiply. Five HBM3 stacks carry the datasheet’s `3.35 TB/s`, so each stack delivers `670 GB/s`, and `80 GB` over five stacks is `16 GB` a stack. The `5120-bit` memory interface across `10` 512-bit controllers puts `1024` bits on each stack, which turns `670 GB/s` into `5.23 Gb/s` per pin.',
+              'That last figure is the one with an external yardstick. JEDEC’s HBM3 update tops out at `6.4 Gb/s` per pin and `819 GB/s` per device, so an H100 runs its memory at about `82%` of the standard’s ceiling. This division closes because both of its inputs are printed, which is the difference between it and the clock.',
+              'Check which document you are holding here too. The whitepaper’s preliminary table says `3000 GB/sec` for the same part that the shipping datasheet sells at `3.35 TB/s`, and a roofline built on the older figure is off by 12% before you start.',
+              'The habit underneath all of this is short. Write the multiplication before you look up the answer, then reconcile: wrong SKU, sparsity convention, preliminary document, unpublished constant, in that order. When the gap survives every one of those, you have found something about the vendor’s numbers rather than about your own arithmetic.',
+            ],
+          },
+        ],
+        readings: [
+          {
+            label: 'NVIDIA H100 Tensor Core GPU architecture whitepaper',
+            url: 'https://www.hpctech.co.jp/assets/images/info/catalog/pdf/gtc22-whitepaper-hopper_v1.02.pdf',
+            note: 'v1.02, mirrored; the three configurations on p.18, the SM figure on p.21, and "Not Finalized" in Table 3',
+          },
+          {
+            label: 'NVIDIA H100 product page and datasheet',
+            url: 'https://www.nvidia.com/en-us/data-center/h100/',
+            note: 'the shipping rates with the sparsity asterisk, and no clock anywhere on the page',
+          },
+          {
+            label: 'JEDEC publishes HBM3 update',
+            url: 'https://www.jedec.org/news/pressreleases/jedec-publishes-hbm3-update-high-bandwidth-memory-hbm-standard',
+            note: 'the 6.4 Gb/s per pin and 819 GB/s per device the H100 is measured against',
+          },
+        ],
+        check: [
+          {
+            q: 'The datasheet prints 1,979 TFLOPS for BF16 Tensor Core. What happens if you put that straight into the clock derivation?',
+            a: 'It asks for 3.66 GHz. The asterisk means sparsity, so the dense rate is half of it, 989.5 TFLOPS, and the derivation lands on 1.830 GHz instead.',
+          },
+          {
+            q: 'Why does the FLOPS arithmetic close on an A100 and fail on an H100?',
+            a: "The A100's table prints 1410 MHz, so 108 SMs x 2048 FP16 FLOP/SM/clk gives 311.9 TFLOPS against a printed 312. The H100 prints no clock at all, and its own rates imply 1.830 GHz from the Tensor rows against roughly 1.98 to 2.01 GHz from FP32 and FP64.",
+          },
+          {
+            q: 'An H100 SXM5 moves 3.35 TB/s across five HBM3 stacks. How close is that to the JEDEC ceiling?',
+            a: '670 GB/s per stack, which over a 1024-bit stack is 5.23 Gb/s per pin, against JEDEC HBM3 at 6.4 Gb/s per pin and 819 GB/s per device. About 82 percent of the ceiling.',
+          },
+        ],
+        work: [
+          { id: 'derive', label: 'derive the H100 tensor clock from the A100 constant with the answer covered', href: '#predict-the-clock' },
+          { id: 'preliminary', label: "run both derivations on the whitepaper's preliminary column and show FP32 and FP64 land on one clock", href: '#the-datasheet-that-does-not-close' },
+          { id: 'pcie', label: 'redo the FP32, FP64 and Tensor derivations for the 114-SM PCIe part and say which inputs changed' },
+        ],
+      },
+      {
         id: "two-machines",
-        num: 2,
+        num: 4,
         title: "Two machines, one job",
         lede: "Both chips exist to multiply matrices. One does it with 132 small units the hardware schedules, the other with two big ones the compiler schedules.",
         goal: "Given a piece of TPU kernel vocabulary, name its GPU counterpart and the count on each chip, and say what the difference costs the person writing the kernel.",
@@ -754,7 +1067,7 @@ export const MACHINE_LESSONS: UnitLessons[] = [
             h: "back to the kernel",
             ps: [
               "You can now read a GPU spec sheet without translating twice: SM against TensorCore, Tensor Core against MXU, SMEM against VMEM, NVLink domain against torus axis, and a measured `370 GB/s` against a claimed `450`. That is enough hardware to hold both machines in your head while reading anyone's kernel.",
-              "It is also where the hardware questions stop being the interesting ones. Everything from here is authorship, and the path picks it straight back up at Pallas fundamentals (`/s/pallas`), where the grid stops being a loop nest and becomes a pipeline you are responsible for keeping full.",
+              "It is also where the two chips stop being the whole story. One question is left at this scale, which is what happens when the thing you shard across is a rack rather than a chip, and the last lesson of the stage answers it before the path turns to authorship.",
             ],
           },
         ],
@@ -793,6 +1106,495 @@ export const MACHINE_LESSONS: UnitLessons[] = [
         work: [
           { id: 'translate', label: 'translate one page of CUDA docs into TPU vocabulary with the table' },
           { id: 'ridge', label: 'derive the H100 ridge yourself and place three stage-0 ops against it' },
+        ],
+      },
+      {
+        id: 'the-isa-contract',
+        num: 5,
+        title: 'The ISA contract',
+        lede: 'Two words get used as though they named the same machine. One is a promise that has to survive a decade of silicon; the other is silicon that gets thrown away every two years.',
+        goal: 'Take any GPU dump and say which instruction set it is, which tool produced it, and what is free to change underneath it before your binary stops running.',
+        sections: [
+          {
+            h: 'the same instruction, twice',
+            ps: [
+              "Compile four multiplies and four adds on an ordinary laptop, disassemble the object file, and every line comes back in two columns. On the right, `addss %xmm0, %xmm2`. On the left, the four bytes `f3 0f 58 d0`. They are not two things that correspond. They are one instruction written down twice, once for a person and once for the decoder, and an assembler turns either into the other without losing anything.",
+              'The left column is **machine code**, the encoding the hardware actually eats. The right column is **assembly**, a notation for humans with mnemonics instead of opcodes and names instead of register numbers. Because the two map one to one, people say "writing assembly" and "the machine\'s instructions" as if they were the same claim, and mostly nothing goes wrong. The distinction that does matter sits one level up from this pair.',
+            ],
+            code: {
+              caption: 'clang 21.0.0 on x86-64, `clang -O2 -c dot4.c -o dot4.o` then `objdump -d dot4.o`; first seven lines of the function',
+              lang: 'text',
+              text: `0000000000000000 <_dot4>:
+       0: 55                           	pushq	%rbp
+       1: 48 89 e5                     	movq	%rsp, %rbp
+       4: f3 0f 10 07                  	movss	(%rdi), %xmm0
+       8: f3 0f 10 4f 04               	movss	0x4(%rdi), %xmm1
+       d: f3 0f 59 06                  	mulss	(%rsi), %xmm0
+      11: 0f 57 d2                     	xorps	%xmm2, %xmm2
+      14: f3 0f 58 d0                  	addss	%xmm0, %xmm2`,
+            },
+          },
+          {
+            h: 'what the chip promises',
+            ps: [
+              'Those four bytes have meant the same thing since 1999, and they mean it on parts from two different companies. The agreement covers which instructions exist, how they are encoded, which registers they may name, what the memory model guarantees about the order other cores see writes in. All of that together is the **instruction set architecture**, and it is a contract: code compiled against it keeps running on machines nobody had designed when it was compiled.',
+              'What the contract deliberately leaves out is everything about how the work gets done. How many multiplies issue per cycle, how deep the pipeline runs, whether there is a reorder buffer at all, how large the caches are, how the branch predictor is organized. That is the **microarchitecture**, one implementation of the contract, and it is redesigned every generation or two. The dump above was produced on a Core i9-9880H; the same bytes run unchanged on an AMD part that shares none of its internals.',
+              '>> The ISA is the part that may not change. Everything under it is free to.',
+              'On a CPU the contract and the machine sit at the same address, so the two words collapse in casual speech and no harm comes of it. NVIDIA moved the line. There are two instruction sets in a CUDA binary, they are not versions of each other, and only one of them is the contract.',
+            ],
+          },
+          {
+            h: 'a machine that does not exist',
+            ps: [
+              'The first instruction set is PTX, and the specification opens by saying exactly what it is: "a low-level parallel thread execution virtual machine and instruction set architecture (ISA)". Virtual machine, meaning no chip decodes it. PTX has as many registers as a kernel wants, one type per instruction, and special registers with names like `%tid.x` rather than an address. It is an ISA in the sense of being a complete, documented, versioned contract, and in no other sense.',
+              'What the contract is for shows up in the goals list, one line of which reads "Provide a stable ISA that spans multiple GPU generations." A **virtual ISA** is a contract with the implementation deliberately missing: something for a compiler to target and something for a translator to consume, with the translation postponed. The specification says when the postponement ends, too: "PTX programs are translated at install time to the target hardware instruction set."',
+              'Read the dump below and the virtual part is visible in the register names. Every value gets a fresh one, `%f1` through `%f4` for floats and `%rd1` through `%rd7` for addresses, because nothing here is competing for a physical register file yet. The thread index arrives through `%ctaid.x`, `%ntid.x`, and `%tid.x`; the bounds check becomes a `setp.ge.s32` writing a predicate and a `@%p1 bra` reading it; the multiply-add is one `fma.rn.f32` with its rounding mode spelled out.',
+            ],
+            code: {
+              caption: 'saxpy at the virtual level: nvcc 13.3.0, `-arch=sm_90 -O3`, PTX pane (captured via the Compiler Explorer API, 2026-08-14)',
+              lang: 'text',
+              text: `.visible .entry saxpy(
+	.param .f32 saxpy_param_0,
+	.param .u64 saxpy_param_1,
+	.param .u64 saxpy_param_2,
+	.param .u32 saxpy_param_3
+)
+{
+	ld.param.f32 	%f1, [saxpy_param_0];
+	ld.param.u64 	%rd1, [saxpy_param_1];
+	ld.param.u64 	%rd2, [saxpy_param_2];
+	ld.param.u32 	%r2, [saxpy_param_3];
+	mov.u32 	%r3, %ctaid.x;
+	mov.u32 	%r4, %ntid.x;
+	mov.u32 	%r5, %tid.x;
+	mad.lo.s32 	%r1, %r3, %r4, %r5;
+	setp.ge.s32 	%p1, %r1, %r2;
+	@%p1 bra 	$L__BB0_2;
+	cvta.to.global.u64 	%rd3, %rd2;
+	cvta.to.global.u64 	%rd4, %rd1;
+	mul.wide.s32 	%rd5, %r1, 4;
+	add.s64 	%rd6, %rd4, %rd5;
+	ld.global.f32 	%f2, [%rd6];
+	add.s64 	%rd7, %rd3, %rd5;
+	ld.global.f32 	%f3, [%rd7];
+	fma.rn.f32 	%f4, %f2, %f1, %f3;
+	st.global.f32 	[%rd7], %f4;
+$L__BB0_2:
+	ret;
+}`,
+            },
+          },
+          {
+            h: 'the floor that actually runs',
+            ps: [
+              'Push the same kernel one step further and the second instruction set appears. SASS is what the streaming multiprocessors decode, and everything postponed in PTX has been settled in it. Registers are physical and numbered, `R0` through `R7` here. The kernel parameters are no longer named; they are offsets into a constant bank, `c[0x0][0x210]` and `c[0x0][0x218]`. The bounds check is now `ISETP.GE.AND` writing the predicate register `P0`, and the threads that fail it leave immediately through a predicated `@P0 EXIT`.',
+              'One line is worth pausing on. The whole body of the PTX, four separate address computations and two loads, has collapsed into `IMAD.WIDE` pairs and `LDG.E` with a descriptor operand. Nothing in the source asked for that. It is the assembler choosing instructions for one particular generation of hardware, which is what an assembler for a real ISA does.',
+            ],
+            code: {
+              caption: 'the same kernel after ptxas: nvcc 13.3.0, `-arch=sm_90 -O3`, SASS pane (Compiler Explorer API, 2026-08-14); trailing NOP padding elided',
+              lang: 'text',
+              text: `saxpy:
+ LDC R1, c[0x0][0x28]
+ S2R R0, SR_TID.X
+ S2UR UR4, SR_CTAID.X
+ LDC R7, c[0x0][RZ]
+ IMAD R7, R7, UR4, R0
+ ULDC UR4, c[0x0][0x228]
+ ISETP.GE.AND P0, PT, R7, UR4, PT
+ @P0 EXIT
+ LDC.64 R2, c[0x0][0x218]
+ ULDC.64 UR4, c[0x0][0x208]
+ ULDC UR6, c[0x0][0x210]
+ LDC.64 R4, c[0x0][0x220]
+ IMAD.WIDE R2, R7, 0x4, R2
+ LDG.E R2, desc[UR4][R2.64]
+ IMAD.WIDE R4, R7, 0x4, R4
+ LDG.E R7, desc[UR4][R4.64]
+ FFMA R7, R2, UR6, R7
+ STG.E desc[UR4][R4.64], R7
+ EXIT`,
+            },
+          },
+          {
+            h: 'one contract, many floors',
+            ps: [
+              'Now run the experiment that makes the split concrete. Take that source, one nvcc, and ask for two architectures. The PTX comes back byte for byte identical, the same thirty lines both times. The SASS does not, and the differences are not cosmetic: `MOV R1` where Hopper used `LDC R1`, a bare `LDG.E.SYS R2, [R2]` where Hopper carried a descriptor, an `IMAD.WIDE` that folds the base address straight out of the constant bank, and every parameter at a different offset, `0x160` here against `0x210` there.',
+              'Nothing about the program changed between those two dumps. The contract held and the floor moved, which is the arrangement the goals list was describing. It also explains why NVIDIA behaves so differently about the two levels. The PTX specification is a document with a version number you can read cover to cover. For SASS the binary utilities manual gives you `nvdisasm`, which "extracts information from standalone cubin files and presents them in human readable format", an opcode table per architecture, and no assembler. SASS is something you read.',
+            ],
+            code: {
+              caption: 'same source, same compiler (nvcc 12.9.1), `-arch=sm_70 -O3`: the PTX is identical to the block above, the SASS is not',
+              lang: 'text',
+              text: `saxpy:
+ MOV R1, c[0x0][0x28]
+ @!PT SHFL.IDX PT, RZ, RZ, RZ, RZ
+ S2R R4, SR_CTAID.X
+ S2R R3, SR_TID.X
+ IMAD R4, R4, c[0x0][0x0], R3
+ ISETP.GE.AND P0, PT, R4, c[0x0][0x178], PT
+ @P0 EXIT
+ MOV R5, 0x4
+ IMAD.WIDE R2, R4, R5, c[0x0][0x168]
+ IMAD.WIDE R4, R4, R5, c[0x0][0x170]
+ LDG.E.SYS R2, [R2]
+ LDG.E.SYS R7, [R4]
+ FFMA R7, R2, c[0x0][0x160], R7
+ STG.E.SYS [R4], R7
+ EXIT`,
+            },
+          },
+          {
+            h: 'who translates, and when',
+            ps: [
+              'Two tools cross the gap, and knowing which one ran explains most surprising launch times. At build time it is `ptxas`, which the nvcc manual calls "the PTX optimizing assembler". You tell nvcc which architectures to target, and it names them in two vocabularies: it produces "a true binary load image for each real architecture (such as sm_100), and PTX code for the virtual architecture (such as compute_100)". Both go into the same object file, so a shipped binary usually carries several cubins and one copy of the PTX they all came from.',
+              'The second tool is the driver, and it runs when the first list comes up short: "During runtime, such embedded PTX code is dynamically compiled by the CUDA runtime system if no binary load image is found for the current GPU." That is the mechanism behind a binary from two years ago starting on a card that did not exist when it was built. It is also the mechanism behind that binary taking an unreasonable amount of time on its first launch, because a compiler you never invoked is running inside the driver, on your critical path, over code you cannot inspect.',
+              'The wall lesson in the compiler unit already puts `ptxas` and SASS where the toolchain stops (`/l/xla/dumps-on-demand`, which names libtpu and LLO in the same breath). This lesson says what is behind that door and why the vendor wants it shut: the floor is redesigned every generation, and a contract one level up is what lets them do it. The next question is not which instructions are down there. It is who decided which of them run at the same time.',
+            ],
+          },
+        ],
+        readings: [
+          {
+            label: 'NVIDIA · PTX ISA',
+            url: 'https://docs.nvidia.com/cuda/parallel-thread-execution/',
+            note: 'section 1.2 is the entire contract argument in six bullet points',
+          },
+          {
+            label: 'NVIDIA · CUDA compiler driver NVCC',
+            url: 'https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/',
+            note: 'virtual against real architectures, and where ptxas sits in the trajectory',
+          },
+          {
+            label: 'NVIDIA · CUDA binary utilities',
+            url: 'https://docs.nvidia.com/cuda/cuda-binary-utilities/',
+            note: 'cuobjdump, nvdisasm, and one opcode table per architecture with no assembler beside it',
+          },
+          {
+            label: 'Compiler Explorer',
+            url: 'https://godbolt.org/',
+            note: 'produces both dumps for a kernel you type, with no GPU anywhere in the room',
+          },
+        ],
+        check: [
+          {
+            q: 'One nvcc, one source file, two architectures: the PTX comes back identical and the SASS does not. Which of the two is the contract, and what changed underneath it?',
+            a: 'PTX is the contract, a virtual ISA whose stated goal is spanning multiple GPU generations. What changed is the machine ISA below it, SASS, which ptxas re-selects per architecture: different opcodes for the same load, different constant-bank offsets for the same parameters.',
+          },
+          {
+            q: 'A binary built two years ago launches on a card that did not exist then, and the first launch takes far longer than the second. What ran?',
+            a: 'The driver JIT. No cubin in the fatbinary matched the current GPU, so the embedded PTX was compiled at runtime by the CUDA runtime system, on your critical path, before the kernel could start.',
+          },
+          {
+            q: 'Why can you author PTX by hand but not SASS?',
+            a: 'PTX is published as a versioned specification with a documented assembler path through ptxas. For SASS NVIDIA publishes a per-architecture opcode table and disassemblers, and no assembler, so the only supported producer is ptxas and the only supported use is reading.',
+          },
+        ],
+        work: [
+          { id: 'trace', label: 'take one PTX instruction from the dump and find what it became in both SASS listings', href: '#one-contract-many-floors' },
+          { id: 'godbolt', label: 'put a kernel of your own through Compiler Explorer and read the PTX and SASS panes side by side' },
+          { id: 'check', label: 'answer the three checks without opening them', href: '#check' },
+        ],
+      },
+      {
+        id: 'who-schedules',
+        num: 6,
+        title: 'Who decides what runs at once',
+        lede: 'Four famous names get taught as though they were four rungs of one ladder. They are answers to two different questions, and each sorts in a sentence once you know which question it answers.',
+        goal: 'Sort VLIW, superscalar out-of-order execution, SIMD, and SIMT by the question each one answers, and for a given machine say what had to be decided before the program started running.',
+        sections: [
+          {
+            h: 'one question, and the vocabulary it sorts',
+            ps: [
+              'Whenever two operations run in the same cycle, somebody decided they were allowed to. There are only two candidates for who. A compiler could have decided, before the program ran, by proving the two operations independent and placing them accordingly. Or hardware could decide while the program runs, by inspecting instructions as they arrive. Nearly every architecture word in this area is an answer to that question, and the answers split cleanly by when the deciding happens.',
+              'A second question gets mixed into the same conversation and should not be. How much data does one instruction move? That is width, and it is independent of scheduling: a machine can be wide and statically scheduled, wide and dynamically scheduled, or narrow and either. Two of the four names below answer the scheduling question and two answer the width question, which is why they never quite line up when taught as a sequence.',
+              'The table sorts them. Read the second column first, because it says which of the two questions a row is even answering, and only then read across to who decides. Of the two rows that answer the scheduling question, exactly one hands the work to a compiler.',
+            ],
+            table: {
+              caption: 'four names, two questions',
+              cols: ['name', 'the question it answers', 'who decides', 'when'],
+              rows: [
+                ['superscalar, out-of-order', 'which nearby instructions may issue together', 'the hardware, from a window it maintains itself', 'run time, on every run'],
+                ['VLIW', 'which operations may issue together', 'the compiler, by placing them in one wide instruction', 'compile time, once'],
+                ['SIMD', 'how many elements one instruction moves', 'the compiler, by choosing that instruction', 'compile time, once'],
+                ['SIMT', 'how many threads share one instruction stream', 'a warp scheduler, one warp at a time', 'run time, on every run'],
+              ],
+            },
+          },
+          {
+            h: 'the schedule the machine may ignore',
+            ps: [
+              'A modern CPU core fetches several instructions per cycle, renames their registers so false dependencies disappear, and issues each one from a window as soon as its operands are ready, in whatever order that turns out to be. Retirement puts the program order back for anything the outside world can see. Issuing several per cycle is what **superscalar** names; issuing them in a different order than written is what **out-of-order** names, and the two travel together in practice.',
+              'The compiler still emits one linear sequence, and it still tries to order that sequence well for a particular chip. Ask clang for the same function twice with the instruction set pinned and only the tuning target changed, and you get the two listings below: the same thirteen instructions with the same operands, issued in a different order. Under `-mtune=skylake` each load is paired with its multiply. Under `-mtune=znver3` the three loads are hoisted to the front.',
+              'On a machine with a reorder buffer that ordering is a hint. The window is free to rearrange it, and `-mtune` mostly shifts where the rearranging starts from. What the hardware buys with all that area is knowledge the compiler could not have had: whether a load hit in cache, which way a branch actually went, whether two pointers turned out to alias. When those answers change from run to run, only a decision made at run time can use them.',
+            ],
+            code: {
+              caption: 'clang 21.0.0, `clang -O2 -march=x86-64 -mtune=<target> -S`, arithmetic lines only; the instruction multiset is identical between the two',
+              lang: 'text',
+              text: `# -mtune=skylake
+	movss	(%rdi), %xmm0
+	movss	4(%rdi), %xmm1
+	mulss	(%rsi), %xmm0
+	xorps	%xmm2, %xmm2
+	addss	%xmm0, %xmm2
+	mulss	4(%rsi), %xmm1
+	movss	8(%rdi), %xmm3
+
+# -mtune=znver3, same -march, same source
+	movss	(%rdi), %xmm0
+	movss	4(%rdi), %xmm1
+	movss	8(%rdi), %xmm3
+	xorps	%xmm2, %xmm2
+	mulss	(%rsi), %xmm0
+	mulss	4(%rsi), %xmm1
+	mulss	8(%rsi), %xmm3`,
+            },
+          },
+          {
+            h: 'one instruction, many lanes',
+            ps: [
+              'Width is the other axis, and the baseline x86-64 instruction set already has it. Compile a saxpy loop with no tuning flags at all and the inner loop comes back holding `mulps %xmm1, %xmm2`, which multiplies four single-precision floats in one instruction, and `movups`, which moves sixteen bytes. One instruction, four lanes, one program counter for all of them. The model has a name older than any of the chips in this course: **SIMD**, single instruction multiple data.',
+              'Notice what SIMD does not tell you. It says how much data an instruction covers and nothing about who scheduled the instruction. Here the compiler chose the width, and the out-of-order core will still reorder the result. On a TPU the VPU is SIMD too, at the `(8, 128)` shape the chip lesson works through, and there the compiler chooses the width and the schedule. Same width model, opposite answers on the other axis.',
+            ],
+            code: {
+              caption: 'clang 21.0.0, `clang -O2 -march=x86-64 -S`, the vectorized inner loop of `y[i] = a * x[i] + y[i]`',
+              lang: 'text',
+              text: `LBB0_6:
+	movups	(%rsi,%r8), %xmm2
+	movups	16(%rsi,%r8), %xmm3
+	movups	(%rdi,%r8), %xmm4
+	movups	16(%rdi,%r8), %xmm5
+	mulps	%xmm1, %xmm2
+	addps	%xmm4, %xmm2
+	mulps	%xmm1, %xmm3
+	addps	%xmm5, %xmm3
+	movups	%xmm2, (%rdi,%r8)
+	movups	%xmm3, 16(%rdi,%r8)
+	addq	$32, %r8
+	cmpq	%r8, %rdx
+	jne	LBB0_6`,
+            },
+          },
+          {
+            h: 'one instruction, many threads',
+            ps: [
+              'This unit already introduced the GPU\'s answer to the width question, and the hazard that comes with it (`/s/machine/gpu-chip`). The vendor states both plainly: "Each SM creates, manages, schedules, and executes threads in groups of 32 parallel threads called warps", and "A warp executes one common instruction at a time, so full efficiency is realized when all 32 threads of a warp agree on their execution path." When they disagree, "the warp executes each branch path taken, disabling threads that are not on that path". The etymology in the same section is worth carrying: the term warp comes from weaving.',
+              'That description is usually taken on faith. It does not have to be. Compile a kernel whose two arms write to different arrays, look at the SASS, and the masking is written down: every instruction of the else arm carries the predicate `@!P0`, the store included, and so does the `@!P0 EXIT` that retires those threads. A warp holding both kinds of thread walks that entire block with the wrong lanes switched off, then walks the if arm. Both arms are in the instruction stream, one after the other, exactly as advertised.',
+              'On the sorting question, **SIMT** answers width the way SIMD does and then adds something SIMD has no equivalent for. Each of the 32 threads carries its own program counter, and a warp scheduler picks which resident warp issues next. That second half is a scheduling decision made by hardware at run time, which is why SIMT lands in two rows of the table at once. One more thing to hold before you count branches in a kernel: when both arms are cheap enough, the compiler removes the divergence entirely by turning the branch into a select, and the same experiment run on a two-line body comes back with an `FSEL` and no predicate at all.',
+            ],
+            code: {
+              caption: 'the else arm of a divergent kernel, every line predicated: nvcc 13.3.0, `-arch=sm_90 -O3`, SASS pane (Compiler Explorer API, 2026-08-14)',
+              lang: 'text',
+              text: ` FSETP.GT.AND P0, PT, R0, RZ, PT
+ @!P0 LDC.64 R4, c[0x0][0x220]
+ @!P0 FADD R9, -R0, -RZ
+ @!P0 LEA R4, P1, R7, R4, 0x2
+ @!P0 LEA.HI.X R5, R7, R5, R6, 0x2, P1
+ @!P0 STG.E desc[UR4][R4.64], R9
+ @!P0 EXIT`,
+              full: {
+                text: `two_paths:
+ LDC R1, c[0x0][0x28]
+ S2R R7, SR_TID.X
+ LDC.64 R2, c[0x0][0x210]
+ ULDC.64 UR4, c[0x0][0x208]
+ IMAD.WIDE R2, R7, 0x4, R2
+ LDG.E R0, desc[UR4][R2.64]
+ SHF.R.S32.HI R6, RZ, 0x1f, R7
+ FSETP.GT.AND P0, PT, R0, RZ, PT
+ @!P0 LDC.64 R4, c[0x0][0x220]
+ @!P0 FADD R9, -R0, -RZ
+ @!P0 LEA R4, P1, R7, R4, 0x2
+ @!P0 LEA.HI.X R5, R7, R5, R6, 0x2, P1
+ @!P0 STG.E desc[UR4][R4.64], R9
+ @!P0 EXIT
+ ULDC.64 UR6, c[0x0][0x218]
+ FMUL R5, R0, R0
+ LEA R2, P0, R7, UR6, 0x2
+ LEA.HI.X R3, R7, UR7, R6, 0x2, P0
+ STG.E desc[UR4][R2.64], R5
+ EXIT`,
+                label: 'the whole kernel, both arms',
+              },
+            },
+          },
+          {
+            h: 'why the compiler wins on this workload',
+            ps: [
+              'This unit has already put the two machines on opposite sides of this question and left it there (`/s/machine/two-machines`): the GPU is hardware-scheduled, the TPU is compiler-scheduled. The part worth arguing now is why the second bet pays on dense linear algebra specifically, because as a general architectural choice it has lost before.',
+              'Out-of-order execution earns its transistors by covering uncertainty. A cache miss whose latency nobody knows in advance, a branch whose direction depends on data, pointers that might or might not alias. A blocked matmul supplies none of that. Trip counts are compile-time constants, addresses are affine functions of the loop indices, the only branches are loop back-edges, and the memory is a software-managed scratchpad, so a load takes a number of cycles rather than a distribution of them. Every question the reorder buffer exists to answer at run time already has an answer at compile time.',
+              'The TPU team stated the trade in the first TPU paper: "The TPU\'s deterministic execution model is a better match to the 99th-percentile response-time requirement of our NN applications than are the time-varying optimizations of CPUs and GPUs (caches, out-of-order execution, multithreading, multiprocessing, prefetching, ...) that help average throughput more than guaranteed latency." The later training-chip paper lists what got deleted to pay for the multipliers, "dropping general-purpose features irrelevant for DNNs but critical for CPUs such as caches and branch predictors".',
+            ],
+          },
+          {
+            h: 'the bundle, and the line it forces',
+            ps: [
+              'Delete the scheduler and something has to emit the schedule. The instruction format is where it goes: on TPUv2 and v3, "the 322-bit VLIW instruction can launch eight operations: two scalar, two vector ALU, vector load and store, and a pair of slots that queue data to and from the matrix multiply and transpose units". An instruction word with independent slots that all issue together is a **VLIW**, a very long instruction word, and filling the slots is the compiler\'s job. The same paper names which compiler: "TPUs use a VLIW architecture to express instruction-level parallelism to the many compute units of a TensorCore. XLA uses standard VLIW compilation techniques including loop unrolling, instruction scheduling, and software pipelining to keep all compute units busy."',
+              '>> Hardware schedules what it can see. A compiler sees the whole loop nest.',
+              'A VLIW schedule is correct for the latencies it was built against. Change the depth of one unit by a cycle and the bundles are wrong, so the format is tied to a generation in a way an ISA is not supposed to be. Both vendors reached the same arrangement: publish a stable layer, keep the schedule-bearing layer private, and translate between them behind a closed door. The previous lesson walked the GPU half of that split; the Mosaic layer chapter (`/l/mosaic`) walks the TPU half. Set them beside each other and the shape is the same twice over.',
+            ],
+            table: {
+              caption: 'the same line, drawn by two vendors',
+              cols: ['machine', 'the public layer', 'the private floor', 'who translates'],
+              rows: [
+                ['NVIDIA GPU', 'PTX, a virtual ISA you can hand-write', 'SASS, respecified per architecture', 'ptxas at build time, or the driver at load time'],
+                ['Google TPU', 'Mosaic, an MLIR dialect any kernel will print', 'LLO, closed inside libtpu', 'the TPU backend, ahead of time'],
+              ],
+            },
+          },
+        ],
+        readings: [
+          {
+            label: 'A domain-specific supercomputer for training deep neural networks',
+            url: 'https://dl.acm.org/doi/10.1145/3360307',
+            note: 'the eight VLIW slots and the sequencer, from the people who drew the floorplan',
+          },
+          {
+            label: 'In-datacenter performance analysis of a tensor processing unit',
+            url: 'https://arxiv.org/abs/1704.04760',
+            note: 'the determinism argument, made in the abstract and defended for fifteen pages',
+          },
+          {
+            label: 'NVIDIA · the SIMT execution model',
+            url: 'https://docs.nvidia.com/cuda/cuda-programming-guide/03-advanced/advanced-kernel-programming.html',
+            note: 'warps, divergence, and the weaving etymology, first-party',
+          },
+          {
+            label: 'Agner Fog · the microarchitecture of Intel, AMD and VIA CPUs',
+            url: 'https://www.agner.org/optimize/microarchitecture.pdf',
+            note: 'the out-of-order half in more detail than any vendor manual offers',
+          },
+        ],
+        check: [
+          {
+            q: 'Out-of-order hardware and a VLIW compiler are hunting the same thing. What does the hardware know that the compiler cannot, and why does a blocked matmul erase that advantage?',
+            a: 'The hardware knows run-time facts: whether a load hit cache, which way a data-dependent branch went, whether pointers aliased. A blocked matmul has constant trip counts, affine addresses, no data-dependent branches, and a software-managed scratchpad instead of a cache, so every one of those facts is already known at compile time and the window has nothing left to discover.',
+          },
+          {
+            q: 'Why are SIMD and SIMT not two more answers to the question this lesson asks?',
+            a: 'They answer width, not scheduling: how much data one instruction covers. SIMD says nothing at all about who scheduled it. SIMT answers width and then adds a separate scheduling answer, since a warp scheduler picks the next resident warp at run time.',
+          },
+          {
+            q: 'PTX is to SASS what Mosaic is to LLO. What is the shared reason both vendors draw the line in that place?',
+            a: 'The lower layer carries the schedule and the per-generation latencies, so it has to be free to change every generation. Publishing a stable layer above it and keeping the translation private is what lets the floor move without breaking anything compiled against the contract.',
+          },
+        ],
+        work: [
+          { id: 'sort', label: 'take four instructions from the dumps above and label each with the axis it belongs to' },
+          { id: 'predicate', label: 'find every @!P0 in the divergence dump and say which threads of a mixed warp execute it', href: '#one-instruction-many-threads' },
+          { id: 'check', label: 'answer the three checks without opening them', href: '#check' },
+        ],
+      },
+      {
+        id: "scale-up",
+        num: 7,
+        title: "The scale-up domain",
+        lede: "NVIDIA prints 900 GB/s for an H100's NVLink and the scaling book prints 450 for the same eighteen links. Both are correct. Sorting out why is what lets you read every other number in the rack.",
+        goal: "Given any NVLink or NVL72 bandwidth figure, say which directions and which endpoints it sums over, and say whether the traffic you care about stays inside one address space or leaves it.",
+        sections: [
+          {
+            h: "a load that lands on another chip",
+            ps: [
+              "Two GPUs in the same node are wired together by NVLink, and that wiring buys something a network does not. One GPU can issue a request against memory that physically sits on the other chip, and the request is routed there by GPU physical address, because inside the wiring all the GPUs share one address space. Nothing is packed into a message, addressed to a peer, and unpacked at the far end. The remote memory is memory.",
+              "That property is what **scale-up** names. You make the machine bigger by making one memory system bigger, as far as the fabric reaches, and code written against it reads like code written against a single very large GPU. **Scale-out** is the other move: more machines, each with its own memory, talking in messages. Nearly every confusing bandwidth figure in an NVIDIA rack becomes readable once you ask which of the two it is describing.",
+              "The GPU fabric lesson (`/l/ici/gpu-fabric`) counted the links and switches inside a node and set the per-GPU numbers against measured collectives. This lesson asks a different question about the same wires: how far the shared address space reaches, what the published figures are actually summing, and what changes in your program at the edge.",
+            ],
+          },
+          {
+            h: "where the address space stops",
+            ps: [
+              "Eight GPUs sharing one address space is a manageable thing to build. Two hundred and fifty six of them across many chassis is a different problem, because any GPU could then reach any address on any other with no isolation between tenants, so one job's stray write lands in another job's memory. Hopper's answer was to keep the wires and change the semantics.",
+              "The whitepaper states the split plainly. Regular NVLink is the case where \"all GPUs share a common address space and requests are routed directly using GPU physical addresses\"; NVLink Network \"introduces a new Network Address Space supported by new address translation hardware in H100 to isolate all GPUs' address spaces from one another and from the network address space\". The wires below are still NVLink. What sits on them is no longer one memory system.",
+              "The consequence lands in your program, and NVIDIA names the comparison itself: because those endpoints do not share a common memory address space, connections \"are not automatically established across the entire system\", and instead, \"similar to other networking interfaces such as InfiniBand, the user software should explicitly establish connections between endpoints as needed\". So the place where InfiniBand takes over is not first a bandwidth cliff. It is the point where a peer stops being an address and starts being an endpoint you connect to, and NVLink Network has already crossed that line while still running on NVLink cable.",
+              ">> Inside the domain a peer is an address. Outside it, a peer is a connection.",
+              "Hopper put 256 GPUs behind that scheme. The Blackwell brief says the fifth generation \"can scale up to 576 GPUs\". Those are the ceilings on how far one vendor-supported NVLink fabric stretches, not on how many GPUs share a single address space, which is the smaller number set by the node or rack you actually bought.",
+            ],
+          },
+          {
+            h: "eighteen links, counted two ways",
+            ps: [
+              "Three generations of link are three different decisions, and the wire count tells you which. A100's NVLink 3 used four differential pairs in each direction to make one link carrying 25 GB/s each way, and put 12 links on the chip. H100's NVLink 4 got the same 25 GB/s each way out of two pairs, so the rate per wire doubled, and NVIDIA spent the saved wires on more links: 18 instead of 12. Blackwell's NVLink 5 keeps both the two pairs and the 18 links, and doubles the link itself to `50 GB/s` in each direction.",
+              "Now the totals. NVIDIA writes that H100 \"includes 18 fourth-generation NVLink links to provide 900 GB/sec total bandwidth\", and 18 links at 25 GB/s each way comes to 450 in one direction, `900` with both summed. Blackwell's brief spells the convention out rather than leaving it to arithmetic: \"1.8 TB/sec total bandwidth, 900 GB/sec in each direction\". Every NVIDIA total for NVLink is both directions added together.",
+              "The scaling book counts the same eighteen links one direction at a time and prints `450 GB/s` for an H100, which is where the GPU fabric lesson got its per-GPU figure. Neither source is wrong and neither is being sloppy. Before you compare two NVLink numbers from two authors, divide or multiply by two until they are describing the same directions.",
+              "NVIDIA's own ratios confirm they never switch conventions mid-document. Fourth-generation NVLink is \"7x the bandwidth of PCIe Gen 5\" and fifth-generation is \"over 14X\", which puts the PCIe Gen5 baseline at about `129 GB/s` under both, and that is the x16 figure with both directions counted. Same convention, twice, two generations apart.",
+            ],
+            table: {
+              caption: "three NVLink generations, from the H100 whitepaper p.47 and the Blackwell brief p.8",
+              cols: ["generation", "GPU", "links / GPU", "pairs per direction", "per link, each direction", "NVIDIA's stated total"],
+              rows: [
+                ["NVLink 3", "A100", "12", "4", "25 GB/s", "600 GB/s"],
+                ["NVLink 4", "H100", "18", "2", "25 GB/s", "900 GB/s"],
+                ["NVLink 5", "B200", "18", "2", "50 GB/s", "1.8 TB/s"],
+              ],
+            },
+          },
+          {
+            h: "what 130 TB/s counts",
+            ps: [
+              "The GB200 NVL72 headline is that its NVLink Switch \"enables 130TB/s GPU bandwidth in one 72 GPU NVLink domain\". Do the multiplication before you do anything else with it. Seventy-two Blackwell GPUs at `1.8 TB/s` each is `129.6 TB/s`, so the figure is the sum of every GPU's own link capacity, both directions, and it says nothing at all about the switch tier those links plug into.",
+              "That makes it the wrong number for the question people usually ask of it. Bisection bandwidth is what crosses a cut, and cutting a 72-GPU domain leaves 36 GPUs on each side, so at most half the endpoints can be pushing across it in a given direction. Under the same both-directions accounting that produced 130, a 36-against-36 cut tops out at `64.8 TB/s`, and only if every GPU on both sides sent exclusively across the cut. An all-GPU sum can never be a bisection figure, for any fabric, because half the endpoints are always on the wrong side.",
+              "The real ceiling could be lower still, and the public record will not tell you. NVIDIA publishes no NVL72 switch-tier capacity: the per-chip port count and the number of NVSwitch chips in the rack appear in secondary reporting but were not found in an NVIDIA document. Treat `64.8 TB/s` as an upper bound you derived, not as a spec.",
+              "Compare a figure NVIDIA does construct carefully. For the 256-GPU Hopper NVLink Switch System, the whitepaper says each node \"exposes a 2:1 tapered level of all the NVLink bandwidth of the GPUs in the node\" and the connected nodes are \"capable of delivering 57.6 TBs of all-to-all bandwidth\". Work it through: 8 GPUs at 900 GB/s is 7.2 TB/s per node, the taper halves that to 3.6, and 32 nodes give 115.2 TB/s. The published 57.6 is exactly half of that, which is the one-direction reading. NVIDIA never states which convention the 57.6 uses. The arithmetic closing to the digit is the evidence.",
+              "So the same family of wires produces figures that look alike and mean four different things, and a fifth kind hides in the SuperPod material: the \"9x increase in bisection bandwidth\" quoted there is a ratio against the previous generation's InfiniBand system, not an absolute figure about anything.",
+            ],
+            table: {
+              caption: "five published NVIDIA figures for the same family of wires, and what each one counts",
+              cols: ["figure", "NVIDIA's words", "what it sums", "scope"],
+              rows: [
+                ["900 GB/s", '"18 fourth-generation NVLink links to provide 900 GB/sec total bandwidth"', "both directions of 18 links", "one H100"],
+                ["1.8 TB/s", '"1.8 TB/sec total bandwidth, 900 GB/sec in each direction"', "both directions of 18 links", "one B200"],
+                ["57.6 TB/s", '"capable of delivering 57.6 TBs of all-to-all bandwidth"', "one direction of the 2:1 tapered uplink from 32 nodes", "256 Hopper GPUs"],
+                ["130 TB/s", '"enables 130TB/s GPU bandwidth in one 72 GPU NVLink domain"', "both directions of every GPU's links, summed over 72", "one NVL72 rack"],
+                ["9x bisection", '"9x increase in bisection bandwidth"', "a ratio against the prior generation's InfiniBand system", "256 Hopper GPUs"],
+              ],
+            },
+          },
+          {
+            h: "the boundary you shard against",
+            ps: [
+              "Turn all of that into one decision you make while sharding. The collective that runs several times per layer, the tensor-parallel all-reduce, wants to stay inside the domain, and the domain size is therefore a hard cap on how wide you can make that axis: eight on an HGX node, seventy-two in an NVL72 rack. The collective that runs once per step, the data-parallel gradient reduction, is the one you can afford to send across the boundary.",
+              "The cost of crossing is not only the bandwidth drop. Inside, a peer read is an address the hardware routes; outside, it is an endpoint your software connected to first, with its own setup, its own failure modes, and a different piece of the stack responsible for it. Two collectives with identical shapes are different programs depending on which side of that line they land on.",
+              "TPUs draw no line of this kind, which is worth one paragraph before you carry the GPU habit across. ICI never offered a shared address space to begin with: every remote access is already an explicit DMA to a named neighbor, at one hop or at twenty, so there is no semantic edge to fall off. The boundary a TPU programmer manages is the slice edge where the data-center network takes over, and it is a bandwidth cliff rather than a change of model. The hop arithmetic that prices it lives in the ICI unit (`/l/ici/tpu-fabric`), and the numbers there are the ones to use.",
+              "That is the last of the hardware in this stage. You can read a rack spec sheet the way you now read a chip spec sheet, asking of every figure what it sums over and where it stops being true. Stage 1 picks it up at Pallas fundamentals (`/s/pallas`), where the questions stop being about what the machine is and start being about the schedule you write for it.",
+            ],
+          },
+        ],
+        readings: [
+          {
+            label: "NVIDIA · H100 Tensor Core GPU Architecture whitepaper",
+            url: "https://www.hpctech.co.jp/assets/images/info/catalog/pdf/gtc22-whitepaper-hopper_v1.02.pdf",
+            note: "pp.47-49 carry NVLink 4, NVLink Network, and the tapered Switch System; every Hopper quote in this lesson comes from them",
+          },
+          {
+            label: "NVIDIA · Blackwell Architecture Technical Brief",
+            url: "https://nvdam.widen.net/s/xqt56dflgh/nvidia-blackwell-architecture-technical-brief",
+            note: "p.8 is the whole fifth-generation NVLink story, including the sentence that states the both-directions convention outright",
+          },
+          {
+            label: "NVIDIA · GB200 NVL72",
+            url: "https://www.nvidia.com/en-us/data-center/gb200-nvl72/",
+            note: "the product page the 130 TB/s figure is usually quoted from; read it after you have done the 72 x 1.8 multiplication",
+          },
+          {
+            label: "Scaling book · How to think about GPUs",
+            url: "https://jax-ml.github.io/scaling-book/gpus/",
+            note: "the other counting convention, one direction at a time; this is where the 450 GB/s per H100 comes from",
+          },
+        ],
+        check: [
+          {
+            q: 'You read 900 GB/s for an H100 in one document and 450 GB/s in another. Which one is wrong?',
+            a: "Neither. Eighteen links at 25 GB/s each direction is 450 one way and 900 with both summed; NVIDIA always prints the both-directions total, the scaling book prints one direction.",
+          },
+          {
+            q: 'Why can 130 TB/s not be the NVL72 bisection bandwidth?',
+            a: "It is 72 x 1.8 TB/s, the sum of every GPU's own link capacity. Any cut leaves half the GPUs on the far side, so at most 64.8 TB/s can cross under the same accounting, and NVIDIA publishes no switch-tier figure confirming even that.",
+          },
+          {
+            q: 'What changes in your program when a collective leaves the NVLink domain?',
+            a: "Inside, GPUs share an address space and a request routes by GPU physical address. Outside, each endpoint has its own address space, so software must establish connections explicitly, the way it does for InfiniBand.",
+          },
+        ],
+        work: [
+          { id: 'convention', label: 'reconcile the 450 GB/s from the GPU fabric lesson against NVIDIA\'s 900 in one sentence', href: '/l/ici/gpu-fabric' },
+          { id: 'bisect', label: 'bound what can cross a 36-against-36 cut of an NVL72, then say what NVIDIA has not published', href: '#what-130-tb-s-counts' },
         ],
       },
     ],

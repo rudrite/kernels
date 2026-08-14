@@ -23,7 +23,29 @@ export const LESSON_DIAGRAMS: Record<string, DiagramSpec> = {
       { k: 'box', x: 32, y: 276, w: 656, h: 38, t: 'SMEM / L1 · 256 kB, shared across the four subpartitions', tone: 'steel' },
       { k: 'line', x1: 360, y1: 266, x2: 360, y2: 276, a: 'both', tone: 'mute' },
     ],
+  },  'blackwell-package': {
+    w: 720,
+    h: 300,
+    alt: 'One B200 package: two reticle-limited dies side by side, joined by a 10 TB/s NV-HBI link, with four HBM3e stacks on each side, all on one interposer',
+    caption: 'one B200 package · two reticle-limited dies joined by NV-HBI, eight HBM3e stacks · NVIDIA Blackwell architecture technical brief and the Blackwell Ultra developer blog; per-die area is not published',
+    els: [
+      { k: 'box', x: 16, y: 40, w: 688, h: 178, t: '', tone: 'mute', dash: true },
+      { k: 'text', x: 28, y: 60, t: 'silicon interposer (CoWoS) · TSMC certified 5.5x reticle-size interposers in 2025', tone: 'mute', size: 10 },
+      ...[0, 1, 2, 3].map((i): DiagramSpec['els'][number] => ({
+        k: 'box', x: 28 + i * 52, y: 76, w: 48, h: 120, t: 'HBM3e', s: '24 GB\n1.0 TB/s', tone: 'steel',
+      })),
+      { k: 'box', x: 246, y: 76, w: 86, h: 120, t: 'die 0', s: 'at the\nreticle limit', tone: 'copper' },
+      { k: 'line', x1: 332, y1: 136, x2: 392, y2: 136, w: 8, tone: 'copper', a: 'both' },
+      { k: 'text', x: 362, y: 124, t: 'NV-HBI 10 TB/s', tone: 'ink', size: 10, anchor: 'middle' },
+      { k: 'box', x: 392, y: 76, w: 86, h: 120, t: 'die 1', s: 'at the\nreticle limit', tone: 'copper' },
+      ...[0, 1, 2, 3].map((i): DiagramSpec['els'][number] => ({
+        k: 'box', x: 494 + i * 52, y: 76, w: 48, h: 120, t: 'HBM3e', s: '24 GB\n1.0 TB/s', tone: 'steel',
+      })),
+      { k: 'text', x: 28, y: 244, t: '208 B transistors on TSMC 4NP, both dies together; NVIDIA publishes no per-die mm2', tone: 'ink', size: 11 },
+      { k: 'text', x: 28, y: 266, t: '8 stacks x 24 GB = 192 GB at 8 TB/s; 10 TB/s on NV-HBI, direction unspecified', tone: 'ink', size: 11 },
+    ],
   },
+
   'nvlink-node': {
     w: 720,
     h: 300,
