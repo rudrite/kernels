@@ -166,5 +166,14 @@ additive data (`cell: { level, side }` per unit) plus new surfaces.
    M4 opens with concept boards for founder sign-off, and the shipping
    commit carries the superseding ADR (0003) plus the brand README deviation
    note, per the cross-project rule.
+   **Resolved 2026-08-14, second pick:** from three boards (Phosphor,
+   Faceplate, Platen) the founder chose **Phosphor**: the site as an
+   instrument readout, hard brutalist blocks, aperture-grille tint on
+   chrome, bloom spent only on the accent and on measured numerals, the
+   hourglass as a lit spine. Dark mode ships as part of the direction (the
+   board designed it as a full design, not a filter), so ADR 0001's
+   no-dark-mode scope falls with the rest of it. M4a migrates tokens,
+   primitives, home with the map spine, and the lesson template; M4b
+   sweeps the remaining surfaces.
 3. **Specimen scope**: both frameworks and both machine sides from the start.
 4. **Workshop fold**: dissolve into the map in M3; nav goes to three items.
