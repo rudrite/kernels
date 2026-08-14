@@ -826,7 +826,7 @@ export const XLA_CHAPTERS: XlaChapter[] = [
       {
         "h": "How to read this chapter",
         "ps": [
-          "An abstract class is a list of promises with no bodies, so this chapter's body is code: two guided walks below step through the real implementations line by line. The first walks the CPU client, the in-process implementation you can single-step on a laptop, from `CompileAndLoad` down to the thunk run, with asides for where the GPU client does the same job with streams and NCCL. The second walks the PJRT-backed IFRT adapter keeping chapter 11's promises by delegation, and ends on the proxy keeping the very same promise over a wire. The short sections here hold only what the walked excerpts cannot show, and LAB·X5 at the bottom is the same interface implemented from scratch: a mock GPU you build in plain C. Everything was read at openxla/xla commit `881f236` on 2026-08-10.",
+          "An abstract class is a list of promises with no bodies, so this chapter's body is code: three guided walks below step through the real implementations line by line. The first walks the CPU client, the in-process implementation you can single-step on a laptop, from `CompileAndLoad` down to the thunk run, with asides for where the GPU client does the same job with streams and NCCL. The second walks the PJRT-backed IFRT adapter keeping chapter 11's promises by delegation, and ends on the proxy keeping the very same promise over a wire. The third walks torch_xla's `PjRtComputationClient`, which sits above the seam rather than under it, one round trip from a parameter leaving host memory to a literal coming back. The short sections here hold only what the walked excerpts cannot show, and LAB·X5 at the bottom is the same interface implemented from scratch: a mock GPU you build in plain C. The XLA code was read at openxla/xla commit `881f236` on 2026-08-10, and the torch_xla code at pytorch/xla commit `41398bf`.",
           "The cast, so every name has a home. `PjRtCpuClient` (`xla/pjrt/cpu/cpu_client.h`) and `StreamExecutorGpuClient` (`xla/pjrt/gpu/se_gpu_pjrt_client.h`, built on `PjRtStreamExecutorClient`, now under `xla/pjrt/se/`) implement PJRT in-process over a shared `CommonPjRtClient` base. The C API and its client-side wrapper sit in `xla/pjrt/c/` and `xla/pjrt/c_api_client/`. The PJRT-backed IFRT adapter is `xla/python/pjrt_ifrt/`, and the proxy pair is `xla/python/ifrt_proxy/`."
         ]
       },
@@ -882,6 +882,11 @@ export const XLA_CHAPTERS: XlaChapter[] = [
         "label": "The PJRT-backed IFRT adapter",
         "url": "https://github.com/openxla/xla/tree/main/xla/python/pjrt_ifrt",
         "note": "way one, one file per wrapped class"
+      },
+      {
+        "label": "pjrt_computation_client.cpp",
+        "url": "https://github.com/pytorch/xla/blob/41398bfff334fc8d3b1c00be6ea8cc5411f6d6bf/torch_xla/csrc/runtime/pjrt_computation_client.cpp",
+        "note": "the caller's side, one file, four functions"
       },
       {
         "label": "The IFRT proxy",

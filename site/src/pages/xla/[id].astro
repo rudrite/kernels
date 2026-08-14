@@ -18,6 +18,7 @@ import CodeWalk from '../../exhibits/CodeWalk'
 import { highlightLines } from '../../lib/highlight'
 import { walk as cpuClientWalk } from '../../data/walks/cpu-client'
 import { walk as ifrtAdapterWalk } from '../../data/walks/ifrt-adapter'
+import { walk as torchClientWalk } from '../../data/walks/torch-client'
 import { XLA_CHAPTERS, XLA_PATH, xlaChapterAt, type XlaChapter } from '../../data/xla/track'
 import { XLA_DIAGRAMS } from '../../data/xla/diagrams'
 import type { Lab } from '../../data/track'
@@ -82,13 +83,15 @@ const diagram = slot ? XLA_DIAGRAMS[slot.id] : undefined
 
 // Line-by-line code walks for chapters that carry them.
 const WALKS: Record<string, (typeof cpuClientWalk)[]> = {
-  interfaces: [cpuClientWalk, ifrtAdapterWalk],
+  interfaces: [cpuClientWalk, ifrtAdapterWalk, torchClientWalk],
 }
 const WALK_PROVENANCE: Record<string, string> = {
   'cpu-client':
     'excerpts from xla/pjrt/cpu and common_pjrt_client.cc at openxla/xla 881f236, trimmed where marked · step with the buttons or j/k',
   'ifrt-adapter':
     'excerpts from xla/python/pjrt_ifrt and ifrt_proxy at openxla/xla 881f236, trimmed where marked · step with the buttons or j/k',
+  'torch-client':
+    'excerpts from torch_xla/csrc/runtime/pjrt_computation_client.cpp at pytorch/xla 41398bf, trimmed where marked · step with the buttons or j/k',
 }
 const chapterWalks = await Promise.all(
   (WALKS[chapter.id] ?? []).map(async (w) => ({ walk: w, lines: await highlightLines(w.code, w.lang) })),
