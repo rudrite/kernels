@@ -9,6 +9,13 @@ import { IR_DESCENT_LESSONS } from './ir-descent'
 import { MACHINE_LESSONS } from './machine'
 import { PALLAS_LESSONS } from './pallas'
 import { TORCH_BRIDGE_LESSONS } from './torch-bridge'
+import { TORCH_DATA_LESSONS } from './torch-data'
+import { TORCH_DYNAMO_LESSONS } from './torch-dynamo'
+import { TORCH_GRAPHS_LESSONS } from './torch-graphs'
+import { TORCH_LOOP_LESSONS } from './torch-loop'
+import { TORCH_MODULES_LESSONS } from './torch-modules'
+import { TORCH_TAPE_LESSONS } from './torch-tape'
+import { TORCH_TENSOR_LESSONS } from './torch-tensors'
 import { XLA_LESSONS } from './xla-internals'
 
 export interface LessonCode {
@@ -77,6 +84,13 @@ export const ALL_UNIT_LESSONS: UnitLessons[] = [
   ...MACHINE_LESSONS,
   ...PALLAS_LESSONS,
   ...XLA_LESSONS,
+  ...TORCH_TENSOR_LESSONS,
+  ...TORCH_TAPE_LESSONS,
+  ...TORCH_MODULES_LESSONS,
+  ...TORCH_LOOP_LESSONS,
+  ...TORCH_DATA_LESSONS,
+  ...TORCH_DYNAMO_LESSONS,
+  ...TORCH_GRAPHS_LESSONS,
   ...TORCH_BRIDGE_LESSONS,
 ]
 
