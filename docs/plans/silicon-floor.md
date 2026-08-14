@@ -95,8 +95,17 @@ ship in the lessons.
 
 Per-unit protocol as in `true-mastery-courses.md` §P3.
 
-- [ ] Provenance sweep reconciled; every planned figure has a source or the
-      claim is cut
+- [x] Provenance sweep landed 2026-08-14 (local notes; 756 lines, source per
+      figure, 15 negative results recorded). Headline verdicts: the reticle
+      field is 26x33mm per ASML; every TPU peak-FLOPs derivation closes
+      (v1, v4, v5p) except v6e, whose published MXU shape cannot reach the
+      claimed 918 TF at any published clock, and Google's own docs
+      contradict on MXU MAC count; the H100 datasheet implies three
+      different clocks across dtypes and prints none; NVL72's 130 TB/s is
+      an all-GPU sum, not bisection. "Barncode" confirmed nonexistent: the
+      intended term is SparseCore (or TensorCore), and the lessons carry
+      the disambiguation. Lessons must teach the non-closing derivations
+      and the not-public gaps as content, not smooth them over.
 - [ ] Lessons 1-3 (`s:machine`)
 - [ ] Lessons 4-5 (`l:tpu`)
 - [ ] Lesson 6 (`l:ici`)
