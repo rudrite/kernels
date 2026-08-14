@@ -32,7 +32,19 @@ Three research passes over shallow clones of pytorch/xla and openxla/xla,
 each producing a notes file (local scratch, not tracked) with every claim
 cited to a path, plus a 15-file reading order:
 
-- [ ] R1 · frontend: tracing → lowering → compile → modes
+- [x] R1 · frontend: tracing → lowering → compile → modes. Landed
+      2026-08-14 against pytorch/xla 41398bf (still master's tip; the branch
+      has been quiet ~4 months). Headline verdicts to reconcile in Phase 2:
+      TorchTPU (announced 2026-04-22) is slated to replace PyTorch/XLA with
+      an eager-first PrivateUse1 backend, leaving XLA as a torch.compile
+      backend via StableHLO, so the lazy frontend is now the legacy design;
+      eager mode is the same tracing machinery with per-op sync (same
+      lowering, same cache), not a separate path; interior IR-node hashes
+      exclude shapes while leaf data nodes fold them in; print and sync
+      compile the same graph twice by design (force_ltc_data enters the
+      hash); the dynamo path caches by graph hash with a hard failure on
+      LRU eviction; the seam is crossed at 13 named ComputationClient
+      call sites.
 - [x] R2 · runtime seam: ComputationClient, both clients, plugin loading,
       transfers, threading. Landed 2026-08-14 against pytorch/xla 41398bf.
       Headline verdicts to reconcile in Phase 2: the IFRT client is compiled
