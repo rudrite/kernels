@@ -186,6 +186,19 @@ primitive contract as written there):
   material enters as lessons in arcs, graded against section 2, one telling per
   fact.
 
+  The floor pass (2026-08-14, under the compiler-floor, silicon-floor, and
+  torch-xla-pjrt-boundary plans): nineteen lessons entered their owning units
+  in one day, drafted by a two-stage author/critic pipeline and integrated
+  unit by unit. Graded against section 2: `s:machine` is now a seven-lesson
+  arc (die to scale-up domain) and `l:tpu` a nine-lesson arc (chip to VLIW
+  floor), both teaching to competence with checks throughout; `l:jaxpr`,
+  `l:stablehlo`, `l:xla`, `xla:codegen`, and `l:ici` each gained the lesson
+  their audit rows called for; and `pt:bridges` became the PyTorch course's
+  first full arc (five lessons, engine to succession), which also shipped the
+  `pt:` lesson route the course lacked. Provenance discipline held: two
+  vendor spec sheets that do not close (H100 clocks, v6e MXU arithmetic) are
+  taught as findings, and every not-public figure is stated as not public.
+
 ## 6. Decisions (founder, 2026-08-07)
 
 1. UI: **keep the paper register and refresh it** (type scale, depth, hierarchy).

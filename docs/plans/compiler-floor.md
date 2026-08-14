@@ -94,6 +94,9 @@ tests and build green, browser check, one conventional commit per unit).
 - [x] Lesson 7 (TPU VLIW + LLO edge)
 - [x] Lesson 8 (Triton in xla:codegen)
 - [ ] Lab notebook + lab cards on the owning units
-- [ ] Optional drill station, or a recorded decision not to
+- [x] Drill station decision recorded 2026-08-14: not built here. The drill
+      becomes the place-the-artifact station in the descent revamp's M3
+      (docs/plans/descent-revamp.md), where the map gives it its board; a
+      standalone station now would be rebuilt in weeks
 - [ ] CURRICULUM.md and unit hubs reflect the new lessons; grades noted in
       `true-mastery-courses.md` §P5

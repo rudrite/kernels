@@ -109,18 +109,53 @@ additive data (`cell: { level, side }` per unit) plus new surfaces.
 
 ## Phases
 
-- **M0** · this proposal; founder picks the decisions below.
-- **M1, the map.** Cell coordinates on every unit, the map component, home
-  replaced, mini-map on lesson pages, routes as overlays. Purely additive.
-- **M2, the specimen.** Capture pipeline (folds in the compiler-floor and
-  silicon-floor capture passes), specimen slices at the top of each unit,
-  artifact explorer v1 from the walk player.
-- **M3, depth.** Progress re-rollup by cell, depth gauge, place-the-artifact
-  station, workshop fold, nav to three items.
-- **M4, the register.** UI migration behind the superseding ADR, browser
-  verified at three widths, both modes, reduced motion.
-- The three floor content plans proceed in parallel; their lessons land in
-  cells from day one.
+- **M0** · this proposal; founder picked, see the decisions section. Done.
+- **M1, the map.** Shipped 2026-08-14: cells on every unit, the hourglass as
+  the front door, mini-maps, routes as overlays, eleven invariant tests.
+  Purely additive; the old home content survives below the map until M3.
+- **M2, the specimen.** One attention step captured at every level, both
+  frameworks, and surfaced through the site.
+  1. *Capture pipeline.* A checked-in script (`bench/specimen/`) that emits
+     every artifact reproducible on CPU: source, jaxpr, FX, StableHLO,
+     optimized HLO, LLVM IR, plus the torch_xla seam trace when run on a
+     Colab TPU (paste-back, like the existing reader-driven labs). GPU-only
+     stages (Triton stack, SASS) enter as cited captures with pinned
+     provenance, never synthesized. The artifact-descent lab authored under
+     the compiler-floor plan is the pipeline's seed; M2 promotes it from
+     notebook to committed artifacts with a regeneration script.
+  2. *Specimen slices.* Each unit on the map opens with its slice of the one
+     program ("your program at this floor"), a short excerpt linking into
+     the full artifact. One-fact-one-home holds: the slice quotes, the
+     lesson teaches.
+  3. *Artifact explorer v1.* The walk player generalized: scrub vertically
+     through the specimen's levels, expand any level to the full dump. One
+     component, fed by the captured artifacts.
+- **M3, depth.** The progress model and the surfaces that ride it.
+  1. Mastery re-rollup by map cell; the depth gauge ("reads to L5, TPU
+     side") as the headline number on home and profile surfaces; course
+     bars remain inside route pages.
+  2. The place-the-artifact station: an unlabeled artifact, the reader
+     places it on the map; corpus drawn only from the specimen captures and
+     lesson-quoted dumps (the drill the compiler-floor plan deferred here).
+  3. Workshop fold: gym stations, museum exhibits, and bench records pin to
+     cells; the Workshop nav item retires; nav becomes Map · Routes ·
+     GitHub. `_redirects` maps the retired URLs.
+  4. Home reconcile: the old scroll-descent bands and path cards merge into
+     the map surface so the stack is told once.
+- **M4, the register.** The founder-directed new theme: brutalist base,
+  retro-fitted morphisms, techish, aiming for beautiful.
+  1. *Concept boards first.* Two or three full-page concepts (home + one
+     lesson page each), built as static comps, presented for founder pick.
+     Nothing migrates before a pick.
+  2. On pick: `docs/decisions/0003-<name>.md` superseding ADR 0001, brand
+     README deviation note in the same commit, tokens and primitives, then
+     surface-by-surface migration.
+  3. Exit gate: three widths, light and dark, reduced motion, zero
+     regressions on the map and instrument surfaces.
+- Ordering: M2 before M3 (the station and the slices need the captures);
+  M4 can run beside either once concepts are picked. Remaining boundary-plan
+  items (the reconcile pass, the third walk, the labs) finish independently
+  and feed M2's capture inventory.
 
 ## Decisions (founder, 2026-08-14)
 
