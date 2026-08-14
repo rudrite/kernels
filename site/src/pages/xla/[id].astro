@@ -6,6 +6,7 @@ import MlirCode from '../../components/MlirCode.astro'
 import SectionHead from '../../components/SectionHead.astro'
 import ReadingRails from '../../components/ReadingRails.astro'
 import MasteryWork from '../../components/MasteryWork.astro'
+import MiniMap from '../../components/MiniMap.astro'
 import LessonList from '../../components/LessonList.astro'
 import { lessonsOf } from '../../data/lessons'
 import BlockDiagram from '../../components/BlockDiagram.astro'
@@ -109,6 +110,7 @@ const chapterWalks = await Promise.all(
 
   <div class="wrap layout">
     <aside class="side">
+      <MiniMap unit={key} />
       <nav class="pathmap" aria-label="The XLA path">
         <span class="mono-label toc-head">the xla path</span>
         <ol>

@@ -1,0 +1,67 @@
+---
+// The map in miniature, for chapter and lesson pages: the same eight levels
+// and three columns, current cell lit, so "where am I in the stack" is one
+// glance away. It names cells and links to the full map; it lists nothing,
+// because the cell's units live there.
+import { LEVELS, cellOf, unitsAt, type MapLevel, type MapSide } from '../data/map'
+
+interface Props {
+  /** A unit key ('l:tpu', 'xla:pjrt') or a lesson key, which inherits. */
+  unit: string
+}
+const { unit } = Astro.props
+const cell = cellOf(unit)
+
+const columns = (level: MapLevel): MapSide[] => [level.left.side, 'waist', level.right.side]
+const sideLabel = (level: MapLevel, side: MapSide): string =>
+  side === 'waist' ? (level.waist ?? 'the waist') : side === level.left.side ? level.left.label : level.right.label
+const hereLevel = cell ? LEVELS.find((l) => l.level === cell.level) : undefined
+---
+
+{
+  cell && hereLevel && (
+    <nav class="minimap" aria-label="Where this page sits in the stack">
+      <span class="mono-label mm-head">where you are</span>
+      <ol class="mm-levels">
+        {LEVELS.map((level) => (
+          <li class={`mm-row ${level.level === cell.level ? 'on-level' : ''}`}>
+            <span class="mm-n">L{level.level}</span>
+            <span class="mm-cells">
+              {columns(level).map((side) => {
+                const filled = unitsAt(level.level, side).length > 0
+                const lit = level.level === cell.level && side === cell.side
+                return (
+                  <i
+                    class={`mm-cell ${filled ? 'filled' : ''} ${lit ? 'here' : ''}`}
+                    title={`L${level.level} · ${level.title}${sideLabel(level, side) ? ` · ${sideLabel(level, side)}` : ''}`}
+                  />
+                )
+              })}
+            </span>
+          </li>
+        ))}
+      </ol>
+      <span class="mm-caption">
+        L{cell.level} · {hereLevel.title}
+        {sideLabel(hereLevel, cell.side) && <> · {sideLabel(hereLevel, cell.side)}</>}
+      </span>
+      <a class="mm-more mono-label" href="/#map">the whole map →</a>
+    </nav>
+  )
+}
+
+<style>
+  .minimap { font-family: var(--mono); margin-bottom: 1.25rem; }
+  .mm-head { display: block; margin-bottom: 0.5rem; }
+  .mm-levels { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  .mm-row { display: flex; align-items: center; gap: 0.5rem; }
+  .mm-n { font-size: 0.5625rem; color: var(--ink-mute); width: 1.25rem; }
+  .mm-row.on-level .mm-n { color: var(--accent-deep); }
+  .mm-cells { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; flex: 1; min-width: 0; }
+  .mm-cell { display: block; height: 7px; border: 1px solid var(--rule-soft); background: none; }
+  .mm-cell.filled { background: var(--rule); }
+  .mm-cell.here { background: var(--accent-deep); border-color: var(--accent-deep); }
+  .mm-caption { display: block; margin-top: 0.5rem; font-size: 0.625rem; color: var(--ink); }
+  .mm-more { display: block; margin-top: 0.25rem; text-decoration: none; color: var(--accent-deep); }
+  .mm-more:hover { text-decoration: underline; }
+</style>

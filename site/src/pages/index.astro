@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro'
 import SectionHead from '../components/SectionHead.astro'
 import Exhibit from '../components/Exhibit.astro'
 import Choreographer from '../exhibits/Choreographer'
+import StackMap from '../components/StackMap.astro'
 import { flashTrace } from '../exhibits/flash'
 import { LAYERS, STAGES, stagesForLayer } from '../data/track'
 import irData from '../data/ir-attention.json'
@@ -67,10 +68,22 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
   title="Rudrite Kernels · learn to write fast TPU kernels"
   description="A mastery course down the TPU kernel stack: fifteen chapters, live instruments, runnable labs, and gates measured on real hardware, pass or fail in public."
 >
+  <section class="wrap front" id="map" aria-label="The map">
+    <p class="mono-label kicker">the whole stack · one map · four courses across it</p>
+    <h1>One program, all the way down.</h1>
+    <p class="lede">
+      Two frameworks converge on one portable graph, cross the runtime seam under it, and come out
+      as code for two different machines. Every chapter on this site is a floor or a seam of that
+      descent, and this is where each one sits. Pick a course to light its route, or open any unit
+      from its cell.
+    </p>
+    <StackMap />
+  </section>
+
   <section class="wrap hero">
     <div class="hero-copy">
       <p class="mono-label kicker">a mastery course · one path · down the stack</p>
-      <h1>Learn to write fast TPU kernels.</h1>
+      <h2>Learn to write fast TPU kernels.</h2>
       <p class="lede">
         This page is the stack. Scroll and you descend it: four layers of compiler land on paper, the
         gap, then the shaded depths where kernels live. Each layer is a chapter with assigned mastery work;
@@ -254,7 +267,11 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
   .hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 3rem; align-items: center; padding-block: clamp(2.5rem, 6vw, 4rem) 1.5rem; }
   @media (max-width: 1100px) { .hero { grid-template-columns: minmax(0, 1fr); } }
   .kicker { display: block; margin-bottom: 1.25rem; color: var(--accent-deep); }
-  h1 { font-size: clamp(2.25rem, 5vw, 3.5rem); line-height: 1.05; font-weight: 600; letter-spacing: -0.01em; }
+  h1, .hero-copy h2 { font-size: clamp(2.25rem, 5vw, 3.5rem); line-height: 1.05; font-weight: 600; letter-spacing: -0.01em; }
+
+  /* the map: the front door */
+  .front { padding-block: clamp(2rem, 5vw, 3rem) 1rem; }
+  .front .lede { max-width: 68ch; margin-bottom: 2rem; }
   .lede { margin-top: 1.25rem; font-size: 1.125rem; max-width: 46ch; }
   .cta-row { display: flex; gap: 1rem; margin-top: 1.75rem; flex-wrap: wrap; }
   .cta { font-family: var(--mono); font-size: 0.8125rem; text-decoration: none; border: 1px solid var(--ink-mute); padding: 0.625rem 1rem; border-radius: 2px; color: var(--ink); background: var(--paper-high); }

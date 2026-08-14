@@ -8,6 +8,7 @@ import Rich from './Rich.astro'
 import SectionHead from './SectionHead.astro'
 import ReadingRails from './ReadingRails.astro'
 import MasteryWork from './MasteryWork.astro'
+import MiniMap from './MiniMap.astro'
 import BlockDiagram from './BlockDiagram.astro'
 import MlirCode from './MlirCode.astro'
 import FullDump from './FullDump.astro'
@@ -79,6 +80,7 @@ const guideHeads = lesson.guide
 
   <div class="wrap layout">
     <aside class="side">
+      <MiniMap unit={unit} />
       <nav class="pathmap" aria-label="This unit's lessons">
         <span class="mono-label toc-head">this unit's lessons</span>
         <ol>

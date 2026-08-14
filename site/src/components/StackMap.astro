@@ -1,0 +1,168 @@
+---
+// The map: the hourglass with its cells, every unit on the site linked from
+// the level it belongs to. Mastery state rides on the same data attributes
+// the path rows use, so ProgressKit paints this with no new code. The four
+// courses are routes drawn over the cells; picking one dims the rest.
+import { LEVELS, ROUTES, routesAt, unitsAt, type MapLevel, type MapSide } from '../data/map'
+
+interface Props {
+  /** The reader's current cell, lit on the map. */
+  here?: { level: number; side: MapSide }
+}
+const { here } = Astro.props
+const pad = (n: number) => String(n).padStart(2, '0')
+
+const columns = (level: MapLevel): { side: MapSide; label: string }[] => [
+  level.left,
+  { side: 'waist', label: level.waist ?? '' },
+  level.right,
+]
+---
+
+<div class="map">
+  <div class="routes" role="group" aria-label="The four courses, drawn over the map">
+    {
+      ROUTES.map((r) => (
+        <div class="route">
+          <button type="button" class="route-btn" data-route-btn={r.id} aria-pressed="false">
+            <span class="rb-label">{r.label}</span>
+            <span class="rb-meta meas"><span data-path-progress={r.progress}>0/{r.units.length}</span> chapters</span>
+          </button>
+          <span class="route-note">{r.note}</span>
+          <a class="route-go mono-label" href={r.href}>enter the course →</a>
+        </div>
+      ))
+    }
+  </div>
+
+  <ol class="levels">
+    {
+      LEVELS.map((level) => (
+        <>
+          <li class="row">
+            <div class="lv">
+              <span class="lv-n meas">L{level.level}</span>
+              <span class="lv-t">{level.title}</span>
+            </div>
+            <div class="cells">
+              {columns(level).map((col) => {
+                const units = unitsAt(level.level, col.side)
+                const lit = here && here.level === level.level && here.side === col.side
+                if (!units.length && !col.label) return <div class="cell gone" aria-hidden="true" />
+                return (
+                  <div
+                    class={`cell ${units.length ? '' : 'empty'} ${lit ? 'here' : ''}`}
+                    data-side={col.side}
+                    data-routes={routesAt(level.level, col.side).join(' ')}
+                  >
+                    <span class="c-head mono-label">{col.label}</span>
+                    {units.length > 0 ? (
+                      <ul>
+                        {units.map((u) => (
+                          <li>
+                            <a class="u" href={u.href} data-chapter-key={u.key}>
+                              <span class="u-k">{u.route} {pad(u.num)}</span>
+                              <span class="u-t">{u.title}</span>
+                              <span class="u-f meas" data-work-frac={u.key} />
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span class="c-none">nothing here yet</span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </li>
+          {level.seam && (
+            <li class="seam">
+              <span class="mono-label">{level.seam}</span>
+            </li>
+          )}
+        </>
+      ))
+    }
+  </ol>
+</div>
+
+<script>
+  // Picking a route dims every cell it does not pass through; picking it
+  // again clears. The map reads fine with the script absent.
+  const map = document.querySelector<HTMLElement>('.map')
+  const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-route-btn]'))
+  for (const btn of buttons) {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-route-btn')!
+      const on = map?.dataset.route !== id
+      if (map) {
+        if (on) map.dataset.route = id
+        else delete map.dataset.route
+      }
+      for (const b of buttons) b.setAttribute('aria-pressed', String(on && b === btn))
+    })
+  }
+</script>
+
+<style>
+  .map { --dim: 0.3; }
+
+  .routes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  @media (max-width: 1000px) { .routes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 620px) { .routes { grid-template-columns: minmax(0, 1fr); } }
+  .route { display: flex; flex-direction: column; gap: 0.375rem; border: 1px solid var(--rule); background: var(--paper-high); padding: 0.75rem 0.875rem; }
+  .route-btn { display: flex; flex-direction: column; gap: 0.25rem; align-items: flex-start; background: none; border: none; padding: 0; cursor: pointer; text-align: left; color: inherit; font: inherit; }
+  .rb-label { font-family: var(--serif); font-weight: 600; font-size: 1.0625rem; }
+  .route-btn:hover .rb-label, .route-btn[aria-pressed='true'] .rb-label { color: var(--accent-deep); }
+  .rb-meta { font-family: var(--mono); font-size: 0.6875rem; color: var(--ink-mute); }
+  .route-note { font-size: 0.8125rem; color: var(--ink-mute); }
+  .route-go { text-decoration: none; color: var(--accent-deep); }
+  .route-go:hover { text-decoration: underline; }
+  .route-btn[aria-pressed='true'] { position: relative; }
+  .route-btn[aria-pressed='true']::before { content: ''; position: absolute; left: -0.875rem; top: 0; bottom: 0; width: 3px; background: var(--accent-deep); }
+
+  .levels { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+  .row { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 1.5rem; align-items: stretch; padding-block: 0.875rem; border-bottom: 1px solid var(--rule-soft); }
+  .lv { display: flex; flex-direction: column; gap: 0.2rem; padding-top: 0.2rem; }
+  .lv-n { font-family: var(--mono); font-size: 1.125rem; color: var(--accent-deep); }
+  .lv-t { font-size: 0.8125rem; color: var(--ink-mute); }
+
+  .cells { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
+  .cell { border: 1px solid var(--rule); background: var(--paper-high); padding: 0.5rem 0.625rem; min-width: 0; }
+  .cell.gone { border: none; background: none; }
+  .cell.empty { border-style: dashed; background: none; }
+  .cell.here { border-color: var(--accent-deep); box-shadow: 3px 3px 0 color-mix(in srgb, var(--accent-deep) 22%, transparent); }
+  .c-head { display: block; color: var(--ink-mute); }
+  .cell[data-side='waist'] .c-head { color: var(--accent-deep); }
+  .c-none { font-family: var(--mono); font-size: 0.6875rem; color: var(--ink-mute); }
+  .cell ul { list-style: none; margin: 0.375rem 0 0; padding: 0; }
+  .u { display: flex; align-items: baseline; gap: 0.5rem; padding: 0.15rem 0; text-decoration: none; color: var(--ink); font-size: 0.8125rem; }
+  .u:hover { color: var(--accent-deep); }
+  .u-k { font-family: var(--mono); font-size: 0.625rem; color: var(--ink-mute); white-space: nowrap; }
+  .u-t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .u-f { font-family: var(--mono); font-size: 0.625rem; color: var(--ink-mute); }
+  :global(.u.p-done) .u-f { color: var(--pass); }
+  :global(.u.p-done) .u-k { color: var(--pass); }
+
+  .seam { display: flex; align-items: center; gap: 0.75rem; padding-block: 0.5rem; border-bottom: 1px solid var(--rule-soft); background: repeating-linear-gradient(-45deg, var(--paper), var(--paper) 6px, var(--rule-soft) 6px, var(--rule-soft) 7px); }
+  .seam .mono-label { color: var(--accent-deep); background: var(--paper); padding: 0.125rem 0.5rem; margin-left: 9rem; }
+
+  /* the route overlay: one rule per course, the ids being a closed set */
+  .map[data-route='kernels'] .cell:not(.gone):not([data-routes~='kernels']),
+  .map[data-route='jax'] .cell:not(.gone):not([data-routes~='jax']),
+  .map[data-route='xla'] .cell:not(.gone):not([data-routes~='xla']),
+  .map[data-route='pytorch'] .cell:not(.gone):not([data-routes~='pytorch']) { opacity: var(--dim); }
+  .map[data-route='kernels'] .cell[data-routes~='kernels'],
+  .map[data-route='jax'] .cell[data-routes~='jax'],
+  .map[data-route='xla'] .cell[data-routes~='xla'],
+  .map[data-route='pytorch'] .cell[data-routes~='pytorch'] { border-color: var(--accent-deep); }
+
+  @media (max-width: 860px) {
+    .row { grid-template-columns: minmax(0, 1fr); gap: 0.5rem; }
+    .cells { grid-template-columns: minmax(0, 1fr); }
+    .cell.gone { display: none; }
+    .lv { flex-direction: row; align-items: baseline; gap: 0.625rem; }
+    .seam .mono-label { margin-left: 0; }
+  }
+</style>

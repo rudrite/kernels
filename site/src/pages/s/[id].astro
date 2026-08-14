@@ -6,6 +6,7 @@ import SectionHead from '../../components/SectionHead.astro'
 import ReadingRails from '../../components/ReadingRails.astro'
 import PathPager from '../../components/PathPager.astro'
 import MasteryWork from '../../components/MasteryWork.astro'
+import MiniMap from '../../components/MiniMap.astro'
 import LessonList from '../../components/LessonList.astro'
 import { lessonsOf } from '../../data/lessons'
 import GateStamp from '../../components/GateStamp.astro'
@@ -99,6 +100,7 @@ const toc = [...chapterToc, ...fixedToc]
 
   <div class="wrap layout">
     <aside class="side">
+      <MiniMap unit={`s:${stage.id}`} />
       <Spine currentKey={`s:${stage.id}`} />
       <nav class="toc" aria-label="On this page">
         <span class="mono-label toc-head">on this page</span>
