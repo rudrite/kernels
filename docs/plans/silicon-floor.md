@@ -109,6 +109,12 @@ Per-unit protocol as in `true-mastery-courses.md` §P3.
 - [x] Lessons 1-3 (`s:machine`)
 - [x] Lessons 4-5 (`l:tpu`)
 - [x] Lesson 6 (`l:ici`)
-- [ ] Spec-sheet lab + die-shot applied item wired into the owning units
-- [ ] CURRICULUM.md and unit hubs reflect the new lessons; grades noted in
+- [x] Spec-sheet lab shipped: LAB·0.2 "Spec sheet from parts" (labs/stage-0/),
+      executed end to end, carded on stage 0; the two non-closing vendor
+      derivations print as findings
+- [ ] Die-shot applied item stays open on a licensing wall: no open-licensed
+      H100/TPU die photo exists (the sweep found CC0 only for consumer dies)
+      and the official block diagrams are vendor copyright. Revisit if a
+      quotable source appears; do not ship a redrawn approximation
+- [x] Hubs derive the lessons automatically; grade recorded in
       `true-mastery-courses.md` §P5

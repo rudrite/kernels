@@ -105,13 +105,17 @@ Owning units, per the audit rule (deepen, never duplicate):
 
 ## Work items
 
-- [ ] Phase R complete, notes reconciled against each other (the seam is
-      described by R1 from above and R2 from within; they must agree)
-- [ ] Phase 1 study loop run on this machine, artifacts kept locally
-- [ ] Phase 2 arcs authored per the §P3 protocol (checks, voice, provenance,
-      tests + build green, browser check, one commit per unit). The
-      pt:bridges arc shipped 2026-08-14, five lessons (engine, cut points,
-      modes, seam, succession) with the first pt: lesson route; still open:
-      the xla:pjrt/xla:ifrt reconcile pass, the chapter-14 third-walk
-      decision, and the boundary-trace lab
-- [ ] CURRICULUM.md and §P5 grades updated with whatever ships
+- [x] Phase R complete and reconciled 2026-08-14: the site-facing audit
+      verified 24 claims and corrected 3 (chapter 1 CompileAndLoad naming,
+      ReshardArrays not metadata-only, the array.h RTTI line); R1 and R2
+      agree on the seam
+- [x] Phase 1 encoded as LAB·P5 "The boundary trace" (labs/pytorch/): the
+      three-mode trace with the seam table as its reading frame. The Colab
+      TPU run and its paste-backs are the reader-driven half, still to run
+- [x] Phase 2 complete 2026-08-14: the pt:bridges arc (five lessons with
+      the first pt: lesson route), the xla reconcile pass applied, the
+      chapter-14 third walk shipped (torch-client, nine steps over one
+      round trip, coverage-checked verbatim), and LAB·P5 carded on the
+      bridges chapter
+- [x] §P5 grade recorded; CURRICULUM.md enumerates no lessons. Plan
+      complete 2026-08-14 except the reader-driven Colab paste-backs
