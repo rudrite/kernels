@@ -474,6 +474,128 @@ export const MACHINE_LESSONS: UnitLessons[] = [
             { id: 'bound', label: 'bound an 8-GPU all-reduce at 58 MB and set it against the measured 150 GB/s' },
           ],
       },
+      {
+        id: 'the-optical-patch-panel',
+        num: 6,
+        title: 'The optical patch panel',
+        lede: 'A TPU v4 pod has almost no long fixed cables. Forty-eight optical switches aim mirrors at fibers, and the shape of your slice is a routing table they load when the job starts.',
+        goal: 'Count the switches, ports, and fiber strands behind a 4096-chip pod from the block geometry alone, and say what a topology change costs when the wiring never moves.',
+        sections: [
+          {
+            h: 'the cable that had to be light',
+            ps: [
+              'A wraparound link on a TPU v3 pod sometimes had to reach across the room. Electrical cable gives out at that distance, so those particular links were already optical, and an optical link costs more than ten times what an electrical one costs. Then v4 asked for four times the chips. More of the expensive links, a 2D torus whose bisection bandwidth was thin at that size, and one problem sitting under both: a machine of 4096 chips is rarely a machine where everything works at once.',
+              "So TPU v4 stopped fixing the long links in place. Between the racks sits a set of switches that join fiber to fiber by aiming a mirror, an **optical circuit switch**, and Google's is called Palomar. The paper's own word for what it does is plugboard. The pod gets patched per job, and a dead unit gets patched around.",
+              'The fabric lesson that opens this chapter took the torus as given: chips wired to neighbors, axes folded into rings. This is where the given comes from. On v4 nobody wired your neighbor at install time. The scheduler chose it, and the choice is a routing table loaded when your slice is allocated.',
+            ],
+          },
+          {
+            h: 'a mirror, not a router',
+            ps: [
+              'Palomar is built on 3D MEMS mirrors, micro-machined and tilted to steer light out of one fiber and into another, and the tilt settles in milliseconds. After that the path is passive. Nothing reads a header, nothing queues, nothing decides, because there is no packet: the light that leaves the source tray is the light that arrives at the destination tray. What the design gains is a list of absences. No congestion. No protocol layers adding latency. Almost no power, since holding a mirror at an angle costs a fraction of what packet processing costs.',
+              'The switch is `136x136`, which the paper unpacks as 128 ports plus 8 spares kept for link testing and repairs. Circulators send light both ways down a single fiber, halving the ports and cables the design would otherwise need. Every connection is one input to one output, so the switch cannot fan out and cannot buffer a byte. Whatever shape a job wants has to be expressible as a permutation, set once at slice allocation and held for the life of the job.',
+            ],
+          },
+          {
+            h: 'counting the cables',
+            ps: [
+              'Why `4x4x4`? A cube has the best bisection bandwidth of any 3D box, which argues for building blocks of 64 or 512 chips. Sixty-four chips and their 16 CPU hosts fit comfortably in one rack; 512 chips do not. The rack became the block, wired inside as a `4x4x4` mesh by passive electrical cable, with nothing optical in it at all.',
+              "The optics start at the tray. A tray's fiber connector turns electrons into light, and the next conversion back happens at the connector of the destination tray, with nothing in between. Each rack presents six faces, 16 links per face, 96 optical links in total. Wraparound decides where those 96 go: for a dimension to fold into a ring, the links on its two opposing faces must arrive at the same switch. That pairs them, `6 x 16 / 2 = 48`, so a rack cables to 48 switches and every rack cables to every one of them.",
+              "The same counting works one level down. A v4 chip has six ICI links, two on the board and four leaving through OSFP connectors. Four chips per board with two on-board links each pair into the `2x2` mesh the PCB embeds, and four off-board links times four chips are the 16 OSFP connectors on the tray's front panel.",
+              'Two further counts fall out, and both close against published figures, which is the reason to do the arithmetic rather than read it. Sixty-four racks each hand one in-and-out pair to a given switch, which is 128 fiber ends, exactly the usable port count of a `136x136` Palomar. Multiply by 48 switches and you get 6,144 strands, which is what the Hot Chips deck says a system contains.',
+            ],
+            table: {
+              caption: 'the v4 wiring, counted from the ISCA 2023 paper (sections 2.1 and 2.2) and the Hot Chips 2023 deck',
+              cols: ['quantity', 'value', 'where it comes from'],
+              rows: [
+                ['chips per building block', '64, a `4x4x4` cube filling one rack', 'cubes maximise bisection, and 64 chips plus 16 hosts fit a rack'],
+                ['link ends per block', '384, from 64 chips at 6 ICI links each', 'derived; the rack-internal mesh consumes 288 of them as 144 links'],
+                ['optical links per block', '96, 16 on each of 6 faces', 'stated in the paper; equals the 384 ends minus the 288 spent inside the rack'],
+                ['switches per block', '48, from `6 x 16 / 2`', 'opposing faces must land on the same switch for the wraparound to exist'],
+                ['ports used per switch', '128, one in-and-out pair from each of 64 racks', 'derived; matches the published 128 usable ports of a `136x136` Palomar'],
+                ['fiber strands per system', '6,144, from `48 x 128`', 'derived; matches the deck\'s "6,144 Fiber Strands"'],
+                ['chips per system', '4,096, from 64 blocks of 64', '64 racks deployed in 8 groups of 8'],
+              ],
+            },
+          },
+          {
+            h: 'shapes without recabling',
+            ps: [
+              'A v4 slice is any `4i x 4j x 4k` with the dimensions sorted, so 192 chips can be `4x4x12` and nothing has to be a power of two. What the shape decides is which distances your collectives pay for. A cigar like `4x4x32` suits pipeline parallelism, where traffic runs mostly along one axis. A cube like `8x8x8` gives the highest bisection bandwidth, which is what embedding-heavy work wants. The cost formulas earlier in this chapter take a ring length n and hand back a floor; the shape is where n comes from.',
+              'Past the rectangle there is a second choice. A twisted torus rewires some of the links between cubes so the worst-case distance shrinks, and on this machine that rewiring is not physical. The optical connections move from a rectangular torus to a twisted one by loading different routing tables, while the electrical cabling inside the racks never moves. Measured on all-to-all with large aggregate transfers and 4 KiB DMAs, twisting bought 1.63x on a `4x4x8` slice and 1.31x on `4x8x8`.',
+              'Not every slice can twist. The geometry has to be `n x n x 2n` or `n x 2n x 2n` with n at least 4, which covered 33% of slices in a November 2022 production sample; the ones that actually ran twisted were 28%. Counted only among slices of a full cube or larger, 40% ran twisted. Hold the other end of that distribution too: 29% of slices were smaller than a `4x4x4` cube, and those get a 2D mesh with no wraparound at all.',
+              "The paper's sharpest performance case mixes two changes, and reading it as topology alone would be wrong. A 512-chip LLM slice went from 17.9 to 41.3 sequences per second, 2.3x, when the shape moved from `4x8x16` to `8x8x8` and the model-parallel split moved from `16x32` to `64x8` with 1D/2D activation and weight partitioning. A GPT-3 pre-training case, starting from an expert's configuration rather than a novice's, gained 1.2x from a similar joint change. Reconfiguring the topology pays when the partitioning moves with it.",
+              '>> The shape of the machine is a routing table, not a recabling.',
+            ],
+          },
+          {
+            h: 'skipping the dead ones',
+            ps: [
+              'Four TPUs share a CPU host, so a 4096-chip system carries 1024 hosts, and the host is the part most likely to be down. Without an OCS the chips behind a dead host are out of the slice, and the paper states the requirement plainly: host availability has to reach 99.9% before large slices deliver reasonable goodput. With the switches in the path, 99.0% and 99.5% still give fair goodput at most slice sizes, because the scheduler patches a live block in where the dead one sat.',
+              'Goodput at the largest sizes stays awkward anyway, for a reason that has nothing to do with optics. A pool needs spares. Ask for 2048 of 4096 chips and half the machine sits spare, which the paper reads as 50% goodput; ask for 3072 and a quarter sits spare, for 75%. Two 2K slices out of a 4K machine is not a realistic schedule.',
+              'The plugboard also changed how a pod gets built. A v3 system was unusable until all 1024 chips and every cable were installed and tested, so one late component held the whole machine. On v4 each `4x4x4` block went into production as soon as its own 64 chips and cables were in and tested. Racks arrive, racks join the pool.',
+              'Scheduling got easier in the same move. A 256-chip slice on v3 meant finding 256 contiguous idle chips; on v4 it means finding four blocks anywhere in the machine. And since each job holds its own physical light paths, slices are air gapped from one another, which is the isolation story for a pod with several tenants on it.',
+            ],
+          },
+          {
+            h: 'the bill, and the end of the record',
+            ps: [
+              'All of that is bought with an optical fabric, and the paper prices the fabric: under 5% of total TPU v4 supercomputer capital cost and under 3% of total power, counting the optics modules, the fiber, and the OCS infrastructure. The power figure follows from what the switch does. A mirror held at an angle draws almost nothing next to a switch that parses packets.',
+              "The counterfactual in the paper's discussion is the comparison worth carrying. Replacing the 48 128-port switches with InfiniBand, following NVIDIA's own fat-tree guidance, takes 568 IB switches for the same 4096 chips, with the NICs on top. Each ICI link carries 400 Gbit/s against IB's 200. The switch-against-torus argument in the GPU fabric lesson is this same argument read from the other machine.",
+              'What is published thins out fast after v4. The engineering record for the OCS is the ISCA paper and the Hot Chips deck, both describing v4, and the ISCA papers stop there. The ICI figures themselves come in different currencies per generation, which matters when you try to compare them. The deck and the paper do agree for v4 once you convert: 400 Gb/s each direction is `50 GB/s`, four off-board links plus two on-board make six, and six times fifty is the 300 GB/s per chip that Table 4 states.',
+              'A per-link number for v5e, v5p, or v6e is not something you can pull from those pages, because they publish an aggregate. The one-way per-link constants in the generations table over in the TPU chapter come from the scaling book, which is secondary and says so. One more mismatch worth knowing about: the v4 product page calls the topology a 3D mesh where the paper calls it a 3D torus, and the wraparound rule from the fabric lesson is what reconciles them.',
+            ],
+            table: {
+              caption: "ICI as each source states it; Google's per-chip GBps figures are aggregate and bidirectional, the papers' are per link",
+              cols: ['generation', 'published figure', 'source'],
+              rows: [
+                ['v3', '4 links @ 70 GB/s', 'ISCA 2023, Table 4'],
+                ['v4', '6 links @ 50 GB/s, so 300 GB/s per chip', 'ISCA 2023, Table 4'],
+                ['v4, physically', '4 OSFP connectors off-board at 400 Gb/s each direction, plus 2 on-board links', 'Hot Chips 2023, slide 8'],
+                ['v5e', '400 GBps per chip, 4 ports', 'Google Cloud v5e page'],
+                ['v5p', '1200 GBps per chip', 'Google Cloud v5p page'],
+                ['v6e', '800 GBps per chip, 4 ports', 'Google Cloud v6e page'],
+              ],
+            },
+          },
+        ],
+        readings: [
+          {
+            label: 'Jouppi et al. · TPU v4, an optically reconfigurable supercomputer (ISCA 2023)',
+            url: 'https://arxiv.org/abs/2304.01433',
+            note: 'sections 2.1 through 2.10 are the whole OCS story, cabling counts included',
+          },
+          {
+            label: 'Jouppi and Swing · Hot Chips 2023 deck',
+            url: 'https://hc2023.hotchips.org/assets/program/conference/day2/ML%20training/HC2023.Session5.ML_Training.Google.Norm_Jouppi.Andy_Swing.Final_2023-08-25.pdf',
+            note: 'the physical system: 64 racks, 48 switches, 6,144 fiber strands, and the board photos',
+          },
+          {
+            label: 'Google Cloud · TPU v4',
+            url: 'https://docs.cloud.google.com/tpu/docs/v4',
+            note: 'the product-facing wording, which says 3D mesh where the paper says 3D torus',
+          },
+        ],
+        check: [
+          {
+            q: 'Why does a 4x4x4 block cable to exactly 48 optical switches?',
+            a: 'Ninety-six optical links leave the block, 16 on each of six faces, and a wraparound link needs the two opposing faces of a dimension to arrive at the same switch. That pairs the links: 6 x 16 / 2 = 48.',
+          },
+          {
+            q: 'The paper reports 2.3x on a 512-chip LLM slice. What actually changed?',
+            a: 'Two things together, not the topology alone: the shape went from 4x8x16 to 8x8x8 and the model-parallel split from 16x32 to 64x8 with 1D/2D activation and weight partitioning. Throughput went from 17.9 to 41.3 sequences per second.',
+          },
+          {
+            q: 'What host availability does a large slice need without an OCS, and what changes with one?',
+            a: 'The paper puts it at 99.9% without. With the switches in the path, 99.0% and 99.5% still give fair goodput at most slice sizes, because a dead host is patched around instead of stranding the 4 chips behind it.',
+          },
+        ],
+        work: [
+          { id: 'ports', label: 'close the port arithmetic yourself: 64 racks to 128 ports to 6,144 strands', href: '#counting-the-cables' },
+          { id: 'shape', label: 'pick a 512-chip shape for pipeline parallelism and one for all-to-all, and say what each costs in ring hops', href: '#shapes-without-recabling' },
+          { id: 'check', label: 'answer the checks without opening them', href: '#check' },
+        ],
+      },
     ],
   },
   {
