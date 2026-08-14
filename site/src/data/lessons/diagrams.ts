@@ -44,7 +44,30 @@ export const LESSON_DIAGRAMS: Record<string, DiagramSpec> = {
       { k: 'text', x: 28, y: 244, t: '208 B transistors on TSMC 4NP, both dies together; NVIDIA publishes no per-die mm2', tone: 'ink', size: 11 },
       { k: 'text', x: 28, y: 266, t: '8 stacks x 24 GB = 192 GB at 8 TB/s; 10 TB/s on NV-HBI, direction unspecified', tone: 'ink', size: 11 },
     ],
+  },  sparsecore: {
+    w: 720,
+    h: 320,
+    alt: 'One TPU v4 SparseCore: sixteen compute tiles, each holding a Fetch Unit, an 8-wide scVPU and a Flush Unit over its own HBM channel, all working out of 2.5 MiB of Spmem, with five cross-channel units reaching across all sixteen banks',
+    caption: 'one of the four SparseCores on a TPU v4 chip · units and sizes from Jouppi et al., ISCA 2023, section 3.5 and Figure 7',
+    els: [
+      { k: 'box', x: 152, y: 44, w: 548, h: 232, t: '', tone: 'ink' },
+      { k: 'text', x: 164, y: 64, t: 'SparseCore · 1 of 4 on a v4 chip · dataflow, not an array', tone: 'ink', size: 11 },
+      { k: 'box', x: 20, y: 92, w: 112, h: 98, t: 'HBM', s: '16 channels\none per tile', tone: 'steel' },
+      { k: 'line', x1: 132, y1: 107, x2: 166, y2: 107, a: 'end', tone: 'steel', t: 'fetch', ly: 100 },
+      { k: 'line', x1: 166, y1: 175, x2: 132, y2: 175, a: 'end', tone: 'steel', t: 'flush, backward pass', ly: 190 },
+      ...[0, 1, 2, 3].flatMap((i) => [
+        { k: 'box' as const, x: 166 + i * 128, y: 92, w: 112, h: 30, t: 'Fetch Unit', tone: 'steel' as const },
+        { k: 'box' as const, x: 166 + i * 128, y: 126, w: 112, h: 30, t: 'scVPU · 8-wide', tone: 'copper' as const },
+        { k: 'box' as const, x: 166 + i * 128, y: 160, w: 112, h: 30, t: 'Flush Unit', tone: 'steel' as const },
+      ]),
+      { k: 'text', x: 166, y: 86, t: 'tile 1', tone: 'mute', size: 9.5 },
+      { k: 'text', x: 550, y: 86, t: 'tile 16', tone: 'mute', size: 9.5 },
+      { k: 'box', x: 166, y: 200, w: 520, h: 30, t: 'Spmem · 2.5 MiB per SparseCore, one slice per tile', tone: 'steel' },
+      { k: 'box', x: 166, y: 236, w: 520, h: 30, t: '5 cross-channel units · across all 16 banks · CISC-like, data-dependent runtime', tone: 'copper' },
+      { k: 'text', x: 700, y: 300, t: 'copper = compute · steel = memory', anchor: 'end', size: 9.5 },
+    ],
   },
+
 
   'nvlink-node': {
     w: 720,

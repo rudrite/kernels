@@ -42,7 +42,7 @@ export const GLOSSARY: GlossaryTerm[] = [
   { t: 'MXU', d: 'The systolic matmul array: 128x128 on v5e, 256x256 on v6e. Matmuls only; everything else is the VPU’s job.', href: '/l/tpu' },
   { t: 'VPU', d: 'The vector unit for elementwise work, organized as (8, 128) lanes; the origin of the tiling lattice every layer above obeys.', href: '/l/tpu' },
   { t: 'ICI', d: 'The inter-chip links (4.5e10 bytes per second each way per link on v5e); every collective resolves to hops over these.', href: '/l/ici' },
-  { t: 'LLO', d: 'The TPU’s near-assembly, closed inside libtpu. The readable world ends one layer above, at Mosaic.', href: '/l/mosaic' },
+  { t: 'LLO', d: 'The TPU’s near-assembly, closed inside libtpu. The readable world ends one layer above, at Mosaic.', href: '/l/tpu/vliw-bundles-and-llo' },
   { t: 'XLA', d: 'The compiler: brilliant at fusing along dataflow edges, structurally unable to change your algorithm. That gap is why kernels exist.', href: '/l/xla' },
   { t: 'DMA', d: 'An asynchronous copy between memories that runs while compute continues; the grid pipeline is DMAs the runtime writes for you.', href: '/l/pallas', alt: ['DMAs'] },
   { t: 'ANY', d: 'The memory space that tells the compiler not to place a ref at all: a promise that the kernel will move the data itself with a manual DMA.', href: '/l/pallas' },

@@ -143,8 +143,256 @@ export const MACHINE_LESSONS: UnitLessons[] = [
         ],
       },
       {
-        id: 'two-ways-to-hide-latency',
+        id: 'tensorcore-complex',
         num: 3,
+        title: 'The TensorCore complex',
+        lede: 'The v4 chip is the last TPU with a paper behind it, and that paper prints enough parts to rebuild the headline number from scratch.',
+        goal: 'Given a generation’s published parts, derive its peak FLOPs and say which of three things happened: it closed, it closed only against a secondary clock, or it did not close at all.',
+        sections: [
+          {
+            h: 'the last TPU with a paper behind it',
+            ps: [
+              'Google publishes two kinds of document about a TPU. Product pages give you a peak number, a memory size, and a link to pricing. ISCA papers give you the parts. The papers stop at v4, which is why v4 is the specimen worth opening: one paragraph of the 2023 paper names every compute block on the die, and Table 4 of the same paper prints the clock those blocks run at. After v4 there are product pages and launch posts, and neither kind of document lists parts.',
+              '>> each TPU v4 contains two TensorCores (TC). Each TC contains four 128x128 Matrix Multiply Units (MXUs) and a Vector Processing Unit (VPU) with 128 lanes (16 ALUs per lane) and a 16 MiB Vector Memory (VMEM). The two TCs share a 128 MiB Common Memory (CMEM).',
+              'Two things in that sentence never reach a product page. CMEM is `128 MiB` of memory the two TensorCores share, and no later generation is documented as keeping it or dropping it. The VPU is given as `128` lanes with `16` ALUs each, a count you should always carry its generation with: the scaling book describes a v5 VPU as a `(8, 128)` grid with `4` ALUs per lane-sublane pair, which is a different chip counted a different way. Neither source is wrong. Quoting one shape without its generation is.',
+              'Two cores sharing one pool of memory raises a question the paper does not answer: does software see one accelerator or two? It never uses the word MegaCore for the arrangement either. Google Cloud’s docs and the scaling book do the answering, describing a chip whose two cores share memory and can be treated as one large accelerator. So the fusion is a software-visible arrangement resting on a hardware fact, and the hardware fact is CMEM. Which core `jax.devices()` hands you is the generations lesson at /l/tpu/generations.',
+              'The chip lesson at /l/tpu/tpu-chip already said what these units do, and what VMEM is instead of a cache. This one counts them. Counting is what turns a spec sheet from a claim into arithmetic you can check.',
+            ],
+            table: {
+              caption: 'TPU v4 as published · Jouppi et al., ISCA 2023, section 2 and Table 4 · the MAC line is the only derived row',
+              cols: ['part', 'what the paper says', 'where'],
+              rows: [
+                ['TensorCores per chip', '2', 'section 2; Table 4 "Processors / Chip"'],
+                ['MXUs per TensorCore', '4, each 128x128', 'section 2'],
+                ['MACs per chip', '131,072 (2 x 4 x 128 x 128)', 'derived from section 2'],
+                ['VPU per TensorCore', '128 lanes, 16 ALUs per lane', 'section 2'],
+                ['VMEM', '16 MiB per TensorCore, 32 MiB per chip', 'section 2; Table 4'],
+                ['CMEM', '128 MiB, shared by the two TensorCores', 'section 2; Table 4'],
+                ['register file', '0.25 MiB', 'Table 4'],
+                ['clock', '1050 MHz', 'Table 4'],
+                ['node, die, transistors', '7 nm, under 600 mm2, 22 billion', 'Table 4'],
+                ['HBM2', '32 GiB at 1200 GB/s', 'Table 4'],
+              ],
+            },
+          },
+          {
+            h: 'multiply it out',
+            ps: [
+              'A peak FLOPs figure is three numbers multiplied together: how many multiply-accumulate cells the chip has, two operations per cell per cycle, and the clock. Start with v1, where all three sit in one paper. Its matrix unit is a single `256x256` grid, `65,536` cells, running at `700 MHz`. That gives `91.75` TOPS against a published `92`.',
+              'Now v4, where the cells are spread across eight smaller arrays instead of one big one. Two TensorCores, four MXUs each, `128x128` per MXU: `131,072` cells, exactly twice what v1 carried in its single array. At `1050 MHz` that is `275.25` TFLOPS against a published `275`.',
+              'Agreement at three digits is worth pausing on, because of what it tells you about the number being agreed with. There is no derating in it. Nothing accounts for the cycles the systolic array spends filling and draining, nothing accounts for a kernel that cannot keep the array fed. The vendor did the same multiplication you just did. A peak figure is geometry times a clock, and every real kernel lives underneath it.',
+              'The same arithmetic survives one more zoom. `275` TFLOPS across a full 4096-chip v4 pod is `1.126` exaflops, and Google’s v4 page advertises `1.1 exaflops`. Peak numbers at pod scale are the chip number times the chip count, nothing else.',
+            ],
+            code: {
+              caption: 'peak from parts · every input on these two derivations sits in one table of one paper',
+              lang: 'text',
+              text: "v1   256 x 256 MACs         =  65,536         ISCA 2017, section 2\n     x 2 ops per MAC        = 131,072         one multiply, one add\n     x 700 MHz             =  91.75 TOPS     ISCA 2017, Table 2\n     Google publishes         92 TOPS        ISCA 2017, Table 2\n\nv4   2 TC x 4 MXU x 128x128 = 131,072 MACs   ISCA 2023, section 2\n     x 2 ops per MAC        = 262,144\n     x 1050 MHz            = 275.25 TFLOPS   ISCA 2023, Table 4\n     Google publishes        275 TFLOPS      ISCA 2023, Table 4",
+              full: {
+                label: 'all four derivations, including the two that need a footnote and the one that fails',
+                text: "v1   256 x 256 MACs         =  65,536         ISCA 2017, section 2\n     x 2 ops per MAC        = 131,072         one multiply, one add\n     x 700 MHz             =  91.75 TOPS     ISCA 2017, Table 2\n     Google publishes         92 TOPS        ISCA 2017, Table 2\n\nv4   2 TC x 4 MXU x 128x128 = 131,072 MACs   ISCA 2023, section 2\n     x 2 ops per MAC        = 262,144\n     x 1050 MHz            = 275.25 TFLOPS   ISCA 2023, Table 4\n     Google publishes        275 TFLOPS      ISCA 2023, Table 4\n\nv5p  2 TC x 4 MXU x 128x128 = 131,072 MACs   Google v5p page (2 TC);\n     x 2 ops per MAC        = 262,144        4 MXUs/TC read across from v4 and v5e\n     x about 1.75 GHz      = 458.8 TFLOPS    scaling book, SECONDARY, no vendor clock\n     Google publishes        459 TFLOPS      Google v5p page\n\nv6e  1 TC x 2 MXU x 256x256 = 131,072 MACs   Google v6e page + architecture page\n     x 2 ops per MAC        = 262,144\n     Google publishes        918 TFLOPS      Google v6e page\n     implied clock          = 918e12 / 262,144 = 3.50 GHz\n     no v6e clock is published, and 3.50 GHz is not a plausible TPU clock",
+              },
+            },
+          },
+          {
+            h: 'the clock you cannot look up',
+            ps: [
+              'v5p is where the derivation starts needing a footnote. Google’s v5p page gives two TensorCores per chip and a peak of `459` TFLOPS bf16. It does not print an MXU count per TensorCore, though v4 and v5e are both documented at four, and the v5p page is written to the same shape. Take that layout and the MAC count comes out at `131,072`, exactly what v4 had. Same cells, `1.67x` the FLOPs. The extra has to be clock, and Google publishes no TPU clock after v4.',
+              'One public figure fills the gap, and it is secondary: the scaling book states that a TPU v5p runs at about `1.75 GHz`. Run it forward. `262,144` FLOPs per clock times `1.75e9` is `458.8` TFLOPS against a published `459`. A secondary number that reproduces a vendor number to three digits has earned a place in the lesson, with its label still attached. If Google ever prints a v5p clock, that is the citation this paragraph should carry instead.',
+              'Notice what the closing derivation buys you: it runs backwards. Whenever a vendor publishes a peak and enough geometry, you can solve for whatever constant they withheld, and then judge a third-party claim by whether it lands where the arithmetic says it must. What that clock did to the ratio between compute and bandwidth is the generations lesson at /l/tpu/generations, which owns the ridge.',
+            ],
+          },
+          {
+            h: 'v6e, where the arithmetic stops closing',
+            ps: [
+              'Trillium, the v6e generation, breaks the pattern. Google’s v6e page gives one TensorCore per chip with two matrix-multiply units on it, and a peak of `918` TFLOPS bf16. The architecture page gives the v6e MXU as `256x256`. Multiply those together and you get `131,072` MACs again, `262,144` FLOPs per clock, and an implied clock of `3.50 GHz`.',
+              'That clock is not credible. The fastest TPU Google itself has printed is v4 at `1050 MHz`, and the fastest figure in the public record of any kind is the scaling book’s `1.75 GHz` for v5p. So at least one of the three inputs is wrong, and no published clock exists to arbitrate: the Trillium launch post says the team expanded the MXUs and raised the clock speed, and attaches no number to either.',
+              'Google’s own architecture page also undercuts one of the inputs. It gives the MXU size for v6e and TPU7x as `256 x 256` multiply-accumulators, and elsewhere in the same passage it puts an MXU at 16K multiply-accumulate operations per cycle. `16K` is `16,384`, which is `128 x 128`. Whichever of those two describes v6e, they do not describe it together, and anyone quoting both in one breath is publishing a contradiction.',
+              'You can make the numbers close by assuming four `256x256` MXUs instead of two, which puts the implied clock at `1.75 GHz` and matches v5p exactly. That is arithmetic, not evidence. Google’s page says two. So the honest result is an open derivation, written down as open: the published v6e MXU shape and the published `918` TFLOPS cannot both hold at any plausible clock, and the lesson stops there rather than inventing the number that would rescue it.',
+            ],
+          },
+          {
+            h: 'the count that means nothing on its own',
+            ps: [
+              'Every figure in this lesson is a count of cells, never a count of cores, and that is deliberate. Google’s TensorCore is a whole core: four MXUs, a vector unit, and a scalar unit under one instruction stream, two per chip on v4 and 8192 across a full 4096-chip pod. NVIDIA’s Tensor Core is a functional unit inside one of an SM’s four processing blocks, `528` of them on an H100 SXM5. The GPU chapter works that name collision through properly at /s/machine/gpu-chip; what it does to arithmetic is this lesson’s problem.',
+              'A core count cannot be multiplied by anything. One chip has two of them and the other has `528`, and neither figure enters a derivation, because the two vendors are counting objects at different scales. MACs per clock per chip is the quantity both sides can produce, which is why every derivation above turns a TensorCore count into `131,072` cells in the same breath.',
+              'The count also moves between generations for reasons that have little to do with capability. v4 and v5p carry two TensorCores, v5e and v6e carry one. v6e drops to a single core with two `256x256` MXUs, and on those published numbers the cell count lands exactly where it has sat since v4, at `131,072`. That is the same shape whose peak refuses to close, so hold it loosely; the point stands either way, which is that the core count is packaging and the cell count is the machine.',
+            ],
+          },
+          {
+            h: 'where the public record ends',
+            ps: [
+              'Past v4 the parts list thins out fast, and the gaps are worth knowing by name rather than discovering mid-argument. No clock is published for v5e, v5p, or v6e. VMEM is public for v3 and v4 and, secondhand through the scaling book, for v5e; for v5p and v6e it is not public at all. SMEM gets named by both Google and the scaling book and sized by neither, at any generation. Whether CMEM survives past v4 is not stated anywhere. Die size, transistor count, and process node stop at v4 with the ISCA papers.',
+              'What to do with a gap is the part worth practising. The temptation is to divide two published numbers and print the quotient as a spec, which is exactly the move that yields a `3.50 GHz` TPU. Write the derivation instead, with its inputs and their sources, and label the result: closed against vendor numbers, closed only against a secondary source, or open. A lesson that says which figures are not public is more useful than one that quietly fills them in, because the reader can tell what to trust.',
+            ],
+            table: {
+              caption: 'what Google publishes, by generation, as of 2026-08 · v4 from ISCA 2023 Table 4, v5p and v6e from the Cloud TPU pages · "about 1.75 GHz" is the scaling book, secondary',
+              cols: ['figure', 'v4', 'v5p', 'v6e'],
+              rows: [
+                ['peak bf16', '275 TFLOPS', '459 TFLOPS', '918 TFLOPS'],
+                ['clock', '1050 MHz', 'not published; about 1.75 GHz secondary', 'not published'],
+                ['MXUs per TensorCore', '4, each 128x128', 'not printed; 4 by the page structure', '2, each 256x256'],
+                ['VMEM', '16 MiB per TensorCore', 'not published', 'not published'],
+                ['CMEM', '128 MiB shared', 'not stated', 'not stated'],
+                ['SMEM', 'not published', 'not published', 'not published'],
+                ['node, die, transistors', '7 nm, under 600 mm2, 22 billion', 'not published', 'not published'],
+              ],
+            },
+          },
+        ],
+        readings: [
+          { label: 'TPU v4, ISCA 2023', url: 'https://arxiv.org/abs/2304.01433', note: 'section 2 names every block on the die and Table 4 prints the clock; the last TPU documented this way' },
+          { label: 'TPU v1, ISCA 2017', url: 'https://arxiv.org/abs/1704.04760', note: 'the 256x256 MAC array and the 700 MHz clock that make the first derivation close' },
+          { label: 'Cloud TPU system architecture', url: 'https://docs.cloud.google.com/tpu/docs/system-architecture-tpu-vm', note: 'the per-generation MXU sizes, and the passage that disagrees with itself about how many MACs an MXU has' },
+          { label: 'Introducing Trillium, sixth-generation TPUs', url: 'https://cloud.google.com/blog/products/compute/introducing-trillium-6th-gen-tpus', note: 'says the clock went up and prints no number; the gap this lesson refuses to fill' },
+          { label: 'Scaling book · All about TPUs', url: 'https://jax-ml.github.io/scaling-book/tpus/', note: 'secondary, and the only public source for a v5p clock; it reproduces the published 459 TFLOPS exactly' },
+          { label: 'NVIDIA H100 architecture whitepaper', url: 'https://www.hpctech.co.jp/assets/images/info/catalog/pdf/gtc22-whitepaper-hopper_v1.02.pdf', note: 'v1.02 mirror; p.18 and Figure 7 are where the other kind of tensor core is counted, four per SM' },
+        ],
+        check: [
+          {
+            q: 'A v4 chip and a v5p chip carry the same 131,072 MACs, yet Google publishes 275 TFLOPS for one and 459 for the other. Where does the difference come from, and what is the evidence?',
+            a: 'The clock. v4 runs at 1050 MHz by ISCA Table 4; the scaling book puts v5p at about 1.75 GHz, and 262,144 FLOPs per clock times 1.75e9 gives 458.8 TFLOPS against the published 459. The clock figure is secondary, and it earns its place by reproducing the vendor number.',
+          },
+          {
+            q: 'Why can no honest lesson print a clock speed for v6e?',
+            a: 'Because the published parts do not close. One TensorCore with two 256x256 MXUs is 131,072 MACs, so 918 TFLOPS needs 3.50 GHz, which no TPU approaches. Google publishes no v6e clock, and its own architecture page gives an MXU MAC count that fits 128x128 rather than 256x256, so an input is wrong and nothing public says which.',
+          },
+          {
+            q: 'The v4 paper prints 16 MiB of VMEM per TensorCore. What is the v5p figure, and how should a lesson write it?',
+            a: 'There is none to print. VMEM is published for v3 and v4 and reaches v5e only through the scaling book, which is secondary; for v5p and v6e it is not public at all. Write it as not published, with the generations that are documented named beside it, rather than scaling a v4 number forward.',
+          },
+        ],
+        work: [
+          { id: 'derive', label: 'derive v1, v4, and v5p peak from parts with the code block folded shut', href: '#multiply-it-out' },
+          { id: 'open', label: 'write the v6e derivation in three lines and name the one input you would ask Google for', href: '#v6e-where-the-arithmetic-stops-closing' },
+          { id: 'check', label: 'answer the three checks without opening them', href: '#check' },
+        ],
+      },
+      // NOTE for the integrator: `num` must equal the 1-based index of this
+      // object inside the l:tpu lessons array. 4 assumes the block order
+      // tpu-chip, generations, tensorcore-complex, sparsecore. See §3.
+      {
+        id: 'sparsecore',
+        num: 4,
+        title: 'SparseCore',
+        lede: 'Every TPU since v2 carries a third kind of core that no kernel in this course touches. It exists because one workload class was worth 5% of the die rather than a rewrite of the array.',
+        goal: 'Say why an embedding lookup cannot be made to fit a systolic array, name the units inside one v4 SparseCore, and state what the paper paid in die area and what it bought.',
+        sections: [
+          {
+            h: 'the lookup that has no matmul in it',
+            ps: [
+              "A ranking model's first layer is a table read. The ISCA paper's example is a table with 80,000 rows, one per word in the English language, each row 100 numbers wide; one training example looks up a single row, or a small and dynamic number of rows that are then summed. Nothing in that is a matrix multiply. It is a gather on the way forward and a scatter on the way back, over tables the paper sizes anywhere from O(10 MiB) to O(100 GiB), with all the tables of one model reaching several TiB together.",
+              'The TPU chip lesson gave the reason a systolic array punishes small work: fill and drain dominate whenever the operand does not fill the grid. Lookups are not merely small, they are shaped wrong. The paper describes them as small gather or scatter memory accesses with low arithmetic intensity, so what decides their end-to-end speed is memory bandwidth, memory capacity and vector throughput rather than chip FLOPS per second. Hand that to an MXU and most of the grid holds still while the memory system does all the work.',
+              "The tables are also too large for one chip, so they get cut up three ways the paper names: column sharding along the width, row sharding along the vocabulary, or whole tables placed on different chips. Traffic follows from the cut. Under model parallelism the pattern is a variable-length all-to-all whose ceiling is bisection bandwidth, and the fabric lesson in the ICI unit carries that arithmetic. The sparsity is unstructured on top of that, since a few feature values are far hotter than the rest, so compute, memory and network all skew together, and deduplicating the frequent values before the lookup is part of what the hardware has to make cheap.",
+            ],
+          },
+          {
+            h: 'the two places it could have gone',
+            ps: [
+              'Before there was a third core, the work had two possible homes, and the paper argues against both in a paragraph each. The TensorCore is the obvious candidate and the wrong one: wide VPU, large matrix units, tuned end to end for dense operations, asked here to perform small gathers and scatters and to exchange variable-length data with other chips. It would run the work. The paper calls placing embeddings there suboptimal, and names those two access patterns as the reason.',
+              'The host CPUs are the other candidate. Push every lookup out to host memory and the CPU DRAM interface becomes the Amdahl bottleneck, amplified on v4 by four chips sharing one CPU host, with tail latency and data-center network bandwidth constraining whatever survives. This is not a thought experiment in the paper. They built the configuration and measured it, and that measurement is where the widely quoted 5x to 7x comes from.',
+              "What the codesign chose instead was the supercomputer's own memory. Every chip's HBM joins one flat, globally addressable space, 128 TiB of it on a v4 pod, reached over a dedicated ICI network with gather and scatter support in hardware. The paper's term for the arrangement is a sea of cores. Because the SparseCores are separate cores rather than a mode of an existing one, dense compute, embedding work and ICI traffic proceed at the same time instead of taking turns.",
+            ],
+          },
+          {
+            h: 'sixteen tiles and five cross-channel units',
+            ps: [
+              'Open one v4 SparseCore and nothing inside resembles a grid of multipliers. The paper calls it a dataflow architecture, meaning data flows out of memory into a set of directly connected specialized units, and a v4 chip carries four of these next to its two TensorCores.',
+              "Sixteen compute tiles do the general work. Each tile owns an HBM channel and keeps many memory accesses outstanding at once, which is the design answering the access pattern directly: thousands of independent small reads, none of them waiting on the answer to the last. Inside a tile sit three units in a row. A Fetch Unit reads activations and parameters out of HBM. A programmable 8-wide SIMD vector unit, the scVPU, does the arithmetic on them, reusing the same ALUs as the TensorCore's VPU. A Flush Unit writes updated parameters back to HBM during the backward pass.",
+              'The tiles work out of Spmem, the sparse vector memory: 2.5 MiB per SparseCore, with each tile reading and writing its own slice of it. Multiply that out and the per-chip totals in the paper table fall out exactly, four SparseCores on v4 for 10 MiB of spMEM and two on v3 for 5 MiB. It is a small memory next to the tens of MiB the TensorCore side works from, and it is sized for vectors a hundred numbers wide rather than for the tiles of a matmul.',
+              'Five cross-channel units sit beside the tiles and perform the embedding operations no single tile can, because they operate across all sixteen banks of Spmem collectively. They take CISC-like instructions over variable-length inputs, so how long an instruction runs depends on the data handed to it. That is the opposite property from the array next door, where a matmul costs a cycle count fixed by its shape before it begins.',
+            ],
+            diagram: 'sparsecore',
+          },
+          {
+            h: 'five percent of the die',
+            ps: [
+              'The abstract prices the whole thing in one line, and section 3.5 repeats it with a tilde on each figure: about 5% of the die area and about 5% of the power.',
+              '>> SparseCores, dataflow processors that accelerate models that rely on embeddings by 5x-7x yet use only 5% of die area and power.',
+              'The 5x to 7x is a subtraction rather than a headline. The paper takes TPU v4, changes nothing else, moves the embeddings into CPU host memory, and measures what the production model DLRM0 loses at 128 chips: a factor of 5 to 7, bottlenecked on CPU memory bandwidth. Read it as the price of not having the core. An area-and-power claim can only be honest if the comparison names what was removed.',
+              'The neighbouring numbers set the scale. On the same model against 576 Skylake sockets, TPU v3 is 9.8x faster; v4 beats v3 by 3.1x and the CPU configuration by 30.1x. Moving from the 2D torus of v3 to the 3D torus of v4 raises bisection bandwidth 2x to 4x at a given chip count and accelerates embeddings by 1.1x to 2.0x, which is the fabric doing embedding work rather than the core. Past about 1024 chips the paper reports SparseCore overheads starting to dominate, at which point bisection bandwidth matters less.',
+              'From the pod, the SparseCores look like a single machine. The Hot Chips deck describes non-coherent shared memory spanning the pod and millions of outstanding references reaching any node in it, hidden behind multithreading, with a full v4 pod presenting 8K TensorCores and 16K SparseCores across the optical switches.',
+            ],
+          },
+          {
+            h: 'counting them, generation by generation',
+            ps: [
+              'SparseCore has been part of TPUs since v2, and the per-chip count has moved twice in the public record. The ISCA paper gives 2 on v3 and 4 on v4. The Cloud TPU architecture page gives 4 on v5p and on TPU7x, and 2 on v6e. The v5e page lists none at all, which is a gap in the documentation and not a documented zero: write unknown, not absent.',
+              'The generation labels deserve more care than the counts. The Hot Chips 2023 deck lists a third-generation embeddings coprocessor among the innovations of the fourth-generation system, meaning v4. The 2024 Trillium blog says v6e is equipped with third-generation SparseCore. Two chips, two generations apart, both called third. Nothing published reconciles the two, so carry the source with the label every time and never quote the number on its own.',
+            ],
+            table: {
+              caption: 'per-chip SparseCore counts as published (retrieved 2026-08-14) · not published means the vendor page or paper does not state it, which is not the same as zero',
+              cols: ['generation', 'SparseCores / chip', 'spMEM / chip', 'where it is published'],
+              rows: [
+                ['v2', 'present, count not published', 'not published', 'ISCA 2023, section 1'],
+                ['v3', '2', '5 MiB', 'ISCA 2023, Table 4'],
+                ['v4', '4', '10 MiB', 'ISCA 2023, Table 4'],
+                ['v5e', 'not listed', 'not published', 'Cloud TPU v5e page'],
+                ['v5p', '4', 'not published', 'Cloud TPU architecture page'],
+                ['v6e', '2', 'not published', 'Cloud TPU architecture page'],
+                ['7x', '4', 'not published', 'Cloud TPU architecture page'],
+              ],
+            },
+          },
+          {
+            h: 'a sibling core, not a bigger core',
+            ps: [
+              "One piece of hygiene before the principle, because two vendors put sparse in the name of very different things. NVIDIA's structured sparsity is a Tensor Core mode: prune the weights until at least two values in every group of four contiguous ones are zero, and the unit processes only the nonzeros for roughly twice the dense rate. What that does to a datasheet is read out in the machine stage, at `/s/machine/inside-the-sm`. SparseCore is not a mode of anything. It is a separate programmable processor with its own memory, its own instructions and its own HBM channels, and the sparsity it serves is the unstructured kind that arrives from a lookup rather than from pruning.",
+              'The general move is worth taking away from the TPU entirely. When a workload class is large enough to matter and its access pattern fights the execution model of the main core, the answer that keeps winning is a sibling core beside it, not a wider or more general version of it. Widening the array would have cost area on every workload and still left gather latency where it was.',
+              "The condition on that move is the arithmetic in this lesson. DLRMs are about a quarter of Google's ML workload by the paper's own table, the core costs around 5% of area and power, and its absence costs 5x to 7x on that quarter. Change any of the three and the answer changes: a workload at one percent of the fleet does not earn silicon, and a workload that tiles into the array does not need it. The TPU chip lesson put SparseCore on the die in a single sentence and moved on, which was the right depth for a first pass; this is what that sentence was standing on.",
+            ],
+          },
+        ],
+        readings: [
+          {
+            label: 'Jouppi et al. · TPU v4, with hardware support for embeddings (ISCA 2023)',
+            url: 'https://arxiv.org/abs/2304.01433',
+            note: 'section 3 is the whole SparseCore argument, and Figure 7 is the block diagram this lesson redraws',
+          },
+          {
+            label: 'Jouppi and Swing · the same machine at Hot Chips 2023',
+            url: 'https://hc2023.hotchips.org/assets/program/conference/day2/ML%20training/HC2023.Session5.ML_Training.Google.Norm_Jouppi.Andy_Swing.Final_2023-08-25.pdf',
+            note: 'the pod-level view: non-coherent shared memory, millions of outstanding references, 16K SparseCores',
+          },
+          {
+            label: 'Cloud TPU system architecture',
+            url: 'https://docs.cloud.google.com/tpu/docs/system-architecture-tpu-vm',
+            note: 'the per-generation counts, and the page that quietly stops listing them for v5e',
+          },
+          {
+            label: 'Google Cloud · introducing Trillium',
+            url: 'https://cloud.google.com/blog/products/compute/introducing-trillium-6th-gen-tpus',
+            note: 'the third-generation label for v6e that collides with the deck above',
+          },
+          {
+            label: 'NVIDIA · structured sparsity in the Ampere architecture',
+            url: 'https://developer.nvidia.com/blog/structured-sparsity-in-the-nvidia-ampere-architecture-and-applications-in-search-engines/',
+            note: 'the other thing called sparse: two zeros in every four weights, and a Tensor Core mode rather than a core',
+          },
+        ],
+        check: [
+          {
+            q: 'An embedding lookup and a large matmul both stream bytes out of HBM. Why does only one of them suit the MXU?',
+            a: 'The lookup is small gathers and scatters with low arithmetic intensity, and the number of rows varies per example, so bandwidth, capacity and vector throughput decide its speed while most of a systolic array would stand idle.',
+          },
+          {
+            q: 'What exactly was measured to produce the 5x to 7x figure, and why does the condition matter?',
+            a: 'TPU v4 with embeddings moved into CPU host memory instead of onto SparseCore, on DLRM0 at 128 chips, bottlenecked on CPU memory bandwidth. It prices the absence of the core on one workload rather than a general speedup, so quoting it bare overstates it.',
+          },
+          {
+            q: 'Google calls two different chips third-generation SparseCore. What goes in your notes?',
+            a: 'Both labels with their sources: the Hot Chips 2023 deck for v4, the Trillium blog for v6e. Nothing public reconciles them, so a generation number only means something with its source attached.',
+          },
+        ],
+        work: [
+          { id: 'tile', label: 'redraw one SparseCore from memory: sixteen tiles, three units each, five cross-channel units', href: '#sixteen-tiles-and-five-cross-channel-units' },
+          { id: 'spmem', label: 'check the Spmem arithmetic against the ISCA table: 2.5 MiB per core against the v3 and v4 chip totals' },
+          { id: 'counts', label: 'fill the generation table from the vendor pages yourself and mark every cell the record does not state', href: '#counting-them-generation-by-generation' },
+          { id: 'check', label: 'answer the three checks without opening them', href: '#check' },
+        ],
+      },
+      {
+        id: 'two-ways-to-hide-latency',
+        num: 5,
         title: 'Two ways to hide latency',
         lede: 'A GPU hides memory latency with thousands of threads. A TPU has one big core and no threads to switch, so every wait has to be planned away.',
         goal: 'Explain both latency-hiding strategies and name who does the hiding on each machine: the warp scheduler at runtime, or the compiled pipeline ahead of time.',
@@ -168,7 +416,7 @@ export const MACHINE_LESSONS: UnitLessons[] = [
       },
       {
         id: 'xprof-and-the-three-accounts',
-        num: 4,
+        num: 6,
         title: 'XProf, and the three accounts',
         lede: 'The profiler is how prediction meets the machine, and a program has three cost tellings that this site once caught disagreeing in public.',
         goal: 'Capture a trace both ways, then rank the cost model, the roofline, and the timeline by trustworthiness for the question you are asking.',
@@ -192,7 +440,7 @@ export const MACHINE_LESSONS: UnitLessons[] = [
       },
       {
         id: 'the-timeline-op-by-op',
-        num: 5,
+        num: 7,
         title: 'The timeline, op by op',
         lede: 'One plane of the trace matters for kernel work: the device plane, where every event carries a name you already know how to read.',
         goal: 'Walk a device-plane trace, match events to fusions and custom calls by name, and say what the host and device sides each contribute to a capture.',
@@ -216,7 +464,7 @@ export const MACHINE_LESSONS: UnitLessons[] = [
       },
       {
         id: 'reading-it-like-an-operator',
-        num: 6,
+        num: 8,
         title: 'Reading it like an operator',
         lede: 'Six habits turn a wall of events into a diagnosis, and the first is always the same: name the envelope before judging anything inside it.',
         goal: 'Apply the six operator habits to a fresh trace and produce a one-sentence diagnosis with the envelope number attached.',
@@ -237,6 +485,128 @@ export const MACHINE_LESSONS: UnitLessons[] = [
           },
         ],
         work: [{ id: 'check', label: 'answer the checks without opening them', href: '#check' }],
+      },
+      {
+        id: 'vliw-bundles-and-llo',
+        num: 9,
+        title: 'The bundle, and the floor below it',
+        lede: 'One TPU instruction is 322 bits wide and speaks to several units at once. Filling those slots is the compiler’s whole job, and the layer where it happens is the one you cannot read.',
+        goal: 'Say what a single TPU instruction actually is, name what the compiler decides that no hardware will fix at runtime, and state exactly which parts of the layer below Mosaic are public and which are not.',
+        sections: [
+          {
+            h: 'what counts as one instruction',
+            ps: [
+              "A TPUv2 core fetches one 322-bit instruction at a time, and that instruction speaks to several units at once. Two of its slots carry scalar work. Four carry vector work, two of those reserved for vector load and store. Two more carry matrix work, one push and one pop. Then a miscellaneous slot, and six immediates. Read the layout as a budget rather than a format: those slots are what a compiler has to fill, per cycle, for the machine to be doing anything at all.",
+              "A machine whose one instruction word issues to several units at once, with the parallelism settled before the program runs, is a **VLIW** machine, for very long instruction word. The design paper says why the TPU is one. A VLIW architecture was the simplest way for the hardware to express instruction level parallelism, and it let the team use compiler techniques that already existed.",
+              "The scalar unit is the front of this machine. It pulls whole bundles from a local instruction memory, runs the scalar slots itself, and forwards the decoded rest onward to the vector and matrix units, where execution happens later and decoupled from the scalar side. The chip lesson at /l/tpu/tpu-chip introduced that unit from the data side, as the thing that decides which block comes next and fetches it. This is the same unit from the instruction side, and it is one job, not two.",
+              "One vector slot is also not one number. The vector unit is 128 lanes wide and each lane carries an eight-deep sublane dimension, so a vector slot operates on eight sets of 128-wide values in a cycle. The `(8, 128)` shape the course keeps meeting as a tiling rule is that geometry, read from the instruction that drives it.",
+            ],
+            code: {
+              caption: 'the bundle, verbatim from the TPUv2 and TPUv3 design paper (Norrie et al., IEEE Micro 41(2), 2021); line breaks are this panel’s',
+              lang: 'text',
+              text: 'The scalar unit is where computation originates. It fetches complete VLIW\nbundles from a local instruction memory, executes the scalar operations slots\nlocally, and then forwards decoded instructions on to the vector and matrix\nunits where execution happens later, decoupled from scalar execution. The\nVLIW bundle is 322 bits and is composed of two scalar slots, four vector\nslots (two used for vector load/store), two matrix slots (a push and a pop),\none miscellaneous slot (a simple example would be a delay instruction), and\nsix immediates.',
+            },
+          },
+          {
+            h: 'the instruction stream is staged, like everything else',
+            ps: [
+              "Those bundles have to reach the core somehow, and the answer is the one this chip gives for everything else. There is no instruction cache backed by HBM. There is a local instruction memory that DMA writes into, and the paper is candid about the decision: a cache would have been nice, and a DMA target for software-managed instruction overlays was easier to build. Code gets staged the way data gets staged, by a transfer that something scheduled.",
+              "That symmetry closes a gap in the picture the unit has been building. VMEM holds what software put there. SMEM holds what software put there. So does the memory the program itself lives in. Nothing on this chip fetches ahead on your behalf, and the part that fetches your instructions is not an exception to its own design.",
+              "Put a rate on the stream and the tradeoff gets concrete. One 322-bit bundle per cycle at v3’s 940 MHz is `3.78e10` bytes per second of instruction fetch, about 4 percent of the `9.0e11` bytes per second v3’s HBM delivers. Two assumptions sit under that arithmetic and neither is small. It assumes a bundle issues every cycle, which is the ceiling and not the average. And 322 bits is the published width for v2 and v3 alone, which the next two sections are about.",
+            ],
+          },
+          {
+            h: 'nothing reorders, so the schedule is the program',
+            ps: [
+              "The shorthand for a VLIW machine is that it has no interlocks, and the TPU papers do not say that. What the design paper describes is hold conditions on instructions for execution interlock, plus synchronization flags for interlocking against software-managed DMA. Stalls exist on this chip. A wait is a real event with real cycles in it.",
+              "What is missing is the other half of a modern CPU. Nothing here picks a different instruction to run while one waits. A hold stalls the pipeline and does not fill it, because there is no pool of ready work to draw from and no unit whose job is to choose. The latency lesson at /l/tpu/two-ways-to-hide-latency drew that contrast against a GPU’s warp scheduler; this is the same fact one level lower, in the instruction word itself.",
+              "One piece of hardware exists to buy the compiler slack, and it shows how tight the schedule is otherwise. Matrix results land in a Result FIFO, which the paper says lets them avoid strict execution schedule constraints for the long-latency matrix operations and shorten register lifetimes, simplifying the compiler. That is why push and pop are two separate slots. The two ends of a matrix operation get scheduled independently, and the FIFO absorbs the distance between them.",
+              "Static scheduling puts the performance in the compiler, and the TPU team has published both the risk and the return. Compiler problems likely sank the Itanium’s VLIW architecture, the TPUv4i paper says, and it names that before observing that many domain-specific accelerators rely on VLIW anyway. Then it gives the return. Over the twenty months from MLPerf Training 0.5 to 0.7, CUDA compilation improved the GPU by 1.8x and XLA raised the TPU by 2.2x, against the 1 to 2 percent a year that C compilers move general-purpose code.",
+              '>> Twenty months of compiler work moved the same silicon 2.2x.',
+              "You have already scrolled past this compiler estimating a schedule. Every TPU fusion in this repo’s capture carries a `window_config` inside its `backend_config`, and two of its fields are the compiler talking about cycles and bundles for that window. The cycle number is populated here and the bundle count is not, which is worth taking as the shape of the boundary rather than as a shortage. The plan has a place to say how many bundles it expects. What the dump hands you is the cycle estimate alone.",
+            ],
+            code: {
+              caption: 'the compiler’s own schedule estimate for the attention fusion, from site/src/data/hlo-pairs.json (TPU v6 lite, jax 0.11.0); fields trimmed at the ellipsis, values verbatim',
+              lang: 'text',
+              text: '%fusion = bf16[1024,1024]{1,0:T(8,128)(2,1)S(1)} fusion(%copy-done, %k.1), kind=kOutput, ...\n  backend_config={... "window_config":{"buffering_level":"2",\n    "cost_model_type":"COST_MODEL_TYPE_CLASSIC",\n    "estimated_bundle_count":"0","estimated_cycles":"3528", ...}}',
+            },
+          },
+          {
+            h: 'compiler compatible, not binary compatible',
+            ps: [
+              "A 322-bit word with a fixed slot layout sounds like an instruction set you could target, and Google decided it would not be one. TPUv2 and TPUv3 share the bundle length. TPUv4i broke with it on purpose, and the paper spends a section saying why rather than leaving it to be discovered.",
+              "The argument starts from what VLIW was for. Putting the parallelism in the instruction word is what lets a recompile use a wider machine, and binary compatibility freezes exactly that. The paper adds an admission worth reading twice: many engineers built Itanium compilers, some of them now on the XLA team, where they learned the drawbacks of binary compatibility for a VLIW compiler and its hardware.",
+              "So the stable thing is a split inside the compiler. XLA divides the compiling task into High-Level Operations that are machine independent and Low-Level Operations that are machine dependent, and the second name is **LLO**. Optimizations at the HLO level apply to every platform. A new TPU that confines its compiler changes to the LLO half, a wider VLIW for instance, keeps compiler compatibility while breaking every binary. The contract with the outside world is HLO, and the bundle sits on the far side of it.",
+              "The GPU stack draws its line one level lower, which is the comparison to hold. PTX is a published virtual instruction set with a documented stability story, and SASS below it is per-generation and undocumented, so a GPU author gets one readable layer past the compiler’s portable output. There is no PTX on the TPU side. The last level anyone outside can print is the one the Mosaic lesson at /l/mosaic/to-machine-code already draws the boundary at, and below it the encoding is per-generation because being per-generation is the design.",
+              '>> 322 bits is published for v2 and v3, and for nothing since.',
+            ],
+          },
+          {
+            h: 'where the public record ends',
+            ps: [
+              "Start with what you can see, because it is more than the usual telling admits. XProf has a public LLO surface, documented in the open-source repo rather than inferred. The current instructions set two XLA flags together, `xla_xprof_enable_custom_call_tracing` and `xla_xprof_register_llo_debug_info`, and what the doc shows those producing is LLO traces in the trace viewer, at the level of ops and of individual instructions. A Pallas kernel arrives as a custom call, so the surface is pointed at exactly the kernels this course writes.",
+              "An older recipe sits further down the same file under a heading that marks it old, and it is the only place the utilization view is documented. There, `xla_enable_custom_call_region_trace` pairs with the same debug-info flag, and the doc says an LLO utilization line then appears in the trace viewer for each TPU core or device executing the custom call. Nothing in the file attributes that line to the newer tracing flag. If you want the utilization view, the old flag is the one to set.",
+              "Back on the current recipe, the parameters that tune trace insertion are where bundles stop being a paper fact. Trace insertion is configured in units of bundles. `trace_best_effort_frequency` sets the target interval for opportunistic traces packed into existing bundles, and `trace_guaranteed_frequency` sets the maximum number of bundles allowed between two traces. The doc is exact about the difference: the best-effort pass will not create new bundles, and when the guarantee cannot be met by packing, the compiler creates a new bundle and places a trace there by itself. A profiler that can slip its own instruction into a bundle’s spare slot is describing a real slot budget.",
+              "The same document publishes the per-instruction cycle costs the compiler models, which is the nearest thing to an LLO timing manual in public. It names two units this course has not: XLU for transposes, and EUP, which the doc glosses as vector math functions like tanh, log and exp. Read the table as the model and not the measurement, in the doc’s own terms. The compiler calculates an intrinsic cycle cost per LLO instruction from the target generation and the execution unit resolving it, and XProf interpolates between its trace points with those numbers.",
+              "The 2026 XProf work goes a step further and says so in the same vocabulary. LLO bundle data is now exposed for Pallas authors, described there as the specific machine instructions issued to the TPU’s functional units during every clock cycle, with traces inserted by dynamic instrumentation so the times are exact rather than static compiler estimates. The worked example is idle cycles inside the MXU pipeline, latency between a `vmatmul` and a `vpop`. Two instruction names in public, doing precisely what the push and pop matrix slots of a 2021 paper describe.",
+              "Now the other half, stated as plainly as the XLA course states its own limits at /xla/pathways. The instruction set is not published. The encoding is not published past v3’s width. The scheduler that fills the slots ships inside libtpu and no flag prints it. Even the name is unsettled: the scaling book and the XProf docs expand LLO as low-level optimizer, while the TPUv4i paper and Google’s own 2026 announcement expand it as Low-Level Operations. Four public sources, two expansions, no correction anywhere. Treat everything here about the bundle’s internals as coming from papers about v2, v3 and v4i, and everything about the tooling as documentation for chips those papers never described.",
+            ],
+            table: {
+              caption: 'modeled per-instruction cycle costs, from openxla/xprof docs/custom_call_profiling.md at commit d9a61f5 (2026-08-14); the compiler’s estimates XProf interpolates with, not measurements',
+              cols: ['unit', 'instruction', 'v5e / v5p', 'v6e / v7x'],
+              rows: [
+                ['MXU', 'vector matmul, f32', '8', '8'],
+                ['MXU', 'vector matmul, packed bf16', '2', '2'],
+                ['MXU', 'vector matmul, integer (u8, s8, u4, s4)', '1', '1'],
+                ['XLU', 'packed transpose', '17', '4'],
+                ['XLU', 'b16 transpose', '17', '4'],
+                ['EUP', 'vector math (tanh, exp, log)', '2', '1'],
+              ],
+            },
+          },
+        ],
+        readings: [
+          {
+            label: 'The design process for Google’s training chips: TPUv2 and TPUv3',
+            url: 'https://gwern.net/doc/ai/scaling/hardware/2021-norrie.pdf',
+            note: 'the bundle, the scalar unit, and the Result FIFO, in the architects’ own words',
+          },
+          {
+            label: 'Ten lessons from three generations shaped Google’s TPUv4i',
+            url: 'https://www.cs.cmu.edu/~18742/papers/Jouppi2021.pdf',
+            note: 'why compiler compatibility beat binary compatibility, and what XLA was worth in MLPerf',
+          },
+          {
+            label: 'XProf · custom call profiling',
+            url: 'https://github.com/openxla/xprof/blob/master/docs/custom_call_profiling.md',
+            note: 'the flags, the bundle-level trace knobs, and the modeled cycle tables',
+          },
+          {
+            label: 'Advanced TPU optimization with XProf: LLO bundles',
+            url: 'https://opensource.googleblog.com/2026/03/advanced-tpu-optimization-with-xprof-continuous-profiling-utilization-insights-and-llo-bundles.html',
+            note: 'the 2026 announcement that put per-cycle bundle data in front of kernel authors',
+          },
+        ],
+        check: [
+          {
+            q: 'The shorthand says a VLIW machine has no interlocks. What do the TPU papers actually describe, and what is genuinely absent?',
+            a: 'Hold conditions interlock execution and synchronization flags interlock against software-managed DMA, so stalls are real. What is absent is reordering: nothing picks another instruction while one waits, so a gap the compiler left is a gap the machine takes.',
+          },
+          {
+            q: 'TPUv2 and TPUv3 share a 322-bit bundle. Why did TPUv4i decline to stay binary compatible with it?',
+            a: 'The point of VLIW is that a recompile lets the compiler use new hardware resources, which binary compatibility freezes. XLA already splits machine-independent HLO from machine-dependent LLO, so a wider VLIW changes only the LLO half and compiler compatibility survives instead.',
+          },
+          {
+            q: 'What can someone outside Google actually see of LLO, and what stays closed?',
+            a: 'The XProf surface: LLO debug info behind an XLA flag, an LLO utilization line, bundle-level traces, and a published table of modeled per-instruction cycle costs. The instruction set, the encoding past v3, and the scheduler are closed, and the acronym itself is expanded two different ways across public sources.',
+          },
+        ],
+        work: [
+          { id: 'slots', label: 'account for all 322 bits: name every slot and the unit it drives', href: '#what-counts-as-one-instruction' },
+          { id: 'fetch', label: 'redo the instruction-fetch rate for a generation of your choice and state every assumption you had to make', href: '#the-instruction-stream-is-staged-like-everything-else' },
+          { id: 'boundary', label: 'write the LLO boundary in three sentences: what is public, what is inferred, what is closed', href: '#where-the-public-record-ends' },
+          { id: 'check', label: 'answer the three checks without opening them', href: '#check' },
+        ],
       },
     ],
   },
