@@ -53,7 +53,18 @@ cited to a path, plus a 15-file reading order:
       remains, GPU means an out-of-tree plugin; buffer donation travels
       inside the HLO as buffer-donor annotations, never in ExecuteOptions;
       collectives lower into the graph and never cross the seam at runtime.
-- [ ] R3 · PJRT + IFRT interfaces, C API/ABI, plugin ecosystem
+- [x] R3 · PJRT + IFRT interfaces, C API/ABI, plugin ecosystem. Landed
+      2026-08-14 against openxla/xla a6c8e17. Headline verdicts to
+      reconcile in Phase 2: Compile no longer loads (Compile returns
+      PjRtExecutable, CompileAndLoad returns the loaded form); buffers moved
+      from device-addressed to memory-space-addressed APIs (CopyToDevice is
+      gone from C++); PJRT and IFRT now share one future type; the C API
+      version gate enforces a stated 12-week forward window and StableHLO
+      is serialized at min(framework, plugin) version; a minimum plugin is
+      a PjRtClient subclass plus PJRT_Client_Create plus GetPjrtApi, and
+      libtpu loads as an ordinary plugin; IFRT's array is an ArraySpec plus
+      positionally-matched per-device buffers, and its README states the
+      single-host-to-thousands rationale outright.
 
 Pin the commits inspected; site quotes carry those commit ids, matching the
 walk convention already in `site/src/data/walks/`.

@@ -1,7 +1,7 @@
 # The descent revamp: one story, one spine
 
-Status: proposal (2026-08-14). Nothing ships until the founder picks the
-decisions in the last section. Supersedes the IA framing of
+Status: decided (2026-08-14, same day); decisions recorded in the last
+section, phases M1+ cleared to build. Supersedes the IA framing of
 `true-mastery-courses.md` where they conflict; the arc model (unit → lessons →
 practice → prove) survives unchanged, because it works.
 
@@ -122,13 +122,14 @@ additive data (`cell: { level, side }` per unit) plus new surfaces.
 - The three floor content plans proceed in parallel; their lessons land in
   cells from day one.
 
-## Decisions for the founder
+## Decisions (founder, 2026-08-14)
 
-1. **IA**: stack-first with courses as routes (recommended), or keep
-   course-first and add the map as a secondary surface.
-2. **Register**: supersede ADR 0001 for Brutalist Studio Black v2 chrome with
-   serif reading columns (recommended), or a dramatic evolution of paper.
-3. **Specimen scope**: both frameworks and both machine sides from the start
-   (recommended, it is the hourglass's proof), or TPU side first.
-4. **Workshop fold**: dissolve into the map in M3 (recommended), or keep the
-   Workshop page as a fourth nav item.
+1. **IA**: stack-first; courses become routes over the hourglass map.
+2. **Register**: neither plain Studio Black v2 nor a paper evolution. A new
+   brutalist-based theme, retro-fitted morphisms on a techish base, aiming
+   for genuinely beautiful UI. This deviates from the canonical register, so
+   M4 opens with concept boards for founder sign-off, and the shipping
+   commit carries the superseding ADR (0003) plus the brand README deviation
+   note, per the cross-project rule.
+3. **Specimen scope**: both frameworks and both machine sides from the start.
+4. **Workshop fold**: dissolve into the map in M3; nav goes to three items.
