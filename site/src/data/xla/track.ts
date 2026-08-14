@@ -57,7 +57,7 @@ export const XLA_CHAPTERS: XlaChapter[] = [
         "ps": [
           "Start with the question of who is in charge. Something has to hold the device list, know the topology wiring those devices together, and take your StableHLO when you ask for it to become runnable. That something is PjRtClient. A process typically keeps one per backend, and every other PJRT object you will ever touch traces back to one.",
           "The memory side is smaller than you might expect. A PjRtBuffer is memory on one device, and nothing more; you get one by handing the client a host array, or by running an executable and catching what falls out. One device, exactly. Nothing at this layer spans two chips, which is why an array sharded eight ways shows up here as eight separate buffers, each knowing only its own device.",
-          "And the thing you actually run arrives already spoken for: a PjRtLoadedExecutable comes back from Compile bound to its devices. Its Execute wants buffers in a nested list, one inner list per partition, and hands results back in the same shape. So the division of labor comes out clean. The client owns devices and compilation, buffers are per-device memory, executables run, and almost everything else in PJRT is plumbing between those three."
+          "And the thing you actually run arrives already spoken for: a PjRtLoadedExecutable comes back from CompileAndLoad bound to its devices. Its Execute wants buffers in a nested list, one inner list per partition, and hands results back in the same shape. So the division of labor comes out clean. The client owns devices and compilation, buffers are per-device memory, executables run, and almost everything else in PJRT is plumbing between those three."
         ]
       },
       {
@@ -645,8 +645,8 @@ export const XLA_CHAPTERS: XlaChapter[] = [
           "The rest of the interface is about taking that one object apart or putting it back together without touching shard data unnecessarily. `DisassembleIntoSingleDeviceArrays` is the exact inverse of `AssembleArrayFromSingleDeviceArrays`; `FullyReplicatedShard` is a shortcut for the common case where every shard is identical, one shard read instead of all of them. An `ArrayCopySemantics` enum, `kAlwaysCopy`, `kReuseInput`, `kDonateInput`, governs every one of these calls the same way donation governs a PJRT buffer: some operations promise a fresh copy, others let the caller trade ownership of the input away for speed."
         ],
         "code": {
-          "caption": "verbatim, trimmed, from xla/python/ifrt/array.h",
-          "text": "class Array : public llvm::RTTIExtends<Array, Value> {\n public:\n  Array() = default;\n\n  // Not copyable or movable.\n  Array(const Array&) = delete;\n  Array(Array&&) = delete;\n  Array& operator=(const Array&) = delete;\n  Array& operator=(Array&&) = delete;\n\n  virtual DType dtype() const = 0;\n  virtual const Shape& shape() const = 0;\n  virtual const Sharding& sharding() const = 0;",
+          "caption": "verbatim, trimmed, from xla/python/ifrt/array.h (openxla/xla @ a6c8e17)",
+          "text": "class Array : public RTTIExtends<Array, Value> {\n public:\n  Array() = default;\n\n  // Not copyable or movable.\n  Array(const Array&) = delete;\n  Array(Array&&) = delete;\n  Array& operator=(const Array&) = delete;\n  Array& operator=(Array&&) = delete;\n\n  virtual DType dtype() const = 0;\n  virtual const Shape& shape() const = 0;\n  virtual const Sharding& sharding() const = 0;",
           "lang": "cpp"
         }
       },
@@ -661,7 +661,7 @@ export const XLA_CHAPTERS: XlaChapter[] = [
         "h": "why JAX needed this",
         "ps": [
           "A `jax.Array` sits on an `ifrt::Array` underneath, and that is the concrete reason a single `jax.Array` can span multiple host processes in JAX's multi-process world, the training run the JAX path meets from above (at /jax/training-run). The sharding lives on the array object itself, not stitched together by the framework from a pile of per-device buffers it has to track by hand.",
-          "`Client` exposes operations that only make sense once an array is a first-class object: `RemapArrays` shuffles shards between arrays, `ReshardArrays` changes an array's sharding, `BitcastArrays` reinterprets its bytes, all as metadata operations rather than data movement. None of this replaces PJRT. Every IFRT array still bottoms out in real per-device memory, and the PJRT-backed implementation is proof that IFRT is a layer built on top, not a rewrite underneath. What moved is where the bookkeeping lives: up, onto an object that already knows what it is, instead of a set of buffers a caller has to remember to keep in sync."
+          "`Client` exposes operations that only make sense once an array is a first-class object. `RemapArrays` shuffles shards between arrays and `BitcastArrays` reinterprets their bytes; the header calls both metadata-only, with no shard data copied. `ReshardArrays` changes an array's sharding, and that one can move data, because a shard whose new sharding places it on another device has to be copied there. None of this replaces PJRT. Every IFRT array still bottoms out in real per-device memory, and the PJRT-backed implementation is proof that IFRT is a layer built on top, not a rewrite underneath. What moved is where the bookkeeping lives: up, onto an object that already knows what it is, instead of a set of buffers a caller has to remember to keep in sync."
         ]
       }
     ],
