@@ -11,7 +11,7 @@ const { code } = Astro.props
 const esc = (s: string) => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
 
 const TOKEN_RE =
-  /(\/\/[^\n]*|"[^"\n]*"|\btensor&lt;[^&]*?&gt;|\bmemref&lt;[^&]*?&gt;|\bvector&lt;[^&]*?&gt;|#\w+\.\w+(?:&lt;[^&]*?&gt;)?|\b(?:stablehlo|tpu|arith|vector|math|scf|func|mhlo)\.\w+|\bfunc\.func\b|\bmodule\b|\breturn\b|\blambda\b|%[\w.]+|@[\w.]+|\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)/g
+  /(\/\/[^\n]*|"[^"\n]*"|\btensor&lt;[^&]*?&gt;|\bmemref&lt;[^&]*?&gt;|\bvector&lt;[^&]*?&gt;|#\w+\.\w+(?:&lt;[^&]*?&gt;)?|\b(?:stablehlo|tpu|arith|vector|math|scf|func|mhlo|chlo|vhlo|linalg|ub)\.\w+|\bfunc\.func\b|\bmodule\b|\breturn\b|\blambda\b|%[\w.]+|@[\w.]+|\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)/g
 
 const tint = (line: string): string => {
   const escaped = esc(line)

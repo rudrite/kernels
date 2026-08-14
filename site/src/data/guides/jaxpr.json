@@ -13,7 +13,7 @@
     },
     {
      "kind": "p",
-     "text": "The jaxpr itself has a small, fixed grammar. `invars` are the function's arguments, the variables a caller binds when it applies the jaxpr. `constvars` name the slots for closed-over values, matched positionally against the consts list on the ClosedJaxpr. Then come the equations, one per primitive the trace recorded, and finally `outvars`, the variables the jaxpr returns. Every equation binds a fresh variable on its left side and never rebinds it, which is what people mean by static single assignment form. Once a variable is bound in a jaxpr, it stays that value for the rest of the jaxpr's body."
+     "text": "The jaxpr itself has a small, fixed grammar. `invars` are the function's arguments, the variables a caller binds when it applies the jaxpr. `constvars` name the slots for closed-over values, matched positionally against the consts list on the ClosedJaxpr. Then come the equations, one per primitive the trace recorded, and finally `outvars`, the variables the jaxpr returns. Every equation binds a fresh variable on its left side and never rebinds it. That property has a name, and the last lesson in this unit spends itself on what the name buys you."
     },
     {
      "kind": "p",
