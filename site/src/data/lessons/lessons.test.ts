@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { ALL_UNIT_LESSONS, LESSON_MASTERY, lessonKey } from './index'
 import { LESSON_DIAGRAMS } from './diagrams'
 import { PATH } from '../../lib/path'
+import { PT_PATH } from '../pytorch/track'
 import { XLA_PATH } from '../xla/track'
 
 // Every prose field the lesson pages render; code and table cells are data.
@@ -18,7 +19,11 @@ const proseOf = () => {
 
 describe('the lesson layer structure', () => {
   it('homes every unit key in a real course chapter', () => {
-    const chapterKeys = new Set([...PATH.map((c) => c.key), ...XLA_PATH.map((c) => c.key)])
+    const chapterKeys = new Set([
+      ...PATH.map((c) => c.key),
+      ...XLA_PATH.map((c) => c.key),
+      ...PT_PATH.map((c) => c.key),
+    ])
     for (const u of ALL_UNIT_LESSONS) expect(chapterKeys.has(u.unit), u.unit).toBe(true)
   })
 

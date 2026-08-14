@@ -8,6 +8,7 @@ import { COMPILER_WALL_LESSONS } from './compiler-wall'
 import { IR_DESCENT_LESSONS } from './ir-descent'
 import { MACHINE_LESSONS } from './machine'
 import { PALLAS_LESSONS } from './pallas'
+import { TORCH_BRIDGE_LESSONS } from './torch-bridge'
 import { XLA_LESSONS } from './xla-internals'
 
 export interface LessonCode {
@@ -76,6 +77,7 @@ export const ALL_UNIT_LESSONS: UnitLessons[] = [
   ...MACHINE_LESSONS,
   ...PALLAS_LESSONS,
   ...XLA_LESSONS,
+  ...TORCH_BRIDGE_LESSONS,
 ]
 
 /** Guide sections already told inside lessons, across every unit. */
@@ -89,10 +91,13 @@ export const claimedGuideSections = (guideId: string): Set<number> => {
 
 export const lessonKey = (unit: string, lessonId: string) => `${unit}:${lessonId}`
 
-/** '/l/tpu/tpu-chip' from ('l:tpu', 'tpu-chip'); mirrors the chapter URL rules. */
+/** '/l/tpu/tpu-chip' from ('l:tpu', 'tpu-chip'); mirrors the chapter URL rules.
+    The pytorch course's chapter URLs live under /pytorch while its unit keys use
+    the pt: prefix, so that one prefix maps. */
 export const lessonHref = (unit: string, lessonId: string) => {
   const [prefix, id] = unit.split(':') as [string, string]
-  return `/${prefix}/${id}/${lessonId}`
+  const seg = prefix === 'pt' ? 'pytorch' : prefix
+  return `/${seg}/${id}/${lessonId}`
 }
 
 export const lessonsOf = (unit: string): Lesson[] =>

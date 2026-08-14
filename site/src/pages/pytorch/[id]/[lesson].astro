@@ -1,0 +1,27 @@
+---
+import LessonPage from '../../../components/LessonPage.astro'
+import { ALL_UNIT_LESSONS } from '../../../data/lessons'
+import { ptChapterAt } from '../../../data/pytorch/track'
+
+export function getStaticPaths() {
+  return ALL_UNIT_LESSONS.filter((u) => u.unit.startsWith('pt:')).flatMap((u) =>
+    u.lessons.map((l) => ({ params: { id: u.unit.slice(3), lesson: l.id }, props: { unit: u.unit, lessonId: l.id } })),
+  )
+}
+
+interface Props {
+  unit: string
+  lessonId: string
+}
+const { unit, lessonId } = Astro.props
+const { current } = ptChapterAt(unit)
+---
+
+<LessonPage
+  unit={unit}
+  unitTitle={current.title}
+  unitHref={current.href}
+  course="the PyTorch path"
+  courseHref="/pytorch"
+  lessonId={lessonId}
+/>
