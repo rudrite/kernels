@@ -12,7 +12,8 @@ import MiniMap from '../../components/MiniMap.astro'
 import LessonList from '../../components/LessonList.astro'
 import GuideSections from '../../components/GuideSections.astro'
 import { lessonsOf, claimedGuideSections } from '../../data/lessons'
-import { LAYERS, STAGES } from '../../data/track'
+import LabCard from '../../components/LabCard.astro'
+import { LAYERS, STAGES, type Lab } from '../../data/track'
 import { LAYER_DOCS, layerDoc } from '../../data/layers'
 import irData from '../../data/ir-attention.json'
 
@@ -21,6 +22,16 @@ export function getStaticPaths() {
 }
 
 const { doc } = Astro.props
+
+const COLAB = 'https://colab.research.google.com/github/rudrite/kernels/blob/main/'
+const lab = (designator: string, title: string, time: string, hardware: string, file: string): Lab => ({
+  designator, title, time, hardware, colab: COLAB + file, notebook: file,
+})
+// One runnable lab per layer that has one; the mastery ledger's labs
+// auto-rule checks off when the card's mark-as-run is ticked.
+const LABS: Record<string, Lab[]> = {
+  xla: [lab('LAB·L1', 'One program, every artifact', '~1 h', 'any machine', 'labs/l/lab-l1-artifact-descent.ipynb')],
+}
 const order = LAYERS.map((l) => l.id)
 const idx = order.indexOf(doc.id)
 const drillStage = doc.drills ? STAGES.find((s) => s.id === doc.drills!.stage) : undefined
@@ -127,6 +138,19 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
       }
 
       {
+        LABS[doc.id] && (
+          <section class="block" id="labs">
+            <SectionHead id="labs-head" eyebrow="runnable" title="Labs" />
+            <div class="labgrid">
+              {LABS[doc.id]!.map((l) => (
+                <LabCard lab={l} />
+              ))}
+            </div>
+          </section>
+        )
+      }
+
+      {
         showGuide && (
           <div class="guide-open">
             <span class="mono-label">the full guide</span>
@@ -199,6 +223,7 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
 
   .toc-guide a { color: var(--accent-deep); }
 
+  .labgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 1rem; }
   .guide-open { margin-top: 3rem; border: 1px solid var(--rule); border-left: 3px solid var(--accent-deep); background: var(--paper-high); padding: 1rem 1.25rem; }
   .guide-open p { margin-top: 0.375rem; font-size: 0.9375rem; color: var(--ink-mute); max-width: 70ch; }
 

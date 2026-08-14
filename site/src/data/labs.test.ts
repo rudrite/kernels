@@ -8,7 +8,7 @@
 import { describe, expect, it } from 'vitest'
 import labs from './labs.generated.json'
 
-const PATHS = ['jax', 'xla', 'pytorch']
+const PATHS = ['jax', 'xla', 'pytorch', 'l']
 const generated = labs as Record<string, { file: string; title: string }>
 
 const pageSources = import.meta.glob('../pages/**/*.astro', {

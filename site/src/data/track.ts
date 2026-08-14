@@ -97,6 +97,7 @@ export const STAGES: Stage[] = [
     ],
     labs: [
       { designator: 'LAB·0.1', title: 'Rooflines by hand', time: '~2 h', hardware: 'Colab TPU', colab: COLAB + 'labs/stage-0/lab-0.1-rooflines.ipynb', notebook: 'labs/stage-0/lab-0.1-rooflines.ipynb' },
+      { designator: 'LAB·0.2', title: 'Spec sheet from parts', time: '~1.5 h', hardware: 'any machine', colab: COLAB + 'labs/stage-0/lab-0.2-spec-sheet.ipynb', notebook: 'labs/stage-0/lab-0.2-spec-sheet.ipynb' },
     ],
     gate: {
       state: 'passed',

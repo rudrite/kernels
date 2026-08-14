@@ -40,7 +40,10 @@ const LABS: Record<string, Lab[]> = {
   tensors: [lab('LAB·P1', 'Storage and strides, by hand', '~1 h', 'any machine', 'labs/pytorch/lab-p1-storage-and-strides.ipynb')],
   autograd: [lab('LAB·P2', 'The tape under a microscope', '~1.5 h', 'any machine', 'labs/pytorch/lab-p2-tape-microscope.ipynb')],
   dynamo: [lab('LAB·P3', 'Guards, breaks, counters', '~1.5 h', 'any machine', 'labs/pytorch/lab-p3-guards-breaks-counters.ipynb')],
-  bridges: [lab('LAB·P4', 'Torch on a TPU', '~2 h', 'Colab TPU', 'labs/pytorch/lab-p4-torch-on-tpu.ipynb')],
+  bridges: [
+    lab('LAB·P4', 'Torch on a TPU', '~2 h', 'Colab TPU', 'labs/pytorch/lab-p4-torch-on-tpu.ipynb'),
+    lab('LAB·P5', 'The boundary trace', '~2 h', 'Colab TPU', 'labs/pytorch/lab-p5-boundary-trace.ipynb'),
+  ],
 }
 
 export function getStaticPaths() {
