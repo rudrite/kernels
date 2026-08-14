@@ -190,7 +190,7 @@ const guideHeads = lesson.guide
             <SectionHead id="check" eyebrow="before you move on" title="Check yourself" />
             <div class="checks">
               {lesson.check.map((c, ci) => (
-                <details class="check">
+                <details class="plate check">
                   <summary>
                     <span class="q-num meas">{pad(ci + 1)}</span>
                     <span class="q">{c.q}</span>
@@ -208,7 +208,7 @@ const guideHeads = lesson.guide
         <ul class="readings">
           {
             lesson.readings.map((r) => (
-              <li>
+              <li class="plate">
                 <a href={r.url} target="_blank" rel="noopener">{r.label} ↗</a>
                 <span class="r-note">{r.note}</span>
               </li>
@@ -273,34 +273,30 @@ const guideHeads = lesson.guide
 </Base>
 
 <style>
-  .layout { display: grid; grid-template-columns: 13.5rem minmax(0, 1fr) 13rem; gap: 3rem; padding-block: 2.5rem; }
+  .layout { display: grid; grid-template-columns: 13.5rem minmax(0, 1fr) 13rem; gap: 2.75rem; padding-block: 2.5rem; }
   .side, .right { position: sticky; top: 2rem; align-self: start; }
   @media (max-width: 1240px) { .layout { grid-template-columns: 13.5rem minmax(0, 1fr); } .right { display: none; } }
   @media (max-width: 960px) { .layout { grid-template-columns: minmax(0, 1fr); } .side { display: none; } }
 
-  .chapter-head { padding-block: 2rem 2.25rem; background: var(--paper-high); border-bottom: 1px solid var(--rule); }
-  .chapter-head .kicker { color: var(--accent-deep); margin-bottom: 0.875rem; }
+  .chapter-head {
+    padding-block: 2rem 2.25rem; background: var(--plate); border-bottom: 2px solid var(--edge);
+    background-image: repeating-linear-gradient(to bottom, var(--scan) 0 1px, transparent 1px 3px);
+  }
+  .chapter-head .kicker { margin-bottom: 0.875rem; }
   .kicker-unit { color: inherit; }
-  .chapter-head h1 { font-size: clamp(1.875rem, 4.5vw, 2.75rem); font-weight: 600; letter-spacing: -0.01em; }
-  .chapter-head .lede { margin-top: 0.75rem; font-size: 1.1875rem; color: var(--ink-mute); max-width: 62ch; }
-  .chapter-head .goal { margin-top: 0.875rem; font-size: 0.9375rem; color: var(--ink); max-width: 70ch; border-left: 3px solid var(--copper-deep); padding-left: 0.875rem; }
-  .chapter-head .goal .mono-label { color: var(--copper-deep); margin-right: 0.5rem; }
+  .chapter-head .lede { margin-top: 0.9rem; color: var(--ink-mute); max-width: 62ch; }
+  .chapter-head .goal { margin-top: 1.1rem; font-size: 0.9375rem; color: var(--ink); max-width: 72ch; border-left: 3px solid var(--accent); padding-left: 0.9rem; }
+  .chapter-head .goal .mono-label { color: var(--accent); text-shadow: var(--bloom); margin-right: 0.4rem; }
 
   .block { margin-top: 2.5rem; }
+  .main .prose { line-height: 1.68; }
   .theory { margin-bottom: 1em; }
-
-  .pull {
-    margin: 1.25rem 0; padding: 0.25rem 0 0.25rem 1.125rem;
-    border-left: 3px solid var(--copper-deep);
-    font-family: var(--serif); font-style: italic; font-size: 1.1875rem; line-height: 1.5;
-    color: var(--ink);
-  }
 
   .pathmap ol { list-style: none; margin: 0.5rem 0 0; padding: 0; }
   .pathmap a { display: flex; align-items: baseline; gap: 0.5rem; padding: 0.22rem 0; text-decoration: none; color: var(--ink-mute); font-size: 0.8125rem; }
-  .pathmap a:hover { color: var(--accent-deep); }
-  .pathmap li.here a { color: var(--accent-deep); font-weight: 500; }
-  .pm-num { font-family: var(--mono); font-size: 0.6875rem; color: var(--accent-deep); }
+  .pathmap a:hover { color: var(--accent); }
+  .pathmap li.here a { color: var(--accent); text-shadow: var(--bloom); }
+  .pm-num { font-family: var(--mono); font-size: 0.625rem; color: var(--accent-deep); }
   .pm-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pm-frac { font-family: var(--mono); font-size: 0.625rem; color: var(--ink-mute); }
   :global(.pathmap [data-chapter-key].p-done) .pm-frac { color: var(--pass); }
@@ -312,37 +308,47 @@ const guideHeads = lesson.guide
 
   .exwrap { margin-top: 1.25rem; }
 
-  .tablefig { margin: 1.25rem 0 0; }
-  .tablescroll { overflow-x: auto; border: 1px solid var(--rule); background: var(--paper-high); }
+  .tablefig { margin: 1.4rem 0 0; }
+  .tablescroll {
+    overflow-x: auto; border: 2px solid var(--edge); border-bottom: none; background: var(--plate);
+    background-image: repeating-linear-gradient(to bottom, var(--scan) 0 1px, transparent 1px 3px);
+  }
   .tablefig table { border-collapse: collapse; width: 100%; font-size: 0.8125rem; }
-  .tablefig th { font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-mute); text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--rule); }
-  .tablefig td { font-family: var(--mono); padding: 0.45rem 0.75rem; border-bottom: 1px solid var(--rule-soft); white-space: nowrap; }
+  .tablefig th { font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; text-align: left; padding: 0.5rem 0.8rem; border-bottom: 1px solid var(--edge); }
+  .tablefig td { font-family: var(--mono); color: var(--ink-mute); padding: 0.42rem 0.8rem; border-bottom: 1px solid var(--rule-soft); white-space: nowrap; }
   .tablefig tr:last-child td { border-bottom: none; }
-  .tablefig .provenance { border: 1px solid var(--rule); border-top: none; background: var(--paper-high); color: var(--ink-mute); }
+  .tablefig .provenance {
+    border: 2px solid var(--edge); border-top: 1px solid var(--edge); background: var(--plate-2);
+    font-family: var(--mono); font-size: 0.6875rem; color: var(--ink-mute);
+    box-shadow: var(--stamp-sm); letter-spacing: 0.04em;
+  }
 
-  .checks { display: flex; flex-direction: column; gap: 0.75rem; max-width: var(--measure); }
-  .check { border: 1px solid var(--rule); background: var(--paper-high); box-shadow: 3px 3px 0 color-mix(in srgb, var(--ink) 8%, transparent); }
-  .check summary { display: flex; gap: 0.75rem; align-items: baseline; padding: 0.875rem 1rem; cursor: pointer; list-style: none; }
+  .checks { display: flex; flex-direction: column; gap: 0.6rem; max-width: var(--measure); }
+  .check summary { display: flex; gap: 0.7rem; align-items: baseline; padding: 0.8rem 0.95rem; cursor: pointer; list-style: none; font-weight: 600; }
   .check summary::-webkit-details-marker { display: none; }
-  .check summary:hover .q { color: var(--accent-deep); }
-  .check .q-num { color: var(--accent-deep); font-size: 0.8125rem; }
-  .check .q { font-weight: 500; }
-  .check .a { padding: 0 1rem 0.875rem 2.5rem; color: var(--ink-mute); }
+  .check summary:hover .q { color: var(--accent); }
+  .check .q-num { font-family: var(--mono); color: var(--accent); font-size: 0.75rem; }
+  .check .a { padding: 0 0.95rem 0.85rem 2.35rem; color: var(--ink-mute); font-size: 0.9375rem; line-height: 1.6; }
   .check[open] summary { border-bottom: 1px solid var(--rule-soft); margin-bottom: 0.75rem; }
 
-  .readings { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.75rem; }
-  .readings li { display: flex; flex-direction: column; gap: 0.2rem; border: 1px solid var(--rule); background: var(--paper-high); padding: 0.75rem 1rem; }
+  .readings { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+  .readings li { display: flex; flex-direction: column; gap: 0.2rem; padding: 0.75rem 0.95rem; }
   .readings a { font-family: var(--mono); font-size: 0.8125rem; color: var(--ink); text-decoration: none; }
-  .readings a:hover { color: var(--accent-deep); text-decoration: underline; }
+  .readings a:hover { color: var(--accent); }
   .r-note { font-size: 0.8125rem; color: var(--ink-mute); }
 
-  .pathpager { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap; margin-top: 3.5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); }
+  .pathpager { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap; margin-top: 3rem; padding-top: 1.1rem; border-top: 2px solid var(--edge); }
   .pp-left { display: flex; flex-direction: column; gap: 0.375rem; }
-  .pp-work { font-family: var(--mono); font-size: 0.6875rem; color: var(--ink-mute); }
-  .pp-prev { font-family: var(--mono); font-size: 0.75rem; color: var(--ink-mute); text-decoration: none; }
-  .pp-prev:hover { color: var(--accent-deep); }
-  .pp-next { display: inline-flex; flex-direction: column; gap: 0.25rem; align-items: flex-end; text-align: right; text-decoration: none; border: 1px solid var(--accent-deep); background: var(--paper-high); padding: 0.625rem 0.875rem; border-radius: 2px; }
-  .pp-next:hover { background: var(--paper); }
-  .pp-k { font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-mute); }
-  .pp-t { font-family: var(--mono); font-size: 0.8125rem; color: var(--accent-deep); }
+  .pp-work { font-family: var(--mono); font-size: 0.6875rem; color: var(--ink-faint); }
+  .pp-prev { font-family: var(--mono); font-size: 0.75rem; color: var(--ink-faint); text-decoration: none; }
+  .pp-prev:hover { color: var(--accent); }
+  .pp-next {
+    display: inline-flex; flex-direction: column; gap: 0.2rem; align-items: flex-end; text-align: right;
+    text-decoration: none; border: 2px solid var(--accent); border-radius: 3px;
+    background: var(--accent-wash); padding: 0.6rem 0.9rem; box-shadow: var(--stamp-sm);
+    transition: transform 110ms steps(2, jump-none);
+  }
+  .pp-next:hover { transform: translate(-2px, -2px); }
+  .pp-k { font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); }
+  .pp-t { font-family: var(--mono); font-size: 0.8125rem; color: var(--accent); text-shadow: var(--bloom); }
 </style>

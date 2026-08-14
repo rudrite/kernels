@@ -1,46 +1,90 @@
 /* kernels.rudrite.com design tokens + base styles.
-   Vernacular: engineering datasheet. Mono carries structure; serif carries thought.
-   Hue is meaning: copper = algorithm, steel = schedule, green = pass, red = fail.
-   Everything else stays monochrome. */
+   Register: Phosphor (docs/decisions/0003-phosphor-register.md). The surface is
+   a readout. Hard blocks, an aperture-grille tint on chrome plates, and bloom
+   spent on exactly two things: the accent, and numerals that carry a
+   measurement. Prose never glows.
+   Hue is still meaning: copper = algorithm, steel = schedule, green = pass,
+   red = fail. Everything else stays monochrome.
+   Dark and light are two full designs, not a filter over one another. There is
+   no toggle yet, so the mode follows the reader's system setting. */
 
 :root {
-  /* surfaces */
-  --paper: #f4f5f2;
-  --paper-high: #fbfbf9;
-  --ink: #1a1c1e;
-  --ink-mute: #5c6165;
-  --rule: #d4d7d0;
-  --rule-soft: #e3e5df;
-
-  /* instruments */
-  --panel: #101215;
-  --panel-edge: #2b2f34;
-  --panel-ink: #d6d9dc;
-  --panel-mute: #878e94;
-  --panel-rule: #23272c;
-
-  /* the four meaningful hues: content only, never interactive chrome
-     (ADR 0001). copper = algorithm, steel = schedule, green = pass,
-     red = fail. */
-  --copper: #c88a70;
-  --copper-deep: #a86e55;
-  --steel: #7f98ab;
-  --pass: #4da37a;
-  --fail: #c4574a;
-
-  /* interactive chrome: terracotta, same family as the algorithm hue
-     (ADR 0002, superseding ADR 0001's brand-token accent) */
-  --accent: #c88a70;
-  --accent-deep: #a86e55;
-  --accent-bright: #c88a70; /* for dark panels */
-
-  /* type */
+  /* --- type families --- */
   --serif: 'IBM Plex Serif', georgia, 'times new roman', serif;
   --mono: 'IBM Plex Mono', ui-monospace, 'sf mono', menlo, monospace;
   --pixel: 'VT323', var(--mono);
+  --grot: 'Inter Tight', 'helvetica neue', helvetica, arial, sans-serif;
 
-  --measure: 66ch;
+  --measure: 64ch;
   --pad: clamp(1.25rem, 4vw, 2.5rem);
+
+  /* --- phosphor, light: the same design read as a printout --- */
+  --ground: #eceae3;
+  --plate: #f9f8f4;
+  --plate-2: #f2f0e9;
+  --edge: #12141a;
+  --edge-hi: #12141a;
+  --ink: #12141a;
+  --ink-mute: #565c64;
+  --ink-faint: #7e858d;
+  --accent: #c88a70;
+  --accent-deep: #a05230;
+  --accent-wash: rgba(200, 138, 112, 0.16);
+  --bloom: none;
+  --bloom-soft: none;
+  --pass: #2f7d59;
+  --fail: #a83f32;
+  --stamp: 5px 5px 0 rgba(18, 20, 26, 0.9);
+  --stamp-sm: 3px 3px 0 rgba(18, 20, 26, 0.85);
+  --scan: rgba(18, 20, 26, 0.022);
+  color-scheme: light;
+
+  /* the meaning hues: content only, never interactive chrome (ADR 0001) */
+  --copper: #c88a70;
+  --copper-deep: #a86e55;
+  --steel: #7f98ab;
+
+  /* --- instruments: dark stages in both modes, reframed in the new chrome --- */
+  --panel: #17191d;
+  --panel-edge: #32363d;
+  --panel-ink: #e9e7e1;
+  --panel-mute: #969ba2;
+  --panel-rule: #23272c;
+  --accent-bright: #d98c5f; /* the accent, read on a dark panel */
+
+  /* --- names the un-migrated surfaces still paint from (M4b retires them) --- */
+  --paper: var(--ground);
+  --paper-high: var(--plate);
+  --rule: var(--edge);
+  --rule-soft: color-mix(in srgb, var(--edge) 24%, var(--plate));
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: #101114;
+    --plate: #17191d;
+    --plate-2: #1d2025;
+    --edge: #32363d;
+    --edge-hi: #4b515a;
+    --ink: #e9e7e1;
+    --ink-mute: #969ba2;
+    --ink-faint: #6c727a;
+    --accent: #d98c5f;
+    --accent-deep: #b96e42;
+    --accent-wash: rgba(217, 140, 95, 0.13);
+    --bloom: 0 0 14px rgba(217, 140, 95, 0.38);
+    --bloom-soft: 0 0 10px rgba(233, 231, 225, 0.16);
+    --pass: #58b98b;
+    --fail: #d4685a;
+    --stamp: 0 0 0 rgba(0, 0, 0, 0);
+    --stamp-sm: 0 0 0 rgba(0, 0, 0, 0);
+    --scan: rgba(255, 255, 255, 0.028);
+    color-scheme: dark;
+
+    /* copper and steel keep their meanings; the deep copper lifts off the
+       dark ground, where the printing value goes muddy */
+    --copper-deep: #c88a70;
+  }
 }
 
 * { box-sizing: border-box; margin: 0; }
@@ -52,7 +96,7 @@ html { scroll-behavior: smooth; }
 }
 
 body {
-  background: var(--paper);
+  background: var(--ground);
   color: var(--ink);
   font-family: var(--serif);
   font-size: 1.0625rem;
@@ -60,19 +104,42 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-::selection { background: var(--accent); color: var(--paper-high); }
+::selection { background: var(--accent); color: var(--plate); }
 
 a { color: inherit; text-decoration-color: var(--accent); text-underline-offset: 3px; }
-a:hover { color: var(--accent-deep); }
+a:hover { color: var(--accent); }
 
-:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* --- the primitives every surface reuses --- */
+
+/* the lit plate: a hard block with the aperture-grille tint. No blur, no
+   radius past 3px, no gradient fill. */
+.plate {
+  background: var(--plate);
+  border: 2px solid var(--edge);
+  border-radius: 3px;
+  box-shadow: var(--stamp-sm);
+  background-image: repeating-linear-gradient(to bottom, var(--scan) 0 1px, transparent 1px 3px);
+}
+
+/* the grille on its own, for surfaces that are not plates (the header bar,
+   instrument panels). Never inside the reading column. */
+.grille {
+  background-image: repeating-linear-gradient(to bottom, var(--scan) 0 1px, transparent 1px 3px);
+}
+
+/* bloom: emission, spent on the accent and on measured numerals only. It is a
+   static shadow, so reduced motion has nothing to collapse. */
+.bloom { text-shadow: var(--bloom); }
+.bloom-box { box-shadow: var(--bloom); }
 
 /* type roles */
 .mono-label {
   font-family: var(--mono);
   font-size: 0.6875rem;
   font-weight: 500;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
   color: var(--ink-mute);
 }
@@ -86,40 +153,43 @@ a:hover { color: var(--accent-deep); }
 }
 
 /* numerals that carry measurement meaning are set in the mono, inline */
-.meas { font-family: var(--mono); font-size: 0.9em; }
+.meas { font-family: var(--mono); font-size: 0.9em; font-variant-numeric: tabular-nums; }
 
 /* gate LEDs */
 .led {
   display: inline-block;
   width: 8px; height: 8px;
   border-radius: 50%;
-  border: 1.5px solid var(--ink-mute);
+  border: 1.5px solid var(--ink-faint);
   background: transparent;
   flex: 0 0 auto;
 }
 .led[data-state='passed'] { background: var(--pass); border-color: var(--pass); }
 .led[data-state='failed'] { background: var(--fail); border-color: var(--fail); }
 .led[data-state='active'] {
-  border-color: var(--copper-deep);
-  background: var(--copper);
-  animation: led-tick 1.6s steps(2, jump-none) infinite;
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: var(--bloom);
+  animation: led-tick 1.8s steps(2, jump-none) infinite;
 }
-@keyframes led-tick { 0% { opacity: 1; } 100% { opacity: 0.25; } }
+@keyframes led-tick { 0% { opacity: 1; } 100% { opacity: 0.32; } }
 
-/* instrument panel base */
+/* instrument panel base: the dark stage, reframed */
 .panel {
   background: var(--panel);
   color: var(--panel-ink);
-  border: 1px solid var(--panel-edge);
-  border-radius: 2px;
+  border: 2px solid var(--panel-edge);
+  border-radius: 3px;
+  box-shadow: var(--stamp-sm);
   font-family: var(--mono);
+  background-image: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.028) 0 1px, transparent 1px 3px);
 }
 .panel a { text-decoration-color: var(--accent-bright); }
 .panel a:hover { color: var(--accent-bright); }
 
 .provenance {
   border-top: 1px solid var(--panel-rule);
-  padding: 0.5rem 0.875rem;
+  padding: 0.55rem 0.875rem;
   font-size: 0.75rem;
   letter-spacing: 0.04em;
   color: var(--panel-mute);
@@ -127,46 +197,36 @@ a:hover { color: var(--accent-deep); }
 }
 
 /* layout helpers */
-.wrap { max-width: 76rem; margin-inline: auto; padding-inline: var(--pad); }
+.wrap { max-width: 78rem; margin-inline: auto; padding-inline: var(--pad); }
 /* wide content scrolls inside its own box; the page never scrolls sideways */
 pre { overflow-x: auto; }
 .prose { max-width: var(--measure); }
 .prose p + p { margin-top: 0.9em; }
 
-/* ---- reading experience: revamp layer ---- */
-
-/* dotted gutters: dots on the body, solid paper behind the content column */
-body {
-  background-image: radial-gradient(color-mix(in srgb, var(--ink) 9%, transparent) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-.site-header, .site-footer { background-color: var(--paper-high); }
-main {
-  background: linear-gradient(var(--paper), var(--paper)) no-repeat center / min(100%, 88rem) 100%;
-}
-
-/* display section heads: eyebrow + rule, then a real heading */
+/* display section heads: eyebrow + rule, then a display heading */
 .shead { margin: 0 0 1rem; }
 .shead .eyebrow {
-  display: flex; align-items: center; gap: 0.875rem;
+  display: flex; align-items: center; gap: 0.8rem;
   font-family: var(--mono); font-size: 0.6875rem; font-weight: 500;
-  letter-spacing: 0.11em; text-transform: uppercase; color: var(--ink-mute);
+  letter-spacing: 0.13em; text-transform: uppercase; color: var(--accent);
+  text-shadow: var(--bloom);
 }
-.shead .eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+.shead .eyebrow::after { content: ''; flex: 1; height: 2px; background: var(--edge); }
 .shead h2 {
   margin-top: 0.5rem;
-  font-family: var(--serif); font-weight: 600;
-  font-size: clamp(1.375rem, 2.6vw, 1.75rem);
-  letter-spacing: -0.01em; line-height: 1.2;
+  font-family: var(--grot); font-weight: 700;
+  font-size: clamp(1.375rem, 2.6vw, 1.875rem);
+  letter-spacing: -0.02em; line-height: 1.15;
 }
 
 /* pull quotes: the thesis lines */
 .pull {
-  margin: 1.25rem 0;
-  padding: 0.25rem 0 0.25rem 1.125rem;
-  border-left: 3px solid var(--copper);
+  margin: 1.5rem 0;
+  padding: 0.9rem 1.1rem;
+  border-left: 4px solid var(--accent);
+  background: var(--accent-wash);
   font-family: var(--serif); font-style: italic;
-  font-size: 1.1875rem; line-height: 1.5; color: var(--ink);
+  font-size: 1.1875rem; line-height: 1.45; color: var(--ink);
 }
 
 /* on-this-page rail */
@@ -178,21 +238,25 @@ main {
   border-left: 2px solid var(--rule-soft);
   color: var(--ink-mute); text-decoration: none; letter-spacing: 0.02em;
 }
-.toc a:hover { color: var(--accent-deep); }
-.toc a.active { border-left-color: var(--accent-deep); color: var(--ink); }
+.toc a:hover { color: var(--accent); }
+.toc a.active { border-left-color: var(--accent); color: var(--accent); text-shadow: var(--bloom); }
 
 /* right rail */
-.rail { display: flex; flex-direction: column; gap: 1.75rem; font-family: var(--mono); }
-.rail .rail-head { font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.11em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 0.625rem; display: block; }
-.rail .progress-num { font-size: 1.375rem; }
-.rail .progress-bar { height: 2px; background: var(--rule-soft); margin-top: 0.5rem; }
-.rail .progress-bar i { display: block; height: 100%; width: 0; background: var(--accent-deep); }
-.rail .card { border: 1px solid var(--rule); background: var(--paper-high); padding: 0.75rem 0.875rem; font-size: 0.75rem; }
+.rail { display: flex; flex-direction: column; gap: 1.6rem; font-family: var(--mono); }
+.rail .rail-head { font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.13em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 0.5rem; display: block; }
+.rail .progress-num { font-size: 1.5rem; color: var(--accent); text-shadow: var(--bloom); }
+.rail .progress-bar { height: 3px; background: var(--plate-2); border: 1px solid var(--edge); margin-top: 0.4rem; }
+.rail .progress-bar i { display: block; height: 100%; width: 0; background: var(--accent); box-shadow: var(--bloom); }
+.rail .card {
+  border: 2px solid var(--edge); background: var(--plate); border-radius: 3px;
+  box-shadow: var(--stamp-sm); padding: 0.7rem 0.85rem; font-size: 0.75rem;
+  background-image: repeating-linear-gradient(to bottom, var(--scan) 0 1px, transparent 1px 3px);
+}
 .rail .card .row { display: flex; justify-content: space-between; gap: 0.75rem; padding-block: 0.2rem; }
-.rail .card .k { color: var(--ink-mute); }
-.rail ul { list-style: none; padding: 0; margin: 0; font-size: 0.75rem; }
-.rail ul a { display: block; padding-block: 0.25rem; color: var(--ink); text-decoration: none; }
-.rail ul a:hover { color: var(--accent-deep); }
+.rail .card .k { color: var(--ink-faint); }
+.rail ul { list-style: none; padding: 0; margin: 0; font-size: 0.8125rem; }
+.rail ul a { display: block; padding-block: 0.22rem; color: var(--ink-mute); text-decoration: none; }
+.rail ul a:hover { color: var(--accent); }
 .rail ul a::before { content: '\203A  '; color: var(--accent-deep); }
 
 /* personal progress decorations */
@@ -205,50 +269,45 @@ main {
 }
 .spine-tick.p-done .name::after { content: ' \2713'; color: var(--pass); font-size: 0.625rem; }
 .lab-toggle {
-  background: transparent; border: 1px solid var(--panel-rule); border-radius: 2px;
+  background: transparent; border: 1px solid var(--panel-rule); border-radius: 3px;
   color: var(--panel-mute); font-family: var(--mono); font-size: 0.6875rem;
   padding: 0.25rem 0.55rem; cursor: pointer;
 }
 .lab-toggle:hover { border-color: var(--accent-bright); color: var(--accent-bright); }
 .lab-toggle.done { border-color: var(--pass); color: var(--pass); }
 
-/* workshop band system: paper ground, dark panels as insets, band grammar */
-.ws-ground { background: var(--paper); color: var(--ink); }
-.wband { border-top: 1px solid var(--rule); }
-.wband.alt { background: var(--paper-high); }
-.wband-light { border-top: 1px solid var(--rule); }
+/* workshop band system: the ground, dark panels as insets, band grammar */
+.ws-ground { background: var(--ground); color: var(--ink); }
+.wband { border-top: 1px solid var(--rule-soft); }
+.wband.alt { background: var(--plate-2); }
+.wband-light { border-top: 1px solid var(--rule-soft); }
 .wgrid { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: 2rem; padding-block: 2.5rem; }
 @media (max-width: 860px) { .wgrid { grid-template-columns: minmax(0, 1fr); } }
-.wtag { font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.11em; text-transform: uppercase; color: var(--accent-deep); }
-.wh1 { font-family: var(--serif); font-weight: 600; font-size: clamp(1.875rem, 4.5vw, 2.75rem); letter-spacing: -0.01em; line-height: 1.1; }
-.wh2 { font-family: var(--serif); font-weight: 600; font-size: clamp(1.375rem, 2.6vw, 1.75rem); letter-spacing: -0.01em; }
+.wtag { font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--accent); text-shadow: var(--bloom); }
+.wh1 { font-family: var(--grot); font-weight: 800; font-size: clamp(1.875rem, 4.5vw, 2.75rem); letter-spacing: -0.03em; line-height: 1.05; }
+.wh2 { font-family: var(--grot); font-weight: 700; font-size: clamp(1.375rem, 2.6vw, 1.75rem); letter-spacing: -0.02em; }
 .wlede { margin-top: 1rem; font-size: 1.0625rem; line-height: 1.65; color: var(--ink-mute); max-width: 62ch; font-family: var(--serif); }
 
-/* ---- presence layer (ADR 0001 refresh): scale, hierarchy, depth ---- */
-
-/* display headline ramp; page-scoped clamps lose to these on purpose */
-main .chapter-head h1 { font-size: clamp(2.375rem, 6vw, 3.625rem); letter-spacing: -0.02em; line-height: 1.06; }
-main .chapter-head .lede { font-size: clamp(1.1875rem, 2vw, 1.375rem); }
-main .chapter-head .kicker { color: var(--accent-deep); }
+/* --- scale and hierarchy: page-scoped clamps lose to these on purpose --- */
+main .chapter-head h1 { font-family: var(--grot); font-weight: 800; font-size: clamp(2.25rem, 5.4vw, 3.25rem); letter-spacing: -0.03em; line-height: 1.02; }
+main .chapter-head .lede { font-size: clamp(1.125rem, 2vw, 1.3125rem); }
+main .chapter-head .kicker { color: var(--accent); text-shadow: var(--bloom); }
 main .shead h2 { font-size: clamp(1.5rem, 3vw, 2rem); }
-main .shead .eyebrow { color: var(--accent-deep); }
-main .wh1 { font-size: clamp(2.25rem, 5.5vw, 3.25rem); }
 
-/* plates: cards sit on the paper instead of floating in it */
-.panel { box-shadow: 5px 5px 0 color-mix(in srgb, var(--ink) 14%, transparent); }
-.rail .card,
+/* cards sit on the ground as stamped blocks; on the dark plate the bloom and
+   the hard edge do the separating work, so the stamp resolves to nothing */
 .readings li,
 .lessonlist a,
 .rooms .card,
 .labgrid > * {
-  box-shadow: 3px 3px 0 color-mix(in srgb, var(--ink) 8%, transparent);
+  box-shadow: var(--stamp-sm);
 }
 .lessonlist a,
 .rooms .card {
-  transition: transform 120ms ease-out, box-shadow 120ms ease-out;
+  transition: transform 110ms steps(2, jump-none), box-shadow 110ms steps(2, jump-none);
 }
 .lessonlist a:hover,
 .rooms .card:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 5px 5px 0 color-mix(in srgb, var(--ink) 13%, transparent);
+  border-color: var(--accent);
 }

@@ -20,7 +20,7 @@ const hereLevel = cell ? LEVELS.find((l) => l.level === cell.level) : undefined
 
 {
   cell && hereLevel && (
-    <nav class="minimap" aria-label="Where this page sits in the stack">
+    <nav class="plate minimap" aria-label="Where this page sits in the stack">
       <span class="mono-label mm-head">where you are</span>
       <ol class="mm-levels">
         {LEVELS.map((level) => (
@@ -51,17 +51,17 @@ const hereLevel = cell ? LEVELS.find((l) => l.level === cell.level) : undefined
 }
 
 <style>
-  .minimap { font-family: var(--mono); margin-bottom: 1.25rem; }
-  .mm-head { display: block; margin-bottom: 0.5rem; }
+  .minimap { font-family: var(--mono); margin-bottom: 1.25rem; padding: 0.7rem 0.8rem; }
+  .mm-head { display: block; margin-bottom: 0.55rem; }
   .mm-levels { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
   .mm-row { display: flex; align-items: center; gap: 0.5rem; }
-  .mm-n { font-size: 0.5625rem; color: var(--ink-mute); width: 1.25rem; }
-  .mm-row.on-level .mm-n { color: var(--accent-deep); }
+  .mm-n { font-size: 0.625rem; color: var(--ink-faint); width: 1.4rem; }
+  .mm-row.on-level .mm-n { color: var(--accent); text-shadow: var(--bloom); }
   .mm-cells { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; flex: 1; min-width: 0; }
-  .mm-cell { display: block; height: 7px; border: 1px solid var(--rule-soft); background: none; }
-  .mm-cell.filled { background: var(--rule); }
-  .mm-cell.here { background: var(--accent-deep); border-color: var(--accent-deep); }
-  .mm-caption { display: block; margin-top: 0.5rem; font-size: 0.625rem; color: var(--ink); }
-  .mm-more { display: block; margin-top: 0.25rem; text-decoration: none; color: var(--accent-deep); }
-  .mm-more:hover { text-decoration: underline; }
+  .mm-cell { display: block; height: 5px; border: 1px solid var(--edge); background: none; }
+  .mm-cell.filled { background: var(--edge); }
+  .mm-cell.here { background: var(--accent); border-color: var(--accent); box-shadow: var(--bloom); }
+  .mm-caption { display: block; margin-top: 0.55rem; font-size: 0.625rem; color: var(--ink-mute); }
+  .mm-more { display: block; margin-top: 0.3rem; text-decoration: none; color: var(--accent-deep); }
+  .mm-more:hover { color: var(--accent); text-shadow: var(--bloom); }
 </style>

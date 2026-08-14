@@ -5,6 +5,9 @@ import '@fontsource/ibm-plex-serif/600.css'
 import '@fontsource/ibm-plex-mono/400.css'
 import '@fontsource/ibm-plex-mono/500.css'
 import '@fontsource/vt323/400.css'
+// the display grotesque carries headlines and section heads only (ADR 0003)
+import '@fontsource/inter-tight/latin-700.css'
+import '@fontsource/inter-tight/latin-800.css'
 import 'katex/dist/katex.min.css'
 import '../styles/global.css'
 import Lockup from '../components/Lockup.astro'
@@ -85,8 +88,11 @@ const ogImage = new URL(`/og/${ogSlug}.png`, Astro.site)
 </html>
 
 <style>
-  .site-header { border-bottom: 1px solid var(--rule); background: var(--paper-high); }
-  .bar { display: flex; align-items: center; justify-content: space-between; padding-block: 0.875rem; }
+  .site-header {
+    border-bottom: 2px solid var(--edge); background: var(--plate);
+    background-image: repeating-linear-gradient(to bottom, var(--scan) 0 1px, transparent 1px 3px);
+  }
+  .bar { display: flex; align-items: center; justify-content: space-between; padding-block: 0.9rem; }
   .home-link { text-decoration: none; }
   .lk-mobile { display: none; }
   @media (max-width: 700px) {
@@ -96,14 +102,14 @@ const ogImage = new URL(`/og/${ogSlug}.png`, Astro.site)
     nav { gap: 0.25rem 1rem; }
     .search-btn { margin-right: 0.25rem; }
   }
-  nav { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; }
+  nav { display: flex; gap: 1.4rem; align-items: center; flex-wrap: wrap; }
   nav a { text-decoration: none; color: var(--ink-mute); padding-block: 0.35rem; }
-  nav a:hover { color: var(--accent-deep); }
-  .search-btn { background: var(--paper); border: 1px solid var(--rule); border-radius: 2px; padding: 0.3rem 0.6rem; color: var(--ink-mute); cursor: pointer; display: inline-flex; gap: 0.5rem; align-items: center; }
-  .search-btn:hover { border-color: var(--accent-deep); color: var(--accent-deep); }
-  .search-btn kbd { font-family: var(--mono); font-size: 0.625rem; border: 1px solid var(--rule); border-radius: 2px; padding: 0.05rem 0.25rem; }
+  nav a:hover { color: var(--accent); text-shadow: var(--bloom); }
+  .search-btn { background: var(--plate-2); border: 1px solid var(--edge); border-radius: 3px; padding: 0.3rem 0.6rem; color: var(--ink-mute); cursor: pointer; display: inline-flex; gap: 0.5rem; align-items: center; }
+  .search-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .search-btn kbd { font-family: var(--mono); font-size: 0.625rem; border: 1px solid var(--edge); border-radius: 3px; padding: 0.05rem 0.25rem; }
   @media (max-width: 900px) { .search-btn kbd { display: none; } }
-  .site-footer { border-top: 1px solid var(--rule); margin-top: 5rem; }
+  .site-footer { border-top: 2px solid var(--edge); margin-top: 5rem; background: var(--plate); }
   .foot { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; padding-block: 1.25rem; flex-wrap: wrap; }
   .foot-note { font-family: var(--mono); font-size: 0.75rem; color: var(--ink-mute); max-width: 52ch; text-align: right; }
   @media (max-width: 700px) { .foot-note { text-align: left; } }

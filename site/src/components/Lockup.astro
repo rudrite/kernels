@@ -1,7 +1,9 @@
 ---
 // Rudrite lockup, kernels sub-brand. The voxel mark + VT323 wordmark are the
 // only brand elements shared across rudrite wings; proportions follow the
-// canonical lockup ratios.
+// canonical lockup ratios. The mark ships in two builds, Beige-Serene for the
+// light plate and Dark-Ember for the dark one, mapped role for role by the
+// brand README rather than recolored (ADR 0003).
 import { TAGLINE } from '../data/track'
 
 interface Props {
@@ -14,7 +16,10 @@ const markWidth = (36 * size) / 14
 ---
 
 <div class="lockup" role="img" aria-label="Rudrite Kernels" style={`--s:${size}px; --wm:${wordmark}px;`}>
-  <img src="/mark.svg" alt="" width={markWidth} height={(markWidth * 32) / 36} />
+  <picture>
+    <source srcset="/mark-dark.svg" media="(prefers-color-scheme: dark)" />
+    <img src="/mark.svg" alt="" width={markWidth} height={(markWidth * 32) / 36} />
+  </picture>
   <div class="col">
     <div class="row">
       <span class="wordmark" aria-hidden="true">rudr<span class="i">i</span>te</span>
@@ -27,11 +32,12 @@ const markWidth = (36 * size) / 14
 
 <style>
   .lockup { display: inline-flex; align-items: center; gap: calc(var(--s) * 0.55); color: var(--ink); }
-  .lockup img { flex: 0 0 auto; display: block; }
+  .lockup picture { flex: 0 0 auto; display: block; }
+  .lockup img { display: block; }
   .col { display: flex; flex-direction: column; gap: calc(var(--s) * 0.18); }
   .row { display: flex; align-items: center; gap: calc(var(--s) * 0.5); }
   .wordmark { font-family: var(--pixel); font-size: var(--wm); line-height: 0.9; letter-spacing: 0.5px; }
-  .i { color: var(--accent); }
+  .i { color: var(--accent); text-shadow: var(--bloom); }
   .divider { width: 1px; height: calc(var(--s) * 1.05); background: currentColor; opacity: 0.32; transform: translateY(calc(var(--wm) * 0.14)); }
   .sub {
     font-family: var(--mono); font-size: calc(var(--s) * 0.5); letter-spacing: 0.12em;

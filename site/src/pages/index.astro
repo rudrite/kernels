@@ -70,7 +70,7 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
 >
   <section class="wrap front" id="map" aria-label="The map">
     <p class="mono-label kicker">the whole stack · one map · four courses across it</p>
-    <h1>One program, all the way down.</h1>
+    <h1>One program, all the way <em>down.</em></h1>
     <p class="lede">
       Two frameworks converge on one portable graph, cross the runtime seam under it, and come out
       as code for two different machines. Every chapter on this site is a floor or a seam of that
@@ -93,11 +93,13 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
         <a class="cta primary" href="/l/source" data-continue><span data-continue-label>start the path → chapter 1</span></a>
         <a class="cta" href="https://github.com/rudrite/kernels" rel="noopener">the repo</a>
       </div>
-      <p class="stat-line">
-        <span class="meas">{gatesPassed}/{gatesTotal}</span> gates passed · your progress
-        <span class="meas" data-path-progress>0/15</span> chapters
-      </p>
-      <div class="your-bar" aria-hidden="true"><i data-path-progress-bar></i></div>
+      <div class="plate statbox">
+        <p class="stat-line">
+          <span class="meas bloom">{gatesPassed}/{gatesTotal}</span> gates passed · your progress
+          <span class="meas bloom" data-path-progress>0/15</span> chapters
+        </p>
+        <div class="your-bar" aria-hidden="true"><i data-path-progress-bar></i></div>
+      </div>
       <div class="outcome-strip">
         {OUTCOMES.map((o) => (
           <div><span class="meas onum">{o.n}</span> <strong>{o.h}</strong><span class="op"> · {o.p}</span></div>
@@ -117,25 +119,25 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
 
   <section class="wrap paths" aria-label="The mastery paths">
     <div class="paths-row">
-      <div class="path-card here">
+      <div class="plate path-card here">
         <span class="mono-label pc-k">path 01 · you are on it</span>
         <span class="pc-t">TPU kernels</span>
         <span class="pc-d">fifteen chapters down the stack · gates measured on real hardware</span>
         <span class="pc-m meas"><span data-path-progress>0/15</span> chapters · descends below ↓</span>
       </div>
-      <a class="path-card" href="/jax">
+      <a class="plate path-card" href="/jax">
         <span class="mono-label pc-k">path 02 · open</span>
         <span class="pc-t">JAX mastery</span>
         <span class="pc-d">twelve chapters across the language · a strict superset of the official tutorials</span>
         <span class="pc-m meas"><span data-path-progress="jax">0/12</span> chapters · enter the path →</span>
       </a>
-      <a class="path-card" href="/xla">
+      <a class="plate path-card" href="/xla">
         <span class="mono-label pc-k">path 03 · open</span>
         <span class="pc-t">XLA mastery</span>
         <span class="pc-d">fourteen chapters through the compiler · PJRT to Pathways, grounded in real dumps</span>
         <span class="pc-m meas"><span data-path-progress="xla">0/14</span> chapters · enter the path →</span>
       </a>
-      <a class="path-card" href="/pytorch">
+      <a class="plate path-card" href="/pytorch">
         <span class="mono-label pc-k">path 04 · open</span>
         <span class="pc-t">PyTorch mastery</span>
         <span class="pc-d">twelve chapters through the eager world, landing on TPU via torchax and torch_xla</span>
@@ -266,39 +268,52 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
 <style>
   .hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 3rem; align-items: center; padding-block: clamp(2.5rem, 6vw, 4rem) 1.5rem; }
   @media (max-width: 1100px) { .hero { grid-template-columns: minmax(0, 1fr); } }
-  .kicker { display: block; margin-bottom: 1.25rem; color: var(--accent-deep); }
-  h1, .hero-copy h2 { font-size: clamp(2.25rem, 5vw, 3.5rem); line-height: 1.05; font-weight: 600; letter-spacing: -0.01em; }
+  .kicker { display: block; margin-bottom: 1.1rem; color: var(--accent); text-shadow: var(--bloom); }
+  h1, .hero-copy h2 {
+    font-family: var(--grot); font-weight: 800;
+    font-size: clamp(2.5rem, 6.4vw, 4.5rem); line-height: 0.98; letter-spacing: -0.035em;
+  }
+  h1 em { font-style: normal; color: var(--accent); text-shadow: var(--bloom); }
+  .hero-copy h2 { font-size: clamp(2rem, 4.4vw, 3rem); line-height: 1.02; }
 
   /* the map: the front door */
-  .front { padding-block: clamp(2rem, 5vw, 3rem) 1rem; }
-  .front .lede { max-width: 68ch; margin-bottom: 2rem; }
-  .lede { margin-top: 1.25rem; font-size: 1.125rem; max-width: 46ch; }
-  .cta-row { display: flex; gap: 1rem; margin-top: 1.75rem; flex-wrap: wrap; }
-  .cta { font-family: var(--mono); font-size: 0.8125rem; text-decoration: none; border: 1px solid var(--ink-mute); padding: 0.625rem 1rem; border-radius: 2px; color: var(--ink); background: var(--paper-high); }
-  .cta:hover { border-color: var(--accent-deep); color: var(--accent-deep); }
-  .cta.primary { border-color: var(--accent-deep); color: var(--accent-deep); }
-  .stat-line { margin-top: 1.5rem; font-family: var(--mono); font-size: 0.8125rem; color: var(--ink-mute); }
-  .your-bar { height: 2px; background: var(--rule-soft); margin-top: 0.5rem; max-width: 24rem; }
-  .your-bar i { display: block; height: 100%; width: 0; background: var(--pass); }
+  .front { padding-block: clamp(2.25rem, 5vw, 3.5rem) 1rem; }
+  .front h1 { max-width: 16ch; }
+  .front .lede { max-width: 62ch; margin-bottom: 2.25rem; }
+  .lede { margin-top: 1.25rem; font-size: 1.125rem; max-width: 46ch; color: var(--ink-mute); }
+  .cta-row { display: flex; gap: 0.75rem; margin-top: 1.75rem; flex-wrap: wrap; }
+  .cta {
+    font-family: var(--mono); font-size: 0.8125rem; letter-spacing: 0.04em; text-decoration: none;
+    border: 2px solid var(--edge-hi); border-radius: 3px; padding: 0.7rem 1.05rem;
+    background: var(--plate); color: var(--ink); box-shadow: var(--stamp);
+    transition: transform 110ms steps(2, jump-none);
+  }
+  .cta:hover { transform: translate(-2px, -2px); }
+  .cta.primary { border-color: var(--accent); color: var(--accent); text-shadow: var(--bloom); background: var(--accent-wash); }
+  .statbox { margin-top: 1.5rem; padding: 0.85rem 1rem; max-width: 26rem; }
+  .stat-line { font-family: var(--mono); font-size: 0.8125rem; color: var(--ink-mute); }
+  .stat-line .meas { color: var(--accent); }
+  .your-bar { height: 3px; background: var(--plate-2); border: 1px solid var(--edge); margin-top: 0.6rem; }
+  .your-bar i { display: block; height: 100%; width: 0; background: var(--accent); box-shadow: var(--bloom); }
   .outcome-strip { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.875rem; }
-  .outcome-strip .onum { color: var(--accent-deep); font-size: 0.75rem; }
+  .outcome-strip .onum { color: var(--accent); font-size: 0.75rem; }
   .outcome-strip .op { color: var(--ink-mute); }
 
   /* the paths: the course family, one card each */
   .paths { padding-block: 0.5rem 0.25rem; }
-  .paths-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; border-top: 1px solid var(--rule); padding-top: 1.25rem; }
+  .paths-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; border-top: 2px solid var(--edge); padding-top: 1.5rem; }
   @media (max-width: 1180px) { .paths-row { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 700px) { .paths-row { grid-template-columns: minmax(0, 1fr); } }
-  .path-card { display: flex; flex-direction: column; gap: 0.375rem; border: 1px solid var(--rule); background: var(--paper-high); border-radius: 2px; padding: 0.875rem 1rem; text-decoration: none; color: inherit; }
-  .path-card.here { border-left: 3px solid var(--accent-deep); }
-  a.path-card:hover { border-color: var(--accent-deep); }
-  a.path-card:hover .pc-t { color: var(--accent-deep); }
-  .path-card.reserved { border-style: dashed; }
-  .path-card.reserved .pc-t, .path-card.reserved .pc-d { color: var(--ink-mute); }
-  .pc-k { color: var(--accent-deep); }
-  .pc-t { font-family: var(--serif); font-weight: 600; font-size: 1.25rem; }
+  .path-card { display: flex; flex-direction: column; gap: 0.3rem; padding: 0.8rem 0.95rem; text-decoration: none; color: inherit; }
+  .path-card.here { border-color: var(--accent); }
+  .path-card.here .pc-t { color: var(--accent); text-shadow: var(--bloom); }
+  a.path-card { transition: transform 110ms steps(2, jump-none); }
+  a.path-card:hover { transform: translate(-2px, -2px); border-color: var(--accent); }
+  a.path-card:hover .pc-t { color: var(--accent); }
+  .pc-k { color: var(--ink-faint); }
+  .pc-t { font-family: var(--grot); font-weight: 700; font-size: 1.0625rem; letter-spacing: -0.015em; }
   .pc-d { font-size: 0.875rem; color: var(--ink-mute); }
-  .pc-m { font-family: var(--mono); font-size: 0.75rem; color: var(--ink-mute); margin-top: 0.25rem; }
+  .pc-m { font-family: var(--mono); font-size: 0.6875rem; color: var(--ink-faint); margin-top: 0.25rem; }
 
   .descent-cue { padding-block: 1.25rem 0.75rem; }
 
@@ -311,50 +326,56 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
     .band-depth { flex-direction: row; align-items: baseline; gap: 0.75rem; }
   }
 
-  .depth-0 { background: #f4f5f2; }
-  .depth-1 { background: #edeee9; }
-  .depth-2 { background: #e5e6e0; }
-  .depth-3 { background: #dcded7; }
+  /* the descent: each band mixes further toward the instrument dark, so the
+     ramp reads the same way in both modes */
+  .depth-0 { background: var(--ground); }
+  .depth-1 { background: color-mix(in srgb, var(--ground) 92%, var(--panel)); }
+  .depth-2 { background: color-mix(in srgb, var(--ground) 84%, var(--panel)); }
+  .depth-3 { background: color-mix(in srgb, var(--ground) 76%, var(--panel)); }
   .depth-gap {
-    background: repeating-linear-gradient(-45deg, #d2d4cc, #d2d4cc 6px, #c8cac2 6px, #c8cac2 7px);
+    background: repeating-linear-gradient(
+      -45deg,
+      color-mix(in srgb, var(--ground) 68%, var(--panel)) 0 6px,
+      color-mix(in srgb, var(--ground) 58%, var(--panel)) 6px 7px
+    );
   }
   .depth-5, .depth-6, .depth-7, .depth-8 { color: var(--panel-ink); border-top-color: var(--panel-rule); }
-  .depth-5 { background: #3a3f46; }
-  .depth-6 { background: #33383f; }
-  .depth-7 { background: #2d3138; }
-  .depth-8 { background: #272b32; }
+  .depth-5 { background: color-mix(in srgb, var(--ground) 26%, var(--panel)); }
+  .depth-6 { background: color-mix(in srgb, var(--ground) 18%, var(--panel)); }
+  .depth-7 { background: color-mix(in srgb, var(--ground) 10%, var(--panel)); }
+  .depth-8 { background: var(--panel); }
 
   .band-depth { display: flex; flex-direction: column; gap: 0.375rem; font-family: var(--mono); }
-  .bd-ch { font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-deep); }
-  .depth-5 .bd-ch, .depth-6 .bd-ch, .depth-7 .bd-ch, .depth-8 .bd-ch { color: var(--accent); }
+  .bd-ch { font-size: 0.6875rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--accent-deep); }
+  .depth-5 .bd-ch, .depth-6 .bd-ch, .depth-7 .bd-ch, .depth-8 .bd-ch { color: var(--accent-bright); text-shadow: var(--bloom); }
   .bd-frac { font-size: 0.75rem; color: var(--ink-mute); }
   .depth-5 .bd-frac, .depth-6 .bd-frac, .depth-7 .bd-frac, .depth-8 .bd-frac { color: var(--panel-mute); }
   [data-chapter-key].p-done ~ * .bd-frac { color: var(--pass); }
 
   .band-title { text-decoration: none; color: inherit; }
-  .band-title h2 { font-family: var(--serif); font-weight: 600; font-size: clamp(1.5rem, 3vw, 2.125rem); letter-spacing: -0.01em; }
+  .band-title h2 { font-family: var(--grot); font-weight: 700; font-size: clamp(1.5rem, 3vw, 2.125rem); letter-spacing: -0.025em; }
   .band-title:hover h2 { color: var(--accent-deep); }
-  .depth-5 .band-title:hover h2, .depth-6 .band-title:hover h2, .depth-7 .band-title:hover h2, .depth-8 .band-title:hover h2 { color: var(--accent); }
+  .depth-5 .band-title:hover h2, .depth-6 .band-title:hover h2, .depth-7 .band-title:hover h2, .depth-8 .band-title:hover h2 { color: var(--accent-bright); }
   .band-desc { margin-top: 0.4rem; font-size: 0.9375rem; color: var(--ink-mute); max-width: 52ch; }
   .depth-5 .band-desc, .depth-6 .band-desc, .depth-7 .band-desc, .depth-8 .band-desc { color: var(--panel-mute); }
   .depth-gap .band-title h2 { color: var(--accent-deep); }
 
   .band-stages { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.875rem; }
-  .stage-chip { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--mono); font-size: 0.75rem; border: 1px solid var(--ink-mute); border-radius: 2px; padding: 0.375rem 0.625rem; text-decoration: none; background: var(--paper-high); color: var(--ink); }
-  .depth-5 .stage-chip, .depth-6 .stage-chip, .depth-7 .stage-chip, .depth-8 .stage-chip { background: #22262c; border-color: #5a626b; color: var(--panel-ink); }
-  .stage-chip:hover { border-color: var(--accent-deep); color: var(--accent-deep); }
+  .stage-chip { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--mono); font-size: 0.75rem; border: 2px solid var(--edge-hi); border-radius: 3px; padding: 0.375rem 0.625rem; text-decoration: none; background: var(--plate); color: var(--ink); }
+  .depth-5 .stage-chip, .depth-6 .stage-chip, .depth-7 .stage-chip, .depth-8 .stage-chip { background: var(--panel); border-color: var(--panel-edge); color: var(--panel-ink); }
+  .stage-chip:hover { border-color: var(--accent); color: var(--accent); }
   .chip-num { font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent-deep); font-weight: 500; }
-  .depth-5 .chip-num, .depth-8 .chip-num { color: var(--accent); }
+  .depth-5 .chip-num, .depth-6 .chip-num, .depth-7 .chip-num, .depth-8 .chip-num { color: var(--accent-bright); }
   .chip-frac { font-size: 0.6875rem; color: var(--ink-mute); }
   [data-chapter-key].p-done .chip-frac { color: var(--pass); }
 
   .band-motif { display: flex; flex-direction: column; gap: 0.3rem; font-family: var(--mono); font-size: 0.71875rem; color: var(--ink-mute); overflow: hidden; }
   .band-motif code { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .depth-5 .band-motif, .depth-6 .band-motif, .depth-7 .band-motif, .depth-8 .band-motif { color: #8a9298; }
+  .depth-5 .band-motif, .depth-6 .band-motif, .depth-7 .band-motif, .depth-8 .band-motif { color: var(--panel-mute); }
   .depth-gap .band-motif { color: var(--accent-deep); }
 
   /* the workshop: the dark floor beneath the stack */
-  .workshop { background: var(--paper-high); border-top: 1px solid var(--rule); padding-block: 3rem 3.5rem; }
+  .workshop { background: var(--plate-2); border-top: 2px solid var(--edge); padding-block: 3rem 3.5rem; }
   .ws-lede { color: var(--ink-mute); max-width: 60ch; margin-bottom: 1.5rem; }
   .instr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
   @media (max-width: 900px) { .instr-grid { grid-template-columns: minmax(0, 1fr); } }
@@ -366,12 +387,12 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
 
   .receipts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2.5rem; align-items: start; margin-top: 2.5rem; }
   @media (max-width: 1000px) { .receipts { grid-template-columns: minmax(0, 1fr); } }
-  .ws-head { display: block; margin-bottom: 0.625rem; color: var(--accent-deep); }
+  .ws-head { display: block; margin-bottom: 0.625rem; color: var(--accent); text-shadow: var(--bloom); }
   .ws-prose p { font-family: var(--serif); font-size: 1rem; line-height: 1.65; color: var(--ink); }
   .bt-head { font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--panel-mute); padding: 0.75rem 0.875rem; border-bottom: 1px solid var(--panel-rule); }
   .bt-row { display: flex; flex-direction: column; gap: 0.25rem; font-family: var(--mono); font-size: 0.8125rem; padding: 0.625rem 0.875rem; border-bottom: 1px solid var(--panel-rule); }
   .bt-k { color: var(--panel-mute); font-size: 0.6875rem; letter-spacing: 0.05em; }
-  .bt-v { color: var(--accent); font-size: 0.9375rem; overflow-wrap: break-word; }
+  .bt-v { color: var(--accent-bright); font-size: 0.9375rem; overflow-wrap: break-word; text-shadow: var(--bloom); }
   .bench-teaser .provenance a { color: var(--accent); text-decoration: none; }
 
   /* the depth gauge */
@@ -381,7 +402,7 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
   .gauge ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; }
   .gauge li { display: flex; align-items: center; gap: 0.375rem; font-size: 0.5625rem; color: var(--ink-mute); }
   .gauge li i { display: inline-block; width: 8px; height: 1px; background: var(--ink-mute); }
-  .gauge li.on { color: var(--accent-deep); font-weight: 500; }
-  .gauge li.on i { width: 14px; height: 2px; background: var(--accent-deep); }
+  .gauge li.on { color: var(--accent); font-weight: 500; text-shadow: var(--bloom); }
+  .gauge li.on i { width: 14px; height: 2px; background: var(--accent); box-shadow: var(--bloom); }
   @media (max-width: 1240px) { .gauge { display: none; } }
 </style>
