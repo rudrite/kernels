@@ -106,9 +106,9 @@ Per-unit protocol as in `true-mastery-courses.md` §P3.
       intended term is SparseCore (or TensorCore), and the lessons carry
       the disambiguation. Lessons must teach the non-closing derivations
       and the not-public gaps as content, not smooth them over.
-- [ ] Lessons 1-3 (`s:machine`)
-- [ ] Lessons 4-5 (`l:tpu`)
-- [ ] Lesson 6 (`l:ici`)
+- [x] Lessons 1-3 (`s:machine`)
+- [x] Lessons 4-5 (`l:tpu`)
+- [x] Lesson 6 (`l:ici`)
 - [ ] Spec-sheet lab + die-shot applied item wired into the owning units
 - [ ] CURRICULUM.md and unit hubs reflect the new lessons; grades noted in
       `true-mastery-courses.md` §P5

@@ -109,5 +109,9 @@ Owning units, per the audit rule (deepen, never duplicate):
       described by R1 from above and R2 from within; they must agree)
 - [ ] Phase 1 study loop run on this machine, artifacts kept locally
 - [ ] Phase 2 arcs authored per the §P3 protocol (checks, voice, provenance,
-      tests + build green, browser check, one commit per unit)
+      tests + build green, browser check, one commit per unit). The
+      pt:bridges arc shipped 2026-08-14, five lessons (engine, cut points,
+      modes, seam, succession) with the first pt: lesson route; still open:
+      the xla:pjrt/xla:ifrt reconcile pass, the chapter-14 third-walk
+      decision, and the boundary-trace lab
 - [ ] CURRICULUM.md and §P5 grades updated with whatever ships

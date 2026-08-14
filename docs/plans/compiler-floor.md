@@ -86,13 +86,13 @@ Per-unit protocol as in `true-mastery-courses.md` §P3 (author, reconcile
 duplicates, voice per `docs/VOICE.md`, verified snippets with provenance,
 tests and build green, browser check, one conventional commit per unit).
 
-- [ ] Capture pass: collect the real dumps the lessons will quote (LLVM IR,
-      MLIR dialect samples, HLO family samples incl. VHLO bytecode dump,
-      Triton dump stack, SASS via nvdisasm or a cited public sample)
-- [ ] Lessons 1-4 (the descent layer: SSA, LLVM, MLIR, HLO family)
-- [ ] Lessons 5-6 (the machine layer: ISA contract, scheduling styles)
-- [ ] Lesson 7 (TPU VLIW + LLO edge)
-- [ ] Lesson 8 (Triton in xla:codegen)
+- [x] Capture pass, folded into each lesson: every artifact either ran on
+      this machine and is quoted verbatim, or is cited at a pinned commit
+      or URL; nothing synthetic shipped
+- [x] Lessons 1-4 (the descent layer: SSA, LLVM, MLIR, HLO family)
+- [x] Lessons 5-6 (the machine layer: ISA contract, scheduling styles)
+- [x] Lesson 7 (TPU VLIW + LLO edge)
+- [x] Lesson 8 (Triton in xla:codegen)
 - [ ] Lab notebook + lab cards on the owning units
 - [ ] Optional drill station, or a recorded decision not to
 - [ ] CURRICULUM.md and unit hubs reflect the new lessons; grades noted in
