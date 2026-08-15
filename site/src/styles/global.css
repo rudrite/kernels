@@ -54,12 +54,6 @@
   --panel-mute: #969ba2;
   --panel-rule: #23272c;
   --accent-bright: #d98c5f; /* the accent, read on a dark panel */
-
-  /* --- names the un-migrated surfaces still paint from (M4b retires them) --- */
-  --paper: var(--ground);
-  --paper-high: var(--plate);
-  --rule: var(--edge);
-  --rule-soft: color-mix(in srgb, var(--edge) 24%, var(--plate));
 }
 
 @media (prefers-color-scheme: dark) {
