@@ -33,6 +33,8 @@
   --accent: #c88a70;
   --accent-deep: #a05230;
   --accent-wash: rgba(200, 138, 112, 0.16);
+  /* accent as TEXT: dark enough to read on the ground and the wash */
+  --accent-ink: var(--accent-deep);
   --bloom: none;
   --bloom-soft: none;
   --pass: #2f7d59;
@@ -74,6 +76,7 @@
     --accent: #d98c5f;
     --accent-deep: #b96e42;
     --accent-wash: rgba(217, 140, 95, 0.13);
+    --accent-ink: var(--accent);
     --bloom: 0 0 14px rgba(217, 140, 95, 0.38);
     --bloom-soft: 0 0 10px rgba(233, 231, 225, 0.16);
     --pass: #58b98b;
@@ -102,6 +105,7 @@
     --accent: #d98c5f;
     --accent-deep: #b96e42;
     --accent-wash: rgba(217, 140, 95, 0.13);
+    --accent-ink: var(--accent);
     --bloom: 0 0 14px rgba(217, 140, 95, 0.38);
     --bloom-soft: 0 0 10px rgba(233, 231, 225, 0.16);
     --pass: #58b98b;
@@ -136,7 +140,7 @@ body {
 ::selection { background: var(--accent); color: var(--plate); }
 
 a { color: inherit; text-decoration-color: var(--accent); text-underline-offset: 3px; }
-a:hover { color: var(--accent); }
+a:hover { color: var(--accent-ink); }
 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
@@ -213,6 +217,7 @@ a:hover { color: var(--accent); }
   font-family: var(--mono);
   background-image: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.028) 0 1px, transparent 1px 3px);
 }
+.panel { --accent-ink: var(--accent-bright); }
 .panel a { text-decoration-color: var(--accent-bright); }
 .panel a:hover { color: var(--accent-bright); }
 
@@ -237,7 +242,7 @@ pre { overflow-x: auto; }
 .shead .eyebrow {
   display: flex; align-items: center; gap: 0.8rem;
   font-family: var(--mono); font-size: 0.6875rem; font-weight: 500;
-  letter-spacing: 0.13em; text-transform: uppercase; color: var(--accent);
+  letter-spacing: 0.13em; text-transform: uppercase; color: var(--accent-ink);
   text-shadow: var(--bloom);
 }
 .shead .eyebrow::after { content: ''; flex: 1; height: 2px; background: var(--edge); }
@@ -267,13 +272,13 @@ pre { overflow-x: auto; }
   border-left: 2px solid var(--edge-soft);
   color: var(--ink-mute); text-decoration: none; letter-spacing: 0.02em;
 }
-.toc a:hover { color: var(--accent); }
-.toc a.active { border-left-color: var(--accent); color: var(--accent); text-shadow: var(--bloom); }
+.toc a:hover { color: var(--accent-ink); }
+.toc a.active { border-left-color: var(--accent-ink); color: var(--accent-ink); text-shadow: var(--bloom); }
 
 /* right rail */
 .rail { display: flex; flex-direction: column; gap: 1.6rem; font-family: var(--mono); }
 .rail .rail-head { font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.13em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 0.5rem; display: block; }
-.rail .progress-num { font-size: 1.5rem; color: var(--accent); text-shadow: var(--bloom); }
+.rail .progress-num { font-size: 1.5rem; color: var(--accent-ink); text-shadow: var(--bloom); }
 .rail .progress-bar { height: 3px; background: var(--plate-2); border: 1px solid var(--edge); margin-top: 0.4rem; }
 .rail .progress-bar i { display: block; height: 100%; width: 0; background: var(--accent); box-shadow: var(--bloom); }
 .rail .card {
@@ -285,7 +290,7 @@ pre { overflow-x: auto; }
 .rail .card .k { color: var(--ink-faint); }
 .rail ul { list-style: none; padding: 0; margin: 0; font-size: 0.8125rem; }
 .rail ul a { display: block; padding-block: 0.22rem; color: var(--ink-mute); text-decoration: none; }
-.rail ul a:hover { color: var(--accent); }
+.rail ul a:hover { color: var(--accent-ink); }
 .rail ul a::before { content: '\203A  '; color: var(--accent-deep); }
 
 /* personal progress decorations */
@@ -315,7 +320,7 @@ pre { overflow-x: auto; }
 .wband-light { border-top: 2px solid var(--edge); }
 .wgrid { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: 2rem; padding-block: 2.5rem; }
 @media (max-width: 860px) { .wgrid { grid-template-columns: minmax(0, 1fr); } }
-.wtag { font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--accent); text-shadow: var(--bloom); }
+.wtag { font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--accent-ink); text-shadow: var(--bloom); }
 .wh1 { font-family: var(--grot); font-weight: 800; font-size: clamp(1.875rem, 4.5vw, 2.75rem); letter-spacing: -0.03em; line-height: 1.05; }
 .wh2 { font-family: var(--grot); font-weight: 700; font-size: clamp(1.375rem, 2.6vw, 1.75rem); letter-spacing: -0.02em; }
 .wlede { margin-top: 1rem; font-size: 1.0625rem; line-height: 1.65; color: var(--ink-mute); max-width: 62ch; font-family: var(--serif); }
@@ -323,7 +328,7 @@ pre { overflow-x: auto; }
 /* --- scale and hierarchy: page-scoped clamps lose to these on purpose --- */
 main .chapter-head h1 { font-family: var(--grot); font-weight: 800; font-size: clamp(2.25rem, 5.4vw, 3.25rem); letter-spacing: -0.03em; line-height: 1.02; }
 main .chapter-head .lede { font-size: clamp(1.125rem, 2vw, 1.3125rem); }
-main .chapter-head .kicker { color: var(--accent); text-shadow: var(--bloom); }
+main .chapter-head .kicker { color: var(--accent-ink); text-shadow: var(--bloom); }
 main .shead h2 { font-size: clamp(1.5rem, 3vw, 2rem); }
 
 /* cards sit on the ground as stamped blocks; on the dark plate the bloom and

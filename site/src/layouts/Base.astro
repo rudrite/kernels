@@ -146,13 +146,13 @@ const ogImage = new URL(`/og/${ogSlug}.png`, Astro.site)
   }
   nav { display: flex; gap: 1.4rem; align-items: center; flex-wrap: wrap; }
   nav a { text-decoration: none; color: var(--ink-mute); padding-block: 0.35rem; }
-  nav a:hover { color: var(--accent); text-shadow: var(--bloom); }
+  nav a:hover { color: var(--accent-ink); text-shadow: var(--bloom); }
   .search-btn { background: var(--plate-2); border: 1px solid var(--edge); border-radius: 3px; padding: 0.3rem 0.6rem; color: var(--ink-mute); cursor: pointer; display: inline-flex; gap: 0.5rem; align-items: center; }
-  .search-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .search-btn:hover { border-color: var(--accent); color: var(--accent-ink); }
   .mode-btn { background: var(--plate-2); border: 1px solid var(--edge); border-radius: 3px; padding: 0.35rem; color: var(--ink-mute); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
   .mode-btn svg { display: block; }
   .mode-btn .mi-moon { display: none; }
-  .mode-btn:hover { border-color: var(--accent); color: var(--accent); filter: drop-shadow(var(--bloom)); }
+  .mode-btn:hover { border-color: var(--accent); color: var(--accent-ink); filter: drop-shadow(var(--bloom)); }
   .search-btn kbd { font-family: var(--mono); font-size: 0.625rem; border: 1px solid var(--edge); border-radius: 3px; padding: 0.05rem 0.25rem; }
   @media (max-width: 900px) { .search-btn kbd { display: none; } }
   .site-footer { border-top: 2px solid var(--edge); margin-top: 5rem; background: var(--plate); }

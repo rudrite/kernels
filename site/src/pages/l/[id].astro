@@ -229,7 +229,7 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
 
   .labgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 1rem; }
   .plate.guide-open { margin-top: 3rem; border-left: 4px solid var(--accent); padding: 1rem 1.25rem; }
-  .guide-open .mono-label { color: var(--accent); text-shadow: var(--bloom); }
+  .guide-open .mono-label { color: var(--accent-ink); text-shadow: var(--bloom); }
   .guide-open p { margin-top: 0.375rem; font-size: 0.9375rem; color: var(--ink-mute); max-width: 70ch; }
 
   .codefig { margin: 1.25rem 0 0; }
@@ -238,6 +238,6 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
   article.main { counter-reset: exercise; }
 
   .drill { display: inline-flex; flex-direction: column; gap: 0.375rem; padding: 0.875rem 1.125rem; }
-  .drill .mono-label { color: var(--accent); text-shadow: var(--bloom); }
+  .drill .mono-label { color: var(--accent-ink); text-shadow: var(--bloom); }
   .dtext { font-family: var(--mono); font-size: 0.8125rem; color: var(--ink-mute); }
 </style>

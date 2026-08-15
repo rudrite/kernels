@@ -56,12 +56,12 @@ const hereLevel = cell ? LEVELS.find((l) => l.level === cell.level) : undefined
   .mm-levels { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
   .mm-row { display: flex; align-items: center; gap: 0.5rem; }
   .mm-n { font-size: 0.625rem; color: var(--ink-faint); width: 1.4rem; }
-  .mm-row.on-level .mm-n { color: var(--accent); text-shadow: var(--bloom); }
+  .mm-row.on-level .mm-n { color: var(--accent-ink); text-shadow: var(--bloom); }
   .mm-cells { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; flex: 1; min-width: 0; }
   .mm-cell { display: block; height: 5px; border: 1px solid var(--edge); background: none; }
   .mm-cell.filled { background: var(--edge); }
   .mm-cell.here { background: var(--accent); border-color: var(--accent); box-shadow: var(--bloom); }
   .mm-caption { display: block; margin-top: 0.55rem; font-size: 0.625rem; color: var(--ink-mute); }
   .mm-more { display: block; margin-top: 0.3rem; text-decoration: none; color: var(--accent-deep); }
-  .mm-more:hover { color: var(--accent); text-shadow: var(--bloom); }
+  .mm-more:hover { color: var(--accent-ink); text-shadow: var(--bloom); }
 </style>

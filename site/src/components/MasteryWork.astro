@@ -52,7 +52,7 @@ const items = ALL_MASTERY[chapterKey] ?? []
 <style>
   .mastery { margin-top: 1.75rem; }
   .m-head { display: flex; justify-content: space-between; align-items: baseline; padding: 0.75rem 0.875rem; border-bottom: 1px solid var(--panel-rule); }
-  .m-title { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+  .m-title { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-ink); }
   .m-frac { font-family: var(--mono); font-size: 0.875rem; color: var(--panel-ink); }
   ol { list-style: none; margin: 0; padding: 0.375rem 0; }
   li { display: flex; align-items: center; gap: 0.75rem; padding: 0 0.875rem; }
@@ -61,9 +61,9 @@ const items = ALL_MASTERY[chapterKey] ?? []
   .m-box { width: 13px; height: 13px; border: 1.5px solid var(--panel-mute); border-radius: 2px; flex: 0 0 auto; position: relative; }
   li.done .m-box { border-color: var(--pass); background: var(--pass); }
   li.done .m-label { color: var(--panel-mute); }
-  .m-num { font-family: var(--mono); font-size: 0.6875rem; color: var(--accent); }
+  .m-num { font-family: var(--mono); font-size: 0.6875rem; color: var(--accent-ink); }
   .m-label { font-family: var(--mono); font-size: 0.8125rem; line-height: 1.5; }
-  .m-go { font-family: var(--mono); font-size: 0.75rem; color: var(--accent); text-decoration: none; white-space: nowrap; }
+  .m-go { font-family: var(--mono); font-size: 0.75rem; color: var(--accent-ink); text-decoration: none; white-space: nowrap; }
   .m-go:hover { text-decoration: underline; }
   .m-auto { font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.08em; color: var(--panel-mute); border: 1px solid var(--panel-rule); border-radius: 2px; padding: 0.1rem 0.3rem; }
 </style>

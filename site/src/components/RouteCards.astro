@@ -44,10 +44,10 @@ const { overlay = false } = Astro.props
   .route { display: flex; flex-direction: column; gap: 0.3rem; padding: 0.8rem 0.95rem; }
   .route-btn { display: flex; flex-direction: column; gap: 0.25rem; align-items: flex-start; background: none; border: none; padding: 0; cursor: pointer; text-align: left; color: inherit; font: inherit; text-decoration: none; }
   .rb-label { font-family: var(--grot); font-weight: 700; font-size: 1.0625rem; letter-spacing: -0.015em; }
-  .route-btn:hover .rb-label, .route-btn[aria-pressed='true'] .rb-label { color: var(--accent); text-shadow: var(--bloom); }
+  .route-btn:hover .rb-label, .route-btn[aria-pressed='true'] .rb-label { color: var(--accent-ink); text-shadow: var(--bloom); }
   .rb-meta { font-family: var(--mono); font-size: 0.6875rem; color: var(--ink-faint); }
   .route-note { font-size: 0.8125rem; color: var(--ink-mute); }
   .route-go { text-decoration: none; color: var(--accent-deep); }
-  .route-go:hover { color: var(--accent); text-shadow: var(--bloom); }
+  .route-go:hover { color: var(--accent-ink); text-shadow: var(--bloom); }
   .route:has(.route-btn[aria-pressed='true']) { border-color: var(--accent); }
 </style>

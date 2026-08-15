@@ -138,12 +138,12 @@ const INSTRUMENTS = [
 <style>
   .hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 3rem; align-items: center; padding-block: clamp(2.5rem, 6vw, 4rem) 1.5rem; }
   @media (max-width: 1100px) { .hero { grid-template-columns: minmax(0, 1fr); } }
-  .kicker { display: block; margin-bottom: 1.1rem; color: var(--accent); text-shadow: var(--bloom); }
+  .kicker { display: block; margin-bottom: 1.1rem; color: var(--accent-ink); text-shadow: var(--bloom); }
   h1 {
     font-family: var(--grot); font-weight: 800;
     font-size: clamp(2.5rem, 6.4vw, 4.5rem); line-height: 0.98; letter-spacing: -0.035em;
   }
-  h1 em { font-style: normal; color: var(--accent); text-shadow: var(--bloom); }
+  h1 em { font-style: normal; color: var(--accent-ink); text-shadow: var(--bloom); }
   .lede { margin-top: 1.25rem; font-size: 1.125rem; max-width: 48ch; color: var(--ink-mute); }
   .cta-row { display: flex; gap: 0.75rem; margin-top: 1.75rem; flex-wrap: wrap; }
   .cta {
@@ -153,13 +153,13 @@ const INSTRUMENTS = [
     transition: transform 110ms steps(2, jump-none);
   }
   .cta:hover { transform: translate(-2px, -2px); }
-  .cta.primary { border-color: var(--accent); color: var(--accent); text-shadow: var(--bloom); background: var(--accent-wash); }
+  .cta.primary { border-color: var(--accent); color: var(--accent-ink); text-shadow: var(--bloom); background: var(--accent-wash); }
   .statbox { margin-top: 1.5rem; padding: 0.85rem 1rem; max-width: 28rem; }
-  .stat-line { font-family: var(--mono); font-size: 1.0625rem; color: var(--accent); }
+  .stat-line { font-family: var(--mono); font-size: 1.0625rem; color: var(--accent-ink); }
   .stat-sub { margin-top: 0.45rem; font-size: 0.8125rem; line-height: 1.5; color: var(--ink-mute); }
-  .stat-sub .meas { font-family: var(--mono); color: var(--accent); }
+  .stat-sub .meas { font-family: var(--mono); color: var(--accent-ink); }
   .outcome-strip { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.875rem; }
-  .outcome-strip .onum { color: var(--accent); font-size: 0.75rem; }
+  .outcome-strip .onum { color: var(--accent-ink); font-size: 0.75rem; }
   .outcome-strip .op { color: var(--ink-mute); }
 
   /* the map: the front door, and the only place the stack is told */
@@ -175,15 +175,15 @@ const INSTRUMENTS = [
   .instr-card .body { padding: 0.875rem; display: flex; flex-direction: column; gap: 0.375rem; }
   .instr-card .it { color: var(--panel-ink); font-size: 0.875rem; }
   .instr-card .ik { color: var(--panel-mute); font-size: 0.75rem; }
-  .instr-card:hover .it { color: var(--accent); }
+  .instr-card:hover .it { color: var(--accent-ink); }
 
   .receipts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2.5rem; align-items: start; margin-top: 2.5rem; }
   @media (max-width: 1000px) { .receipts { grid-template-columns: minmax(0, 1fr); } }
-  .ws-head { display: block; margin-bottom: 0.625rem; color: var(--accent); text-shadow: var(--bloom); }
+  .ws-head { display: block; margin-bottom: 0.625rem; color: var(--accent-ink); text-shadow: var(--bloom); }
   .ws-prose p { font-family: var(--serif); font-size: 1rem; line-height: 1.65; color: var(--ink); }
   .bt-head { font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--panel-mute); padding: 0.75rem 0.875rem; border-bottom: 1px solid var(--panel-rule); }
   .bt-row { display: flex; flex-direction: column; gap: 0.25rem; font-family: var(--mono); font-size: 0.8125rem; padding: 0.625rem 0.875rem; border-bottom: 1px solid var(--panel-rule); }
   .bt-k { color: var(--panel-mute); font-size: 0.6875rem; letter-spacing: 0.05em; }
   .bt-v { color: var(--accent-bright); font-size: 0.9375rem; overflow-wrap: break-word; text-shadow: var(--bloom); }
-  .bench-teaser .provenance a { color: var(--accent); text-decoration: none; }
+  .bench-teaser .provenance a { color: var(--accent-ink); text-decoration: none; }
 </style>
