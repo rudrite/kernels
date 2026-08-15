@@ -153,7 +153,13 @@ primitive contract as written there):
         xla:pathways, xla:capstone graded below
   - [x] Close: README and CURRICULUM reflect the arcs (47 lessons); grades recorded
         under P5; the loop reported and stopped
-- **P4.** The same pass for jax and pytorch.
+- **P4.** The same pass for jax and pytorch. Complete 2026-08-15: the seven
+  part-i pytorch units (25 lessons) and all twelve jax units (35 lessons)
+  landed as arcs through the draft/critic/revise pipeline, each snippet run
+  on the local wheels before it was quoted; the jax lesson route, hub lists,
+  and test wiring shipped with them. The four pytorch part-ii units
+  (distributed, performance, tpu-practice, training-run) remain survey-depth
+  chapters with labs, the same standing P5 shape the xla stages hold.
 - **P5.** Continuous deepening against the model, chapter grades tracked in this file.
 
   Grades after the P5 pass (2026-08-07, closed). Teaches-to-competence with a full
