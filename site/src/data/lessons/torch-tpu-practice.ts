@@ -131,7 +131,7 @@ export const TORCH_TPU_PRACTICE_LESSONS: UnitLessons[] = [
         goal: 'Name the three capture surfaces and what each produces, say what an xp.Trace name does to the compiled module and which flag gates it, and say which question belongs to the counters rather than to the trace.',
         sections: [
           {
-            h: 'two ways to ask for a profile',
+            h: 'two ways of asking for a profile',
             ps: [
               "The on-demand route starts a server inside the training process and samples it from outside. `xp.start_server(port)` returns an object whose lifetime is the server's, and `xp.trace(service_addr, logdir, duration_ms)` blocks while it collects. Its defaults are worth reading once: host tracing at level 2, device tracing on, and a retry loop that keeps re-sending the request every `interval_s` until `timeout_s` runs out, because the thing being profiled may be busy compiling when the first request lands.",
               "The in-process route skips the server. `xp.start_trace(log_dir)` opens a profiler session, `xp.stop_trace()` stops it and exports to that directory, and a second `start_trace` while one is running raises rather than quietly nesting. The implementation says it is based on the jax profiler, and the shape of the API is the same shape jax users already know.",
