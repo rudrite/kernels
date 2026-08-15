@@ -566,7 +566,7 @@ export const PT_CHAPTERS: PtChapter[] = [
       {
         "h": "AMP: autocast and the scaler",
         "ps": [
-          "Automatic mixed precision changes the dtype decision from something you hardcode per op into something torch.autocast picks for you, per operation, based on which dtype each op tends to be numerically safe and fast in. Matmuls and convolutions typically autocast to a lower-precision dtype; reductions and other numerically sensitive ops stay in float32 underneath the same context manager, without you naming either choice by hand.",
+          "Automatic mixed precision changes the dtype decision from something you hardcode per op into something torch.autocast picks for you, per operation, based on which dtype each op tends to be numerically safe and fast in. Matmuls and convolutions typically autocast to a lower-precision dtype; on CUDA, reductions and other numerically sensitive ops stay in float32 underneath the same context manager, without you naming either choice by hand. The CPU table draws the line differently, and the performance lessons below read both tables out of the running build rather than from memory.",
           "fp16's narrow dynamic range means small gradients can underflow to exactly zero before they ever reach the optimizer, and GradScaler exists to prevent that: it scales the loss up before backward, so gradients land in a range fp16 can represent, then unscales them back down before the optimizer step. bf16 doesn't need any of that machinery. Its exponent range matches float32's, just with less mantissa precision, so no scaler is required, and bf16 is also the dtype the kernel path measures with natively on TPU, the hardware this whole track eventually lands on."
         ]
       }

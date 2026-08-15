@@ -22,7 +22,11 @@ import { MACHINE_LESSONS } from './machine'
 import { PALLAS_LESSONS } from './pallas'
 import { TORCH_BRIDGE_LESSONS } from './torch-bridge'
 import { TORCH_DATA_LESSONS } from './torch-data'
+import { TORCH_DISTRIBUTED_LESSONS } from './torch-distributed'
 import { TORCH_DYNAMO_LESSONS } from './torch-dynamo'
+import { TORCH_PERFORMANCE_LESSONS } from './torch-performance'
+import { TORCH_TPU_PRACTICE_LESSONS } from './torch-tpu-practice'
+import { TORCH_TRAINING_RUN_LESSONS } from './torch-training-run'
 import { TORCH_GRAPHS_LESSONS } from './torch-graphs'
 import { TORCH_LOOP_LESSONS } from './torch-loop'
 import { TORCH_MODULES_LESSONS } from './torch-modules'
@@ -115,7 +119,11 @@ export const ALL_UNIT_LESSONS: UnitLessons[] = [
   ...TORCH_DATA_LESSONS,
   ...TORCH_DYNAMO_LESSONS,
   ...TORCH_GRAPHS_LESSONS,
+  ...TORCH_DISTRIBUTED_LESSONS,
+  ...TORCH_PERFORMANCE_LESSONS,
   ...TORCH_BRIDGE_LESSONS,
+  ...TORCH_TPU_PRACTICE_LESSONS,
+  ...TORCH_TRAINING_RUN_LESSONS,
 ]
 
 /** Guide sections already told inside lessons, across every unit. */
