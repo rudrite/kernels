@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro'
+import RouteCards from '../components/RouteCards.astro'
+---
+
+<Base
+  title="Routes · Rudrite Kernels"
+  description="The four courses as routes across the map: the kernel path down the TPU side, the JAX and PyTorch paths across the top floors, the XLA path through the waist."
+>
+  <section class="wrap head">
+    <p class="mono-label kicker">four courses · one map under all of them</p>
+    <h1>Routes</h1>
+    <p class="lede">
+      A course here is a line drawn across the stack, not a separate site. Each one visits its
+      floors in a teaching order, carries its own chapters and its own progress, and hands you
+      back to the map when it is done. Pick one to start, or open the map and light a route over
+      the cells to see where it goes.
+    </p>
+    <RouteCards />
+    <p class="back"><a class="mono-label" href="/">the map, with all four drawn over it →</a></p>
+  </section>
+</Base>
+
+<style>
+  .head { padding-block: clamp(2.25rem, 5vw, 3.5rem) 3rem; }
+  .kicker { display: block; margin-bottom: 1.1rem; color: var(--accent); text-shadow: var(--bloom); }
+  h1 { font-family: var(--grot); font-weight: 800; font-size: clamp(2.25rem, 5vw, 3.25rem); line-height: 1; letter-spacing: -0.03em; }
+  .lede { margin: 1.25rem 0 2rem; font-size: 1.125rem; max-width: 62ch; color: var(--ink-mute); }
+  .back { margin-top: 1.5rem; }
+  .back a { color: var(--accent-deep); text-decoration: none; }
+  .back a:hover { color: var(--accent); text-shadow: var(--bloom); }
+</style>

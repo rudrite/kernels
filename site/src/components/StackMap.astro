@@ -3,7 +3,9 @@
 // the level it belongs to. Mastery state rides on the same data attributes
 // the path rows use, so ProgressKit paints this with no new code. The four
 // courses are routes drawn over the cells; picking one dims the rest.
-import { GAUGES, LEVELS, ROUTES, routesAt, unitsAt, type MapLevel, type MapSide } from '../data/map'
+import { GAUGES, LEVELS, routesAt, unitsAt, type MapLevel, type MapSide } from '../data/map'
+import { workshopAt } from '../data/workshop'
+import RouteCards from './RouteCards.astro'
 
 interface Props {
   /** The reader's current cell, lit on the map. */
@@ -25,20 +27,7 @@ const TAPER = ['0', '5%', '12%', '12%', '6%', '3%', '1%', '0']
 ---
 
 <div class="map">
-  <div class="routes" role="group" aria-label="The four courses, drawn over the map">
-    {
-      ROUTES.map((r) => (
-        <div class="plate route">
-          <button type="button" class="route-btn" data-route-btn={r.id} aria-pressed="false">
-            <span class="rb-label">{r.label}</span>
-            <span class="rb-meta meas"><span data-path-progress={r.progress}>0/{r.units.length}</span> chapters</span>
-          </button>
-          <span class="route-note">{r.note}</span>
-          <a class="route-go mono-label" href={r.href}>enter the course →</a>
-        </div>
-      ))
-    }
-  </div>
+  <div class="route-strip"><RouteCards overlay /></div>
 
   <div class="plate depth">
     <span class="mono-label d-head">how deep you read</span>
@@ -73,6 +62,7 @@ const TAPER = ['0', '5%', '12%', '12%', '6%', '3%', '1%', '0']
             <div class="cells">
               {columns(level).map((col) => {
                 const units = unitsAt(level.level, col.side)
+                const kit = workshopAt(level.level, col.side)
                 const lit = here && here.level === level.level && here.side === col.side
                 if (!units.length && !col.label) return <div class="cell gone" aria-hidden="true" />
                 return (
@@ -99,6 +89,19 @@ const TAPER = ['0', '5%', '12%', '12%', '6%', '3%', '1%', '0']
                       </ul>
                     ) : (
                       <span class="c-none">nothing here yet</span>
+                    )}
+                    {kit.length > 0 && (
+                      <ul class="kit">
+                        {kit.map((k) => (
+                          <li>
+                            <a class="k" href={k.href}>
+                              <span class="k-kind">{k.kind}</span>
+                              <span class="k-t">{k.label}</span>
+                              <span class="k-m">{k.meta}</span>
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
                     )}
                   </div>
                 )
@@ -139,18 +142,7 @@ const TAPER = ['0', '5%', '12%', '12%', '6%', '3%', '1%', '0']
 <style>
   .map { --dim: 0.28; }
 
-  .routes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; margin-bottom: 2rem; }
-  @media (max-width: 1000px) { .routes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 620px) { .routes { grid-template-columns: minmax(0, 1fr); } }
-  .route { display: flex; flex-direction: column; gap: 0.3rem; padding: 0.8rem 0.95rem; }
-  .route-btn { display: flex; flex-direction: column; gap: 0.25rem; align-items: flex-start; background: none; border: none; padding: 0; cursor: pointer; text-align: left; color: inherit; font: inherit; }
-  .rb-label { font-family: var(--grot); font-weight: 700; font-size: 1.0625rem; letter-spacing: -0.015em; }
-  .route-btn:hover .rb-label, .route-btn[aria-pressed='true'] .rb-label { color: var(--accent); text-shadow: var(--bloom); }
-  .rb-meta { font-family: var(--mono); font-size: 0.6875rem; color: var(--ink-faint); }
-  .route-note { font-size: 0.8125rem; color: var(--ink-mute); }
-  .route-go { text-decoration: none; color: var(--accent-deep); }
-  .route-go:hover { color: var(--accent); text-shadow: var(--bloom); }
-  .route:has(.route-btn[aria-pressed='true']) { border-color: var(--accent); }
+  .route-strip { margin-bottom: 2rem; }
 
   /* the depth gauge: the progress model, read as floors rather than percent */
   .depth { display: flex; align-items: baseline; gap: 0.75rem 1.5rem; flex-wrap: wrap; padding: 0.7rem 0.95rem; margin-bottom: 1.25rem; }
@@ -195,6 +187,15 @@ const TAPER = ['0', '5%', '12%', '12%', '6%', '3%', '1%', '0']
   .u-f { font-family: var(--mono); font-size: 0.625rem; color: var(--ink-faint); }
   :global(.u.p-done) .u-f { color: var(--pass); }
   :global(.u.p-done) .u-k { color: var(--pass); }
+
+  /* the equipment on a floor: drills, exhibits and records, smaller than the
+     units they serve because they are where the reader goes second */
+  .kit { list-style: none; margin: 0.45rem 0 0; padding: 0.4rem 0 0; border-top: 1px dashed var(--edge); }
+  .k { display: flex; align-items: baseline; gap: 0.4rem; padding: 0.05rem 0; text-decoration: none; color: var(--ink-mute); font-size: 0.6875rem; }
+  .k:hover { color: var(--accent); }
+  .k-kind { font-family: var(--mono); font-size: 0.5625rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+  .k-t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .k-m { font-family: var(--mono); font-size: 0.5625rem; color: var(--ink-faint); white-space: nowrap; }
 
   /* the seam: a lit dashed bus with its indicator */
   .seam { display: flex; align-items: center; gap: 0.9rem; margin: 0.5rem 0 0.5rem 8.25rem; border-top: 2px dashed var(--accent-deep); padding-top: 0.55rem; }

@@ -1,0 +1,53 @@
+---
+// The four courses, one card each. On the map the card's title toggles the
+// route overlay; anywhere else it is a link into the course. Same data, same
+// chrome, so the Routes page and the map never drift apart.
+import { ROUTES } from '../data/map'
+
+interface Props {
+  /** True on the map, where picking a course lights its cells. */
+  overlay?: boolean
+}
+const { overlay = false } = Astro.props
+---
+
+<div class="routes" role="group" aria-label="The four courses">
+  {
+    ROUTES.map((r) => (
+      <div class="plate route">
+        {overlay ? (
+          <button type="button" class="route-btn" data-route-btn={r.id} aria-pressed="false">
+            <span class="rb-label">{r.label}</span>
+            <span class="rb-meta meas">
+              <span data-path-progress={r.progress}>0/{r.units.length}</span> chapters
+            </span>
+          </button>
+        ) : (
+          <a class="route-btn" href={r.href}>
+            <span class="rb-label">{r.label}</span>
+            <span class="rb-meta meas">
+              <span data-path-progress={r.progress}>0/{r.units.length}</span> chapters
+            </span>
+          </a>
+        )}
+        <span class="route-note">{r.note}</span>
+        <a class="route-go mono-label" href={r.href}>enter the course →</a>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .routes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; }
+  @media (max-width: 1000px) { .routes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 620px) { .routes { grid-template-columns: minmax(0, 1fr); } }
+  .route { display: flex; flex-direction: column; gap: 0.3rem; padding: 0.8rem 0.95rem; }
+  .route-btn { display: flex; flex-direction: column; gap: 0.25rem; align-items: flex-start; background: none; border: none; padding: 0; cursor: pointer; text-align: left; color: inherit; font: inherit; text-decoration: none; }
+  .rb-label { font-family: var(--grot); font-weight: 700; font-size: 1.0625rem; letter-spacing: -0.015em; }
+  .route-btn:hover .rb-label, .route-btn[aria-pressed='true'] .rb-label { color: var(--accent); text-shadow: var(--bloom); }
+  .rb-meta { font-family: var(--mono); font-size: 0.6875rem; color: var(--ink-faint); }
+  .route-note { font-size: 0.8125rem; color: var(--ink-mute); }
+  .route-go { text-decoration: none; color: var(--accent-deep); }
+  .route-go:hover { color: var(--accent); text-shadow: var(--bloom); }
+  .route:has(.route-btn[aria-pressed='true']) { border-color: var(--accent); }
+</style>

@@ -153,7 +153,8 @@ const lessonEntries: SearchEntry[] = ALL_UNIT_LESSONS.flatMap((u) =>
 )
 
 const pages: SearchEntry[] = [
-  { t: 'the path', h: '/', k: 'home chapters map kernels' },
+  { t: 'the map', h: '/', k: 'home hourglass stack cells levels depth' },
+  { t: 'the routes', h: '/routes', k: 'courses four paths kernels jax xla pytorch' },
   { t: 'the jax path', h: '/jax', k: 'jax mastery course transformations' },
   { t: 'the xla path', h: '/xla', k: 'xla mastery course compiler pjrt ifrt pathways' },
   { t: 'the pytorch path', h: '/pytorch', k: 'pytorch mastery course torch tpu torchax' },
