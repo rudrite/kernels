@@ -217,7 +217,7 @@ const toc = [...chapterToc, ...fixedToc]
             <SectionHead id="readings" eyebrow="sources" title="Readings" />
             <ul class="readings">
               {stage.readings.map((r) => (
-                <li>
+                <li class="plate">
                   <a href={r.url} rel="noopener">{r.label}</a>
                   <span class="rnote"> · {r.note}</span>
                 </li>
@@ -290,7 +290,7 @@ const toc = [...chapterToc, ...fixedToc]
             <SectionHead id="gate" eyebrow="the finale is yours" title="Your gate" />
             <p class="theory yg-lede">{CAPSTONE.lede}</p>
 
-            <div class="yg-criteria">
+            <div class="plate yg-criteria">
               {CAPSTONE.criteria.map((cr, i) => (
                 <div class="yg-row">
                   <span class="mono-label yg-num">{String(i + 1).padStart(2, '0')}</span>
@@ -306,7 +306,7 @@ const toc = [...chapterToc, ...fixedToc]
             <h3 class="yg-subhead">Three starting points, runnable today</h3>
             <div class="yg-cands">
               {CAPSTONE.candidates.map((cd) => (
-                <div class="yg-card">
+                <div class="plate yg-card">
                   <h4>{cd.t}</h4>
                   <p class="yg-why">{cd.why}</p>
                   <p class="yg-start">{cd.start}</p>
@@ -376,21 +376,21 @@ const toc = [...chapterToc, ...fixedToc]
   @media (max-width: 1240px) { .layout { grid-template-columns: 12.5rem minmax(0, 1fr); } .right { display: none; } }
   @media (max-width: 960px) { .layout { grid-template-columns: minmax(0, 1fr); } .side { position: static; display: none; } }
 
-  .chapter-head { padding-block: 2rem 2.25rem; background: var(--paper-high); border-bottom: 1px solid var(--rule); }
-  .chapter-head .kicker { color: var(--accent-deep); margin-bottom: 0.875rem; }
+  .chapter-head {
+    padding-block: 2rem 2.25rem; background: var(--plate); border-bottom: 2px solid var(--edge);
+    background-image: repeating-linear-gradient(to bottom, var(--scan) 0 1px, transparent 1px 3px);
+  }
+  .chapter-head .kicker { margin-bottom: 0.875rem; }
   .block { margin-top: 3rem; }
   .chapter-head .goal { margin-top: 1.25rem; font-size: 1.25rem; line-height: 1.55; max-width: 62ch; }
-  .howto { display: flex; align-items: baseline; gap: 1.25rem; flex-wrap: wrap; border-block: 1px solid var(--rule-soft); padding-block: 0.75rem; margin-top: 1.75rem; }
-  .howto ol { display: flex; gap: 1.5rem; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; counter-reset: step; font-family: var(--mono); font-size: 0.75rem; color: var(--ink-mute); }
-  .howto li { counter-increment: step; }
-  .howto li::before { content: counter(step) ' · '; color: var(--accent-deep); }
 
   .theory { margin-bottom: 1em; }
   .build { padding-left: 1.1em; }
   .build li { margin-bottom: 0.45em; }
-  .readings { list-style: none; padding: 0; }
-  .readings li { margin-bottom: 0.6em; }
-  .readings a { font-family: var(--mono); font-size: 0.875rem; }
+  .readings { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+  .readings li { padding: 0.75rem 0.95rem; }
+  .readings a { font-family: var(--mono); font-size: 0.8125rem; color: var(--ink); text-decoration: none; }
+  .readings a:hover { color: var(--accent); }
   .rnote { color: var(--ink-mute); font-size: 0.9375rem; }
   .workblock { margin-bottom: 1.25rem; }
   .wlabel { font-family: var(--mono); font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.04em; color: var(--accent-deep); margin-bottom: 0.5rem; }
@@ -402,22 +402,23 @@ const toc = [...chapterToc, ...fixedToc]
 
 
   .yg-lede { max-width: 68ch; }
-  .yg-criteria { margin-top: 1.25rem; border: 1px solid var(--rule); background: var(--paper-high); }
-  .yg-row { display: flex; gap: 1rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--rule-soft); }
+  .yg-criteria { margin-top: 1.25rem; }
+  .yg-row { display: flex; gap: 1rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--edge-soft); }
   .yg-row:last-child { border-bottom: none; }
-  .yg-num { color: var(--accent-deep); padding-top: 0.2rem; }
+  .yg-num { color: var(--accent); text-shadow: var(--bloom); padding-top: 0.2rem; }
   .yg-c { font-family: var(--mono); font-size: 0.9375rem; font-weight: 500; }
   .yg-how { margin-top: 0.375rem; font-size: 0.9375rem; color: var(--ink-mute); max-width: 64ch; line-height: 1.6; }
   .yg-link { display: inline-block; margin-top: 0.5rem; font-family: var(--mono); font-size: 0.8125rem; color: var(--accent-deep); text-decoration: none; }
-  .yg-link:hover { text-decoration: underline; }
-  .yg-subhead { margin-top: 2rem; font-family: var(--mono); font-size: 0.9375rem; font-weight: 500; letter-spacing: 0.02em; }
+  .yg-link:hover { color: var(--accent); text-decoration: underline; }
+  .yg-subhead { margin-top: 2rem; font-family: var(--grot); font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; }
   .yg-cands { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; margin-top: 0.875rem; }
-  .yg-card { border: 1px solid var(--rule); background: var(--paper-high); padding: 1rem 1.125rem; display: flex; flex-direction: column; }
+  .yg-card { padding: 1rem 1.125rem; display: flex; flex-direction: column; }
   .yg-card h4 { font-family: var(--mono); font-size: 0.875rem; font-weight: 500; }
   .yg-why { margin-top: 0.5rem; font-size: 0.875rem; color: var(--ink-mute); line-height: 1.55; flex: 1; }
   .yg-start { margin-top: 0.5rem; font-size: 0.8125rem; color: var(--ink); line-height: 1.55; }
-  .yg-venues { margin-top: 2rem; border-top: 1px solid var(--rule); padding-top: 1rem; }
+  .yg-venues { margin-top: 2rem; border-top: 2px solid var(--edge); padding-top: 1rem; }
+  .yg-venues .mono-label { color: var(--accent); text-shadow: var(--bloom); }
   .yg-venue { margin-top: 0.5rem; font-size: 0.875rem; color: var(--ink-mute); }
   .yg-venue a { font-family: var(--mono); color: var(--accent-deep); text-decoration: none; }
-  .yg-venue a:hover { text-decoration: underline; }
+  .yg-venue a:hover { color: var(--accent); text-decoration: underline; }
 </style>
