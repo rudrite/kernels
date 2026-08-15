@@ -1,9 +1,10 @@
 # The descent revamp: one story, one spine
 
 Status: complete (2026-08-15). All four phases shipped: M1 the map, M2 the
-specimen and its explorer (per-unit slices remain a standing follow-up), M3
-the depth model with the workshop fold, M4 the Phosphor register across
-every surface. Decisions recorded in the last section. Supersedes the IA framing of
+specimen with its per-unit slices and its explorer, M3 the depth model with
+the workshop fold, M4 the Phosphor register across every surface. The slices
+landed last: six floors of the map open with an excerpt of the one program,
+and the floors the capture never reached open with nothing. Decisions recorded in the last section. Supersedes the IA framing of
 `true-mastery-courses.md` where they conflict; the arc model (unit → lessons →
 practice → prove) survives unchanged, because it works.
 

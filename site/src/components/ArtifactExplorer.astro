@@ -34,7 +34,7 @@ const total = levels.length
               type="button"
               class="axp-pick"
               data-axp-pick={i}
-              aria-controls={`axp-level-${i}`}
+              aria-controls={`axp-${level.id}`}
               aria-current={i === 0 ? 'true' : 'false'}
             >
               <span class="axp-lvl">L{level.level}</span>
@@ -49,7 +49,7 @@ const total = levels.length
     <div class="axp-stage">
       {
         levels.map((level, i) => (
-          <section class="axp-level" id={`axp-level-${i}`} data-axp-level={i}>
+          <section class="axp-level" id={`axp-${level.id}`} data-axp-level={i}>
             <div class="axp-meta">
               <span class="axp-meta-title">
                 L{level.level} · {level.title}
@@ -115,7 +115,17 @@ const total = levels.length
       else if (e.key === 'k') show(at - 1)
     })
 
+    // A chapter slice links straight at one floor. Without the script the
+    // browser scrolls to that section on its own; with it running the section
+    // is hidden until it is the one on stage, so the hash picks it here.
+    const fromHash = () => {
+      const at = panels.findIndex((p) => `#${p.id}` === window.location.hash)
+      if (at >= 0) show(at)
+    }
+
     show(0)
+    fromHash()
+    window.addEventListener('hashchange', fromHash)
   }
 </script>
 

@@ -20,6 +20,9 @@ export interface SpecimenEntry {
   bytes?: number
   sha256?: string
   produced_by?: string
+  /** Set only where the capture run's versions do not apply, as on the
+   * paste-back level, which came off another machine entirely. */
+  versions?: Record<string, string>
   /** Pending only: the capture that will fill this level. */
   pending?: string
 }

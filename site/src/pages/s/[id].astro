@@ -6,6 +6,7 @@ import SectionHead from '../../components/SectionHead.astro'
 import ReadingRails from '../../components/ReadingRails.astro'
 import PathPager from '../../components/PathPager.astro'
 import MasteryWork from '../../components/MasteryWork.astro'
+import SpecimenSlice from '../../components/SpecimenSlice.astro'
 import MiniMap from '../../components/MiniMap.astro'
 import LessonList from '../../components/LessonList.astro'
 import { lessonsOf } from '../../data/lessons'
@@ -112,6 +113,7 @@ const toc = [...chapterToc, ...fixedToc]
 
     <article class="main">
       <MasteryWork chapterKey={`s:${stage.id}`} />
+      <SpecimenSlice unit={`s:${stage.id}`} />
 
       {
         stage.chapter.map((sec) => (

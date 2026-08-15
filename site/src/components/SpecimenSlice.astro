@@ -1,0 +1,68 @@
+---
+// The chapter's slice of the specimen: the same program the reader met
+// upstairs, written down again at this chapter's floor. The component takes
+// a unit key and asks slices.ts whether that floor has a captured artifact,
+// so a template can drop it in unconditionally and a chapter on a pending
+// floor simply gets nothing.
+//
+// The panel quotes and links. What the artifact means belongs to the lesson
+// under it, and the full dump belongs to /specimen.
+import { Code } from 'astro:components'
+import MlirCode from './MlirCode.astro'
+import { sliceFor } from '../data/slices'
+
+interface Props {
+  /** The unit key, as the map spells it: `jax:tracing`, `l:stablehlo`. */
+  unit: string
+}
+const { unit } = Astro.props
+const slice = sliceFor(unit)
+---
+
+{
+  slice && (
+    <section class="slice panel" aria-label="This chapter's slice of the specimen">
+      <header class="sl-head">
+        <span class="sl-kicker">the specimen · at this floor</span>
+        <span class="sl-level">
+          L{slice.level} · {slice.entry.title}
+        </span>
+      </header>
+      <p class="sl-say">{slice.framing}</p>
+      <div class="sl-code">
+        {slice.lang === 'mlir' ? <MlirCode code={slice.text} /> : <Code code={slice.text} lang={slice.lang} theme="vesper" />}
+      </div>
+      <a class="sl-go" href={slice.href}>
+        read the whole artifact, and the levels above and below it →
+      </a>
+      <div class="provenance">{slice.provenance}</div>
+    </section>
+  )
+}
+
+<style>
+  .slice { margin-top: 1.75rem; }
+  .sl-head {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap;
+    padding: 0.625rem 0.875rem; border-bottom: 1px solid var(--panel-rule);
+  }
+  .sl-kicker {
+    font-size: 0.6875rem; letter-spacing: 0.11em; text-transform: uppercase; color: var(--accent);
+    text-shadow: var(--bloom);
+  }
+  .sl-level { font-size: 0.6875rem; letter-spacing: 0.06em; color: var(--panel-mute); }
+  .sl-say {
+    margin: 0; padding: 0.75rem 0.875rem; max-width: 68ch;
+    font-size: 0.8125rem; line-height: 1.65; color: var(--panel-ink);
+  }
+  .sl-code { border-top: 1px solid var(--panel-rule); min-width: 0; }
+  .sl-code :global(pre) {
+    margin: 0; padding: 0.875rem; overflow-x: auto;
+    font-size: 0.8125rem; line-height: 1.6; background: transparent !important;
+  }
+  .sl-go {
+    display: block; padding: 0.5rem 0.875rem; border-top: 1px solid var(--panel-rule);
+    font-size: 0.75rem; color: var(--accent-bright); text-decoration: none;
+  }
+  .sl-go:hover { text-decoration: underline; }
+</style>

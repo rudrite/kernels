@@ -60,6 +60,10 @@
    "lines": 67,
    "bytes": 3821,
    "sha256": "610b424ab0258d19",
+   "versions": {
+    "torch": "2.8.0",
+    "torch_xla": "2.8.0"
+   },
    "produced_by": "pasted back from a Colab TPU v6e-1 (torch 2.8.0, torch_xla 2.8.0, 2026-08-14): the torch equivalent of specimen.py traced in-kernel, printed via _XLAC._get_xla_tensors_text and _get_xla_tensors_hlo with the seam counters after one sync and one host read. Leading indentation restored; the copy channel strips it. The second ExecuteTime sample is the traced scalar sqrt operand materializing."
   },
   {

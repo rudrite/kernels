@@ -6,6 +6,7 @@ import MlirCode from '../../components/MlirCode.astro'
 import SectionHead from '../../components/SectionHead.astro'
 import ReadingRails from '../../components/ReadingRails.astro'
 import MasteryWork from '../../components/MasteryWork.astro'
+import SpecimenSlice from '../../components/SpecimenSlice.astro'
 import MiniMap from '../../components/MiniMap.astro'
 import LessonList from '../../components/LessonList.astro'
 import { lessonsOf } from '../../data/lessons'
@@ -141,6 +142,7 @@ const chapterWalks = await Promise.all(
 
     <article class="main">
       <MasteryWork chapterKey={key} />
+      <SpecimenSlice unit={key} />
 
       {
         chapter.sections.map((sec, si) => (
