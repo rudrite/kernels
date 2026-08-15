@@ -150,8 +150,22 @@ def record(path: Path, level: int, lane: str, title: str, lang: str, produced_by
 
 
 def main() -> None:
+    # Paste-back rows (filled outside this script, like the Colab torch trace)
+    # survive a re-run: their manifest entries and artifact bytes are carried
+    # over instead of being reset to the pending placeholder.
+    pasted: dict[str, tuple[dict, bytes]] = {}
+    pending_ids = {entry["id"] for entry in PENDING}
+    if MANIFEST.exists():
+        for entry in json.loads(MANIFEST.read_text()).get("levels", []):
+            if entry["id"] in pending_ids and entry.get("status") == "captured":
+                src = ARTIFACTS / Path(entry["file"]).name
+                if src.exists():
+                    pasted[entry["id"]] = (entry, src.read_bytes())
+
     shutil.rmtree(ARTIFACTS, ignore_errors=True)
     ARTIFACTS.mkdir(parents=True)
+    for entry, data in pasted.values():
+        (ARTIFACTS / Path(entry["file"]).name).write_bytes(data)
 
     x, wq, wk, wv = specimen.inputs()
     lowered = jax.jit(specimen.block).lower(x, wq, wk, wv)
@@ -227,6 +241,8 @@ def main() -> None:
         entry["status"] = "captured"
     for entry in PENDING:
         entry["status"] = "pending"
+    # a pasted-back row keeps its own manifest entry over the placeholder
+    tail = [pasted[e["id"]][0] if e["id"] in pasted else e for e in PENDING]
 
     manifest = {
         "specimen": {
@@ -252,7 +268,7 @@ def main() -> None:
         },
         # Descent order, so the manifest reads the way the map does. The sort
         # is stable, which keeps a pending level under the captures it sits with.
-        "levels": sorted(levels + PENDING, key=lambda entry: entry["level"]),
+        "levels": sorted(levels + tail, key=lambda entry: entry["level"]),
     }
     MANIFEST.write_text(json.dumps(manifest, indent=2) + "\n")
 
