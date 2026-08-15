@@ -62,6 +62,8 @@ export const GRAMMAR: Record<string, string> = {
   jaxpr: 'haskell',
   hlo: 'txt',
   llvm: 'llvm',
+  ptx: 'txt',
+  sass: 'txt',
 }
 
 export interface SpecimenLevel extends SpecimenEntry {

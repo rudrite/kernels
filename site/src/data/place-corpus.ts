@@ -67,6 +67,10 @@ const LANE_SIDE: Record<string, MapSide | null> = {
 
 const specimenItems: PlaceItem[] = SPECIMEN_LEVELS.filter((l) => l.status === 'captured')
   .filter((l) => LANE_SIDE[l.lane])
+  // the picker offers occupied cells only, so an artifact whose cell holds no
+  // units (the GPU side's cited neighbor captures today) stays out until a
+  // unit moves in; the drill then picks it up with no edit here
+  .filter((l) => CELL_UNITS.some((c) => c.level === l.level && c.side === LANE_SIDE[l.lane]))
   .map((l) => ({
     id: `specimen-${l.id}`,
     title: `the specimen at L${l.level}, ${l.title}`,

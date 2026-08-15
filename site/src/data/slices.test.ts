@@ -95,7 +95,8 @@ describe('the lookup a chapter template calls', () => {
     const pendingFloors = MAP_UNITS.filter((u) => !SLICES.some((s) => s.level === u.cell.level && s.side === u.cell.side))
     expect(pendingFloors.length).toBeGreaterThan(0)
     for (const unit of pendingFloors) expect(sliceFor(unit.key), unit.key).toBeUndefined()
-    // The GPU side has no capture at all, so no unit on it may show one.
+    // The GPU side's rows are cited neighbor captures, not the specimen
+    // program, so no unit on that side may show a "your program" slice.
     for (const unit of MAP_UNITS.filter((u) => u.cell.side === 'gpu')) {
       expect(sliceFor(unit.key), unit.key).toBeUndefined()
     }

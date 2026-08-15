@@ -1,0 +1,69 @@
+$L__BB0_3:                              // =>This Inner Loop Header: Depth=1
+	setp.lt.s64 	%p13, %rd92, %rd1;
+	add.s32 	%r225, %r379, 1;
+	setp.gt.s32 	%p14, %r225, 1;
+	selp.b32 	%r379, 0, %r225, %p14;
+	.loc	1 182 20                        // generate_runner_artifacts.py:182:20
+	cp.async.wait_group 	2;
+	bar.sync 	0;
+	shl.b32 	%r226, %r379, 14;
+	add.s32 	%r227, %r93, %r226;
+	add.s32 	%r228, %r227, %r14;
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r112, %r113, %r114, %r115}, [%r228];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r124, %r125, %r126, %r127}, [%r228+4096];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r128, %r129, %r130, %r131}, [%r228+8192];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r132, %r133, %r134, %r135}, [%r228+12288];
+	add.s32 	%r229, %r227, %r15;
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r136, %r137, %r138, %r139}, [%r229];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r148, %r149, %r150, %r151}, [%r229+4096];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r152, %r153, %r154, %r155}, [%r229+8192];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r156, %r157, %r158, %r159}, [%r229+12288];
+	add.s32 	%r230, %r227, %r16;
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r160, %r161, %r162, %r163}, [%r230];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r172, %r173, %r174, %r175}, [%r230+4096];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r176, %r177, %r178, %r179}, [%r230+8192];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r180, %r181, %r182, %r183}, [%r230+12288];
+	add.s32 	%r231, %r227, %r17;
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r184, %r185, %r186, %r187}, [%r231];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r196, %r197, %r198, %r199}, [%r231+4096];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r200, %r201, %r202, %r203}, [%r231+8192];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r204, %r205, %r206, %r207}, [%r231+12288];
+	.loc	1 183 20                        // generate_runner_artifacts.py:183:20
+	shl.b32 	%r232, %r379, 13;
+	add.s32 	%r233, %r93, %r232;
+	add.s32 	%r234, %r233, %r18;
+	ldmatrix.sync.aligned.m8n8.x4.trans.shared.b16 {%r116, %r117, %r140, %r141}, [%r234+32768];
+	ldmatrix.sync.aligned.m8n8.x4.trans.shared.b16 {%r164, %r165, %r188, %r189}, [%r234+36864];
+	add.s32 	%r235, %r233, %r19;
+	ldmatrix.sync.aligned.m8n8.x4.trans.shared.b16 {%r118, %r119, %r142, %r143}, [%r235+32768];
+	ldmatrix.sync.aligned.m8n8.x4.trans.shared.b16 {%r166, %r167, %r190, %r191}, [%r235+36864];
+	add.s32 	%r236, %r233, %r20;
+	ldmatrix.sync.aligned.m8n8.x4.trans.shared.b16 {%r120, %r121, %r144, %r145}, [%r236+32768];
+	ldmatrix.sync.aligned.m8n8.x4.trans.shared.b16 {%r168, %r169, %r192, %r193}, [%r236+36864];
+	add.s32 	%r237, %r233, %r21;
+	ldmatrix.sync.aligned.m8n8.x4.trans.shared.b16 {%r122, %r123, %r146, %r147}, [%r237+32768];
+	ldmatrix.sync.aligned.m8n8.x4.trans.shared.b16 {%r170, %r171, %r194, %r195}, [%r237+36864];
+	.loc	1 184 32                        // generate_runner_artifacts.py:184:32
+	// begin inline asm
+	mma.sync.aligned.m16n8k16.row.col.f32.f16.f16.f32 { %r381, %r382, %r383, %r384 }, { %r112, %r113, %r114, %r115 }, { %r116, %r117 }, { %r381, %r382, %r383, %r384 };
+	// end inline asm
+	// begin inline asm
+	mma.sync.aligned.m16n8k16.row.col.f32.f16.f16.f32 { %r385, %r386, %r387, %r388 }, { %r112, %r113, %r114, %r115 }, { %r118, %r119 }, { %r385, %r386, %r387, %r388 };
+	// end inline asm
+	// begin inline asm
+	mma.sync.aligned.m16n8k16.row.col.f32.f16.f16.f32 { %r389, %r390, %r391, %r392 }, { %r112, %r113, %r114, %r115 }, { %r120, %r121 }, { %r389, %r390, %r391, %r392 };
+	// end inline asm
+	// begin inline asm
+	mma.sync.aligned.m16n8k16.row.col.f32.f16.f16.f32 { %r393, %r394, %r395, %r396 }, { %r112, %r113, %r114, %r115 }, { %r122, %r123 }, { %r393, %r394, %r395, %r396 };
+	// end inline asm
+	// begin inline asm
+	mma.sync.aligned.m16n8k16.row.col.f32.f16.f16.f32 { %r397, %r398, %r399, %r400 }, { %r124, %r125, %r126, %r127 }, { %r116, %r117 }, { %r397, %r398, %r399, %r400 };
+	// end inline asm
+	// begin inline asm
+	mma.sync.aligned.m16n8k16.row.col.f32.f16.f16.f32 { %r401, %r402, %r403, %r404 }, { %r124, %r125, %r126, %r127 }, { %r118, %r119 }, { %r401, %r402, %r403, %r404 };
+	// end inline asm
+	// begin inline asm
+	mma.sync.aligned.m16n8k16.row.col.f32.f16.f16.f32 { %r405, %r406, %r407, %r408 }, { %r124, %r125, %r126, %r127 }, { %r120, %r121 }, { %r405, %r406, %r407, %r408 };
+	// end inline asm
+	// begin inline asm
+	mma.sync.aligned.m16n8k16.row.col.f32.f16.f16.f32 { %r409, %r410, %r411, %r412 }, { %r124, %r125, %r126, %r127 }, { %r122, %r123 }, { %r409, %r410, %r411, %r412 };

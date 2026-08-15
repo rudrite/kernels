@@ -61,11 +61,21 @@ describe('the captured artifacts', () => {
 
 describe('the pending levels', () => {
   it('claims no file and says what will produce each one', () => {
-    expect(pending.length).toBeGreaterThan(0)
+    // Every level is captured today; this block guards any future pending row.
     for (const level of pending) {
       expect(level.file, level.id).toBeUndefined()
       expect(level.text, level.id).toBe('')
       expect(level.pending!.length, level.id).toBeGreaterThan(40)
+    }
+  })
+})
+
+describe('the cited neighbor captures', () => {
+  it('says plainly they are not the specimen', () => {
+    for (const id of ['triton-ttir', 'triton-ttgir', 'ptx', 'sass']) {
+      const level = SPECIMEN_LEVELS.find((l) => l.id === id)!
+      expect(level.status, id).toBe('captured')
+      expect(level.produced_by, id).toMatch(/^Not the specimen\./)
     }
   })
 })

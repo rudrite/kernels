@@ -69,13 +69,23 @@ PENDING = [
         ),
     },
     {
-        "id": "triton-ir",
+        "id": "triton-ttir",
         "level": 4,
         "lane": "gpu",
-        "title": "the Triton kernel, TTIR and TTGIR",
+        "title": "the Triton kernel, TTIR",
         "pending": (
-            "A cited public capture from a CUDA machine, taken with TRITON_ALWAYS_COMPILE and "
-            "the XLA:GPU Triton dump, pinned to its driver and GPU generation."
+            "A cited public capture pinned to its source commit; filled by paste-in, "
+            "carried through re-runs by the preservation block above."
+        ),
+    },
+    {
+        "id": "triton-ttgir",
+        "level": 4,
+        "lane": "gpu",
+        "title": "the Triton kernel, TTGIR",
+        "pending": (
+            "A cited public capture pinned to its source commit; filled by paste-in, "
+            "carried through re-runs by the preservation block above."
         ),
     },
     {

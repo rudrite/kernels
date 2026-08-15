@@ -30,3 +30,11 @@ else is verbatim.
 The site reads `manifest.json` and `artifacts/` at build time; nothing is
 compiled during a build. LAB·L1 walks the same descent by hand in a notebook,
 which is where a reader meets it first.
+
+## Cited neighbor captures
+
+The four GPU rows are not the specimen program; each is a verbatim excerpt of
+the nearest public capture, pinned to a commit in its `produced_by`. Sources
+and licenses: triton-lang/triton at tag v3.7.1 (MIT) for TTIR and TTGIR,
+toyaix/triton-runner at b510858 (MIT) for the PTX, and
+KnowingNothing/MatmulTutorial at 70f70fa (Apache-2.0) for the SASS listing.
