@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { ALL_UNIT_LESSONS, LESSON_MASTERY, lessonKey } from './index'
 import { LESSON_DIAGRAMS } from './diagrams'
 import { PATH } from '../../lib/path'
+import { JAX_PATH } from '../jax/track'
 import { PT_PATH } from '../pytorch/track'
 import { XLA_PATH } from '../xla/track'
 
@@ -23,6 +24,7 @@ describe('the lesson layer structure', () => {
       ...PATH.map((c) => c.key),
       ...XLA_PATH.map((c) => c.key),
       ...PT_PATH.map((c) => c.key),
+      ...JAX_PATH.map((c) => c.key),
     ])
     for (const u of ALL_UNIT_LESSONS) expect(chapterKeys.has(u.unit), u.unit).toBe(true)
   })

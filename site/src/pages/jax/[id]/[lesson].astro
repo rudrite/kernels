@@ -1,0 +1,27 @@
+---
+import LessonPage from '../../../components/LessonPage.astro'
+import { ALL_UNIT_LESSONS } from '../../../data/lessons'
+import { jaxChapterAt } from '../../../data/jax/track'
+
+export function getStaticPaths() {
+  return ALL_UNIT_LESSONS.filter((u) => u.unit.startsWith('jax:')).flatMap((u) =>
+    u.lessons.map((l) => ({ params: { id: u.unit.slice(4), lesson: l.id }, props: { unit: u.unit, lessonId: l.id } })),
+  )
+}
+
+interface Props {
+  unit: string
+  lessonId: string
+}
+const { unit, lessonId } = Astro.props
+const { current } = jaxChapterAt(unit)
+---
+
+<LessonPage
+  unit={unit}
+  unitTitle={current.title}
+  unitHref={current.href}
+  course="the jax path"
+  courseHref="/jax"
+  lessonId={lessonId}
+/>

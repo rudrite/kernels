@@ -6,6 +6,18 @@
 import type { WorkItem } from '../mastery'
 import { COMPILER_WALL_LESSONS } from './compiler-wall'
 import { IR_DESCENT_LESSONS } from './ir-descent'
+import { JAX_ARRAYS_LESSONS } from './jax-arrays'
+import { JAX_AUTODIFF_LESSONS } from './jax-autodiff'
+import { JAX_CONTROL_FLOW_LESSONS } from './jax-control-flow'
+import { JAX_JIT_LESSONS } from './jax-jit'
+import { JAX_PERFORMANCE_LESSONS } from './jax-performance'
+import { JAX_PYTREE_LESSONS } from './jax-pytrees'
+import { JAX_RANDOM_LESSONS } from './jax-random'
+import { JAX_SHARDING_LESSONS } from './jax-sharding'
+import { JAX_STATE_LESSONS } from './jax-state'
+import { JAX_TRACING_LESSONS } from './jax-tracing'
+import { JAX_TRAINING_RUN_LESSONS } from './jax-training-run'
+import { JAX_VMAP_LESSONS } from './jax-vmap'
 import { MACHINE_LESSONS } from './machine'
 import { PALLAS_LESSONS } from './pallas'
 import { TORCH_BRIDGE_LESSONS } from './torch-bridge'
@@ -84,6 +96,18 @@ export const ALL_UNIT_LESSONS: UnitLessons[] = [
   ...MACHINE_LESSONS,
   ...PALLAS_LESSONS,
   ...XLA_LESSONS,
+  ...JAX_ARRAYS_LESSONS,
+  ...JAX_TRACING_LESSONS,
+  ...JAX_JIT_LESSONS,
+  ...JAX_AUTODIFF_LESSONS,
+  ...JAX_VMAP_LESSONS,
+  ...JAX_CONTROL_FLOW_LESSONS,
+  ...JAX_PYTREE_LESSONS,
+  ...JAX_RANDOM_LESSONS,
+  ...JAX_STATE_LESSONS,
+  ...JAX_SHARDING_LESSONS,
+  ...JAX_PERFORMANCE_LESSONS,
+  ...JAX_TRAINING_RUN_LESSONS,
   ...TORCH_TENSOR_LESSONS,
   ...TORCH_TAPE_LESSONS,
   ...TORCH_MODULES_LESSONS,
