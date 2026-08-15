@@ -8,6 +8,7 @@ import { JAX_PATH } from '../data/jax/track'
 import { XLA_PATH } from '../data/xla/track'
 import { PT_PATH } from '../data/pytorch/track'
 import { ALL_MASTERY } from '../data/mastery-index'
+import { CELL_UNITS, GAUGES } from '../data/map'
 
 // Per-path chapter lists; 'kernels' is the default so every attribute that
 // predates the sibling paths keeps its meaning unchanged.
@@ -18,9 +19,13 @@ const PATHS = {
   pytorch: PT_PATH.map((c) => ({ key: c.key, href: c.href, label: c.title })),
 }
 const MASTERY = ALL_MASTERY
+// The map's cells, keyed the way the surfaces ask for them, and the sides the
+// depth gauge reads (docs/plans/descent-revamp.md, phase M3).
+const CELLS = Object.fromEntries(CELL_UNITS.map((c) => [`${c.level}:${c.side}`, c.keys]))
+const SIDES = GAUGES
 ---
 
-<script is:inline define:vars={{ PATHS, MASTERY }}>
+<script is:inline define:vars={{ PATHS, MASTERY, CELLS, SIDES }}>
   const store = {
     get(key, fallback) {
       try {
@@ -117,6 +122,33 @@ const MASTERY = ALL_MASTERY
       const chapters = chaptersOf(el, 'data-path-progress-bar')
       const done = chapters.filter((c) => complete(c.key)).length
       el.style.width = `${Math.round((done / chapters.length) * 100)}%`
+    }
+    // cell rollups: what the map paints in each cell of the hourglass
+    for (const el of document.querySelectorAll('[data-cell-frac]')) {
+      const keys = CELLS[el.getAttribute('data-cell-frac')]
+      if (keys) el.textContent = `${keys.filter(complete).length}/${keys.length}`
+    }
+    // the depth gauge: how far down a side the reader has finished every floor
+    // they opened. A floor nobody has touched is not a hole, it is a floor
+    // they have not reached; a floor left half read stops the gauge above it.
+    const touched = (key) => Boolean(visited[key]) || workDone(key).done > 0
+    const depthOf = (side) => {
+      let depth = null
+      for (const floor of side.floors) {
+        if (floor.keys.every(complete)) depth = floor.level
+        else if (floor.keys.some(touched)) break
+      }
+      return depth
+    }
+    const depths = {}
+    for (const side of SIDES) depths[side.side] = depthOf(side)
+    for (const el of document.querySelectorAll('[data-depth-side]')) {
+      const d = depths[el.getAttribute('data-depth-side')]
+      el.textContent = d === null || d === undefined ? 'not yet' : `L${d}`
+    }
+    const deepest = SIDES.filter((s) => depths[s.side] !== null).sort((a, b) => depths[b.side] - depths[a.side])[0]
+    for (const el of document.querySelectorAll('[data-depth-best]')) {
+      el.textContent = deepest ? `reads to L${depths[deepest.side]}, ${deepest.label}` : 'no floor finished yet'
     }
     // continue: the first chapter of that path whose mastery work is not finished
     for (const el of document.querySelectorAll('[data-continue]')) {

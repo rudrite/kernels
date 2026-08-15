@@ -3,7 +3,7 @@
 // the level it belongs to. Mastery state rides on the same data attributes
 // the path rows use, so ProgressKit paints this with no new code. The four
 // courses are routes drawn over the cells; picking one dims the rest.
-import { LEVELS, ROUTES, routesAt, unitsAt, type MapLevel, type MapSide } from '../data/map'
+import { GAUGES, LEVELS, ROUTES, routesAt, unitsAt, type MapLevel, type MapSide } from '../data/map'
 
 interface Props {
   /** The reader's current cell, lit on the map. */
@@ -40,6 +40,21 @@ const TAPER = ['0', '5%', '12%', '12%', '6%', '3%', '1%', '0']
     }
   </div>
 
+  <div class="plate depth">
+    <span class="mono-label d-head">how deep you read</span>
+    <ul class="d-sides">
+      {
+        GAUGES.map((g) => (
+          <li>
+            <span class="d-label">{g.label}</span>
+            <span class="meas bloom" data-depth-side={g.side}>not yet</span>
+          </li>
+        ))
+      }
+    </ul>
+    <span class="d-note">a floor counts once every unit you opened on it is finished, the waist included</span>
+  </div>
+
   <div class="spine-wrap">
     <svg class="spine" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
       <path vector-effect="non-scaling-stroke" d="M 4 1 L 42 32 L 42 68 L 4 99" />
@@ -66,7 +81,10 @@ const TAPER = ['0', '5%', '12%', '12%', '6%', '3%', '1%', '0']
                     data-side={col.side}
                     data-routes={routesAt(level.level, col.side).join(' ')}
                   >
-                    <span class="c-head mono-label">{col.label}</span>
+                    <span class="c-head mono-label">
+                      <span>{col.label}</span>
+                      {units.length > 0 && <span class="c-frac meas" data-cell-frac={`${level.level}:${col.side}`} />}
+                    </span>
                     {units.length > 0 ? (
                       <ul>
                         {units.map((u) => (
@@ -134,6 +152,16 @@ const TAPER = ['0', '5%', '12%', '12%', '6%', '3%', '1%', '0']
   .route-go:hover { color: var(--accent); text-shadow: var(--bloom); }
   .route:has(.route-btn[aria-pressed='true']) { border-color: var(--accent); }
 
+  /* the depth gauge: the progress model, read as floors rather than percent */
+  .depth { display: flex; align-items: baseline; gap: 0.75rem 1.5rem; flex-wrap: wrap; padding: 0.7rem 0.95rem; margin-bottom: 1.25rem; }
+  .d-head { color: var(--accent); text-shadow: var(--bloom); }
+  .d-sides { list-style: none; margin: 0; padding: 0; display: flex; gap: 1.25rem; flex-wrap: wrap; }
+  .d-sides li { display: flex; align-items: baseline; gap: 0.4rem; }
+  .d-label { font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.06em; color: var(--ink-mute); }
+  .d-sides .meas { font-family: var(--mono); font-size: 0.9375rem; color: var(--accent); }
+  .d-note { font-family: var(--mono); font-size: 0.6875rem; color: var(--ink-faint); margin-left: auto; }
+  @media (max-width: 860px) { .d-note { margin-left: 0; } }
+
   /* the spine: the hourglass drawn as a lit trace behind the cells */
   .spine-wrap { position: relative; }
   .spine { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -155,7 +183,8 @@ const TAPER = ['0', '5%', '12%', '12%', '6%', '3%', '1%', '0']
   .cell.gone { border: none; background: none; box-shadow: none; background-image: none; }
   .cell.empty { background-image: none; border-style: dashed; }
   .cell.here { border-color: var(--accent); }
-  .c-head { display: block; font-size: 0.625rem; letter-spacing: 0.12em; color: var(--ink-faint); }
+  .c-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; font-size: 0.625rem; letter-spacing: 0.12em; color: var(--ink-faint); }
+  .c-frac { font-family: var(--mono); color: var(--ink-faint); text-shadow: none; }
   .cell[data-side='waist'] .c-head { color: var(--accent); text-shadow: var(--bloom); }
   .c-none { font-family: var(--mono); font-size: 0.6875rem; color: var(--ink-faint); }
   .cell ul { list-style: none; margin: 0.4rem 0 0; padding: 0; }

@@ -94,11 +94,12 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
         <a class="cta" href="https://github.com/rudrite/kernels" rel="noopener">the repo</a>
       </div>
       <div class="plate statbox">
-        <p class="stat-line">
-          <span class="meas bloom">{gatesPassed}/{gatesTotal}</span> gates passed · your progress
-          <span class="meas bloom" data-path-progress>0/15</span> chapters
+        <p class="stat-line"><span class="meas bloom" data-depth-best>no floor finished yet</span></p>
+        <p class="stat-sub">
+          Depth counts floors, not chapters. A floor lands when every unit you opened on it is
+          finished, and <span class="meas">{gatesPassed}/{gatesTotal}</span> gates have passed on real
+          hardware so far.
         </p>
-        <div class="your-bar" aria-hidden="true"><i data-path-progress-bar></i></div>
       </div>
       <div class="outcome-strip">
         {OUTCOMES.map((o) => (
@@ -290,11 +291,10 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
   }
   .cta:hover { transform: translate(-2px, -2px); }
   .cta.primary { border-color: var(--accent); color: var(--accent); text-shadow: var(--bloom); background: var(--accent-wash); }
-  .statbox { margin-top: 1.5rem; padding: 0.85rem 1rem; max-width: 26rem; }
-  .stat-line { font-family: var(--mono); font-size: 0.8125rem; color: var(--ink-mute); }
-  .stat-line .meas { color: var(--accent); }
-  .your-bar { height: 3px; background: var(--plate-2); border: 1px solid var(--edge); margin-top: 0.6rem; }
-  .your-bar i { display: block; height: 100%; width: 0; background: var(--accent); box-shadow: var(--bloom); }
+  .statbox { margin-top: 1.5rem; padding: 0.85rem 1rem; max-width: 28rem; }
+  .stat-line { font-family: var(--mono); font-size: 1.0625rem; color: var(--accent); }
+  .stat-sub { margin-top: 0.45rem; font-size: 0.8125rem; line-height: 1.5; color: var(--ink-mute); }
+  .stat-sub .meas { font-family: var(--mono); color: var(--accent); }
   .outcome-strip { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.875rem; }
   .outcome-strip .onum { color: var(--accent); font-size: 0.75rem; }
   .outcome-strip .op { color: var(--ink-mute); }

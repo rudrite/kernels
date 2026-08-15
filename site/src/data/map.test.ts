@@ -2,7 +2,7 @@
 // when a new chapter lands without one, or when a cell points at a level and
 // side the hourglass does not have, so this does.
 import { describe, expect, it } from 'vitest'
-import { LEVELS, MAP_UNITS, ROUTES, UNIT_CELLS, cellOf, levelAt, unitsAt } from './map'
+import { CELL_UNITS, GAUGES, LEVELS, MAP_UNITS, ROUTES, UNIT_CELLS, cellOf, levelAt, unitsAt } from './map'
 import { STAGES } from './track'
 import { PATH } from '../lib/path'
 import { JAX_PATH } from './jax/track'
@@ -83,6 +83,45 @@ describe('routes', () => {
     for (const r of ROUTES) {
       const seen = r.cells.map((c) => `${c.level}/${c.side}`)
       expect(new Set(seen).size, r.id).toBe(seen.length)
+    }
+  })
+})
+
+describe('the depth gauge', () => {
+  it('rolls every unit into exactly one cell, and no cell into thin air', () => {
+    const rolled = CELL_UNITS.flatMap((c) => c.keys)
+    expect(rolled.sort()).toEqual(MAP_UNITS.map((u) => u.key).sort())
+    for (const cell of CELL_UNITS) expect(cell.keys.length, `${cell.level}/${cell.side}`).toBeGreaterThan(0)
+  })
+
+  it('lists the cells in descent order', () => {
+    const levels = CELL_UNITS.map((c) => c.level)
+    expect([...levels].sort((a, b) => a - b)).toEqual(levels)
+  })
+
+  it('gauges every side that carries units of its own, and none that does not', () => {
+    const occupied = [...new Set(MAP_UNITS.map((u) => u.cell.side))].filter((s) => s !== 'waist')
+    expect(GAUGES.map((g) => g.side).sort()).toEqual(occupied.sort())
+    for (const g of GAUGES) expect(g.label.length, g.side).toBeGreaterThan(0)
+  })
+
+  it('walks each side down through the waist, one floor at a time', () => {
+    for (const g of GAUGES) {
+      const levels = g.floors.map((f) => f.level)
+      expect([...levels].sort((a, b) => a - b), g.side).toEqual(levels)
+      expect(new Set(levels).size, g.side).toBe(levels.length)
+      for (const floor of g.floors) {
+        const expected = [...unitsAt(floor.level, 'waist'), ...unitsAt(floor.level, g.side)].map((u) => u.key)
+        expect(floor.keys, `${g.side} L${floor.level}`).toEqual(expected)
+        expect(floor.keys.length, `${g.side} L${floor.level}`).toBeGreaterThan(0)
+      }
+    }
+  })
+
+  it('reaches the deepest floor its side occupies', () => {
+    for (const g of GAUGES) {
+      const deepest = Math.max(...MAP_UNITS.filter((u) => u.cell.side === g.side).map((u) => u.cell.level))
+      expect(g.floors.map((f) => f.level), g.side).toContain(deepest)
     }
   })
 })

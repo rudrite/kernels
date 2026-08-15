@@ -172,6 +172,30 @@ export const UNIT_CELLS: Record<string, Cell> = {
   ...prefixed('pt', PT_CELLS),
 }
 
+/** Every occupied cell, in descent order, with the unit keys that fill it. */
+export interface CellUnits {
+  level: number
+  side: MapSide
+  keys: string[]
+}
+
+/** One side of the descent, floor by floor: the progress model's columns. */
+export interface Gauge {
+  side: MapSide
+  /** How the gauge names this side to a reader. */
+  label: string
+  /** Top floor first, each carrying the unit keys a reader has to finish. */
+  floors: { level: number; keys: string[] }[]
+}
+
+const SIDE_LABELS: Record<MapSide, string> = {
+  torch: 'PyTorch side',
+  jax: 'JAX side',
+  waist: 'the waist',
+  gpu: 'GPU side',
+  tpu: 'TPU side',
+}
+
 export type RouteId = 'kernels' | 'jax' | 'xla' | 'pytorch'
 
 export interface MapUnit {
@@ -270,6 +294,31 @@ export const cellOf = (key: string): Cell | undefined =>
 /** The routes that pass through a cell, for the overlay. */
 export const routesAt = (level: number, side: MapSide): RouteId[] =>
   ROUTES.filter((r) => r.cells.some((c) => c.level === level && c.side === side)).map((r) => r.id)
+
+/** Every cell that holds units, top floor first, waist before the right side. */
+export const CELL_UNITS: CellUnits[] = LEVELS.flatMap((level) =>
+  (['torch', 'waist', 'jax', 'gpu', 'tpu'] as MapSide[])
+    .map((side) => ({ level: level.level, side, keys: unitsAt(level.level, side).map((u) => u.key) }))
+    .filter((c) => c.keys.length > 0),
+)
+
+// A descent runs down one side and through the waist, because the waist is
+// where both frameworks meet and where both machines come from. So a side's
+// column is its own cells plus the shared ones, and a floor is everything the
+// reader has to finish to say they read that far down this side.
+const gaugeFor = (side: MapSide): Gauge => ({
+  side,
+  label: SIDE_LABELS[side],
+  floors: LEVELS.map((level) => ({
+    level: level.level,
+    keys: [...unitsAt(level.level, 'waist'), ...unitsAt(level.level, side)].map((u) => u.key),
+  })).filter((f) => f.keys.length > 0),
+})
+
+/** The sides the depth gauge reads: the ones that carry units of their own. */
+export const GAUGES: Gauge[] = (['torch', 'jax', 'gpu', 'tpu'] as MapSide[])
+  .filter((side) => MAP_UNITS.some((u) => u.cell.side === side))
+  .map(gaugeFor)
 
 /** Layer ids in map order, so the map and the descent agree. */
 export const LAYER_IDS: string[] = LAYERS.map((l) => l.id)
