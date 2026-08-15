@@ -118,5 +118,6 @@ const records = results as BenchRecord[]
   table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
   th { text-align: left; font-weight: 500; font-size: 0.6875rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--panel-mute); padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--panel-rule); }
   td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--panel-rule); white-space: nowrap; }
-  .val { color: var(--accent); }
+  /* the measured value is the one numeral on the page that glows */
+  .val { color: var(--accent-bright); text-shadow: var(--bloom); }
 </style>

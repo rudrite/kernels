@@ -282,9 +282,9 @@ pre { overflow-x: auto; }
 
 /* workshop band system: the ground, dark panels as insets, band grammar */
 .ws-ground { background: var(--ground); color: var(--ink); }
-.wband { border-top: 1px solid var(--rule-soft); }
+.wband { border-top: 2px solid var(--edge); }
 .wband.alt { background: var(--plate-2); }
-.wband-light { border-top: 1px solid var(--rule-soft); }
+.wband-light { border-top: 2px solid var(--edge); }
 .wgrid { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: 2rem; padding-block: 2.5rem; }
 @media (max-width: 860px) { .wgrid { grid-template-columns: minmax(0, 1fr); } }
 .wtag { font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--accent); text-shadow: var(--bloom); }
