@@ -266,6 +266,9 @@ pre { overflow-x: auto; }
   margin-left: 0.5rem;
 }
 .spine-tick.p-done .name::after { content: ' \2713'; color: var(--pass); font-size: 0.625rem; }
+/* the path strip's ticks carry the same key but are 14x8 blocks: the check has
+   nowhere to sit and leaks below the bar, so the lit tick says it instead */
+.tick.p-done::after { content: none; }
 .lab-toggle {
   background: transparent; border: 1px solid var(--panel-rule); border-radius: 3px;
   color: var(--panel-mute); font-family: var(--mono); font-size: 0.6875rem;
