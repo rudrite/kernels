@@ -20,9 +20,9 @@ that lives in the contract as a per-edit checklist, and in review passes.
       the four-rule judgment checklist every prose edit walks before shipping.
 - [x] The gate fails on a planted violation and passes on the current tree (or the tree is
       fixed until it does).
-- [ ] Notebook prose is unscanned (flagged 2026-08-14 during the floor-labs
-      review): `labs/**/*.ipynb` markdown cells never pass through the gate.
-      All notebooks are clean of em-dashes today (checked by grep), so this
-      is hardening, not a live defect. The fix is a markdown-cell extractor
-      in `scripts/voice.mjs`, not a raw-JSON scan, because code cells
-      legitimately carry `--flag` strings the dash rules would misread.
+- [x] Notebook prose scanned (closed 2026-08-15): `scripts/voice.mjs` now
+      parses `labs/**/*.ipynb`, judges markdown cells only, and strips code
+      fences and inline code spans before the dash rules run, since those
+      quote commands and error text verbatim. The first run found twelve
+      real hits in four older notebooks (one idiom, eleven bold-label
+      stamps), fixed in the same commit.

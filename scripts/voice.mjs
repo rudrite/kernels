@@ -56,8 +56,33 @@ for (const path of files) {
   })
 }
 
+// Notebook prose: only the markdown cells are authored text. Code cells carry
+// verbatim commands and dumps (double-hyphen flags included), so the raw JSON
+// is never scanned; the cells are parsed out and judged on their own.
+const notebooks = tracked.filter((f) => f.startsWith('labs/') && f.endsWith('.ipynb'))
+for (const path of notebooks) {
+  let nb
+  try {
+    nb = JSON.parse(readFileSync(path, 'utf8'))
+  } catch {
+    failures.push(`${path}: unparseable notebook JSON`)
+    continue
+  }
+  for (const [ci, cell] of (nb.cells ?? []).entries()) {
+    if (cell.cell_type !== 'markdown') continue
+    const text = Array.isArray(cell.source) ? cell.source.join('') : String(cell.source ?? '')
+    // inline code spans quote commands and error text verbatim; strip them
+    const prose = text.replace(/```[\s\S]*?```/g, '').replace(/`[^`\n]*`/g, '')
+    prose.split('\n').forEach((line, i) => {
+      for (const p of PATTERNS) {
+        if (p.re.test(line)) failures.push(`${path} cell ${ci} line ${i + 1}: ${p.name}`)
+      }
+    })
+  }
+}
+
 if (failures.length) {
   console.error('voice: BLOCKED\n' + failures.map((f) => `  ${f}`).join('\n'))
   process.exit(1)
 }
-console.log(`voice: clean (${files.length} prose files)`)
+console.log(`voice: clean (${files.length} prose files + ${notebooks.length} notebooks)`)
