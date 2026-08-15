@@ -16,10 +16,10 @@ const markWidth = (36 * size) / 14
 ---
 
 <div class="lockup" role="img" aria-label="Rudrite Kernels" style={`--s:${size}px; --wm:${wordmark}px;`}>
-  <picture>
-    <source srcset="/mark-dark.svg" media="(prefers-color-scheme: dark)" />
-    <img src="/mark.svg" alt="" width={markWidth} height={(markWidth * 32) / 36} />
-  </picture>
+  <span class="marks">
+    <img class="mk mk-light" src="/mark.svg" alt="" width={markWidth} height={(markWidth * 32) / 36} />
+    <img class="mk mk-dark" src="/mark-dark.svg" alt="" width={markWidth} height={(markWidth * 32) / 36} />
+  </span>
   <div class="col">
     <div class="row">
       <span class="wordmark" aria-hidden="true">rudr<span class="i">i</span>te</span>
@@ -32,7 +32,16 @@ const markWidth = (36 * size) / 14
 
 <style>
   .lockup { display: inline-flex; align-items: center; gap: calc(var(--s) * 0.55); color: var(--ink); }
-  .lockup picture { flex: 0 0 auto; display: block; }
+  .lockup .marks { flex: 0 0 auto; display: block; }
+  /* the mark tracks the effective scheme: explicit choice first, system
+     second. The pair selectors outrank the .lockup img base rule below. */
+  .marks .mk-dark { display: none; }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .marks .mk-light { display: none; }
+    :global(:root:not([data-theme='light'])) .marks .mk-dark { display: block; }
+  }
+  :global(:root[data-theme='dark']) .marks .mk-light { display: none; }
+  :global(:root[data-theme='dark']) .marks .mk-dark { display: block; }
   .lockup img { display: block; }
   .col { display: flex; flex-direction: column; gap: calc(var(--s) * 0.18); }
   .row { display: flex; align-items: center; gap: calc(var(--s) * 0.5); }

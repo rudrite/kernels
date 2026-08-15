@@ -56,8 +56,12 @@
   --accent-bright: #d98c5f; /* the accent, read on a dark panel */
 }
 
+/* Dark tokens. An explicit reader choice (data-theme on <html>, set by the
+   header toggle before first paint) beats the system setting; with no stored
+   choice the media query decides. The two dark bodies below must stay
+   byte-identical; theme.test.ts enforces it. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --ground: #101114;
     --plate: #17191d;
     --plate-2: #1d2025;
@@ -83,6 +87,33 @@
        dark ground, where the printing value goes muddy */
     --copper-deep: #c88a70;
   }
+}
+
+:root[data-theme='dark'] {
+    --ground: #101114;
+    --plate: #17191d;
+    --plate-2: #1d2025;
+    --edge: #32363d;
+    --edge-hi: #4b515a;
+    --edge-soft: #262a31;
+    --ink: #e9e7e1;
+    --ink-mute: #969ba2;
+    --ink-faint: #6c727a;
+    --accent: #d98c5f;
+    --accent-deep: #b96e42;
+    --accent-wash: rgba(217, 140, 95, 0.13);
+    --bloom: 0 0 14px rgba(217, 140, 95, 0.38);
+    --bloom-soft: 0 0 10px rgba(233, 231, 225, 0.16);
+    --pass: #58b98b;
+    --fail: #d4685a;
+    --stamp: 0 0 0 rgba(0, 0, 0, 0);
+    --stamp-sm: 0 0 0 rgba(0, 0, 0, 0);
+    --scan: rgba(255, 255, 255, 0.028);
+    color-scheme: dark;
+
+    /* copper and steel keep their meanings; the deep copper lifts off the
+       dark ground, where the printing value goes muddy */
+    --copper-deep: #c88a70;
 }
 
 * { box-sizing: border-box; margin: 0; }

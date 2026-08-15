@@ -160,9 +160,11 @@ const TAPER = ['0', '5%', '12%', '12%', '6%', '3%', '1%', '0']
   .spine path { fill: none; stroke: var(--accent-deep); stroke-width: 1.25; opacity: 0.5; }
   .spine .mid { stroke: var(--edge-hi); opacity: 0.5; stroke-dasharray: 2 5; }
   @media (prefers-color-scheme: dark) {
-    .spine path { stroke: var(--accent); opacity: 0.42; filter: drop-shadow(0 0 6px rgba(217, 140, 95, 0.55)); }
-    .spine .mid { stroke: var(--edge-hi); filter: none; }
+    :global(:root:not([data-theme='light'])) .spine path { stroke: var(--accent); opacity: 0.42; filter: drop-shadow(0 0 6px rgba(217, 140, 95, 0.55)); }
+    :global(:root:not([data-theme='light'])) .spine .mid { stroke: var(--edge-hi); filter: none; }
   }
+  :global(:root[data-theme='dark']) .spine path { stroke: var(--accent); opacity: 0.42; filter: drop-shadow(0 0 6px rgba(217, 140, 95, 0.55)); }
+  :global(:root[data-theme='dark']) .spine .mid { stroke: var(--edge-hi); filter: none; }
 
   .levels { list-style: none; margin: 0; padding: 0; position: relative; }
   .row { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: 1.25rem; align-items: start; padding-block: 0.55rem; }
