@@ -30,10 +30,12 @@ export const MASTERY: Record<string, WorkItem[]> = {
     { id: 'read', label: 'read the chapter: equations, shapes, the f32 upcast' },
     { id: 'oracle', label: 'shape oracle: streak of 5', href: '/gym/kernels#drills', auto: { type: 'streak', key: 'gym.shape.streak', goal: 5 } },
     { id: 'transform', label: 'name the transform: streak of 5', href: '/gym/kernels#drills', auto: { type: 'streak', key: 'gym.transform.streak', goal: 5 } },
+    { id: 'place', label: 'place the artifact: streak of 5, a jaxpr told apart from what it lowers to', href: '/gym/kernels#place', auto: { type: 'streak', key: 'gym.place.streak', goal: 5 } },
   ],
   'l:stablehlo': [
     { id: 'read', label: 'read the chapter: MLIR, dialects, dimension_numbers' },
     { id: 'decoder', label: 'dot_general decoder: streak of 5', href: '/gym/kernels#drills', auto: { type: 'streak', key: 'gym.dot.streak', goal: 5 } },
+    { id: 'place', label: 'place the artifact: streak of 5, the portable graph recognized on sight', href: '/gym/kernels#place', auto: { type: 'streak', key: 'gym.place.streak', goal: 5 } },
   ],
   'l:xla': [
     { id: 'read', label: 'read the chapter: fusion and its exact limit' },

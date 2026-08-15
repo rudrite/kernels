@@ -10,7 +10,9 @@ import MosaicXray from '../../exhibits/MosaicXray'
 import TransformDrill from '../../exhibits/TransformDrill'
 import FusionXray from '../../exhibits/FusionXray'
 import TimelineXray from '../../exhibits/TimelineXray'
+import PlaceIt from '../../exhibits/PlaceIt'
 import opCards from '../../data/op-cards.json'
+import { PLACE_CELLS, PLACE_ITEMS } from '../../data/place-corpus'
 
 const cards = Object.entries(opCards as Record<string, string>)
 
@@ -70,6 +72,30 @@ const CATEGORIES = ['all', 'compute', 'reduction', 'shape', 'control', 'distribu
               <TransformDrill client:visible />
             </Exhibit>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="wband" id="place">
+      <div class="wrap wgrid">
+        <span class="wtag">place<br />the artifact</span>
+        <div>
+          <h2 class="wh2">One dump, no label, back onto the map</h2>
+          <p class="wlede narrow">
+            Reading a dump you were handed is one skill. Recognizing which floor of the stack wrote it
+            is another, and it is the one the map asks for. Every excerpt below came out of a real run:
+            the specimen artifacts committed under bench/specimen, the generated corpora the chapters
+            quote, and the TPU compile the fusion x-ray reads. Nothing was drawn to look like a dump.
+            The vocabulary gives each one away once you have seen enough of them, and the cells you
+            can point at are the map's own, distractors included.
+          </p>
+          <Exhibit
+            designator="GYM·14"
+            title="place the artifact"
+            provenance={`${PLACE_ITEMS.length} excerpts from committed captures and generated corpora · one cell drawn first, then one artifact from it, so the corpus shape does not pick the questions · assigned in kernel chapters 02 and 03`}
+          >
+            <PlaceIt items={PLACE_ITEMS} cells={PLACE_CELLS} client:visible />
+          </Exhibit>
         </div>
       </div>
     </section>

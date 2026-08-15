@@ -80,7 +80,7 @@ const mistakeEntries: SearchEntry[] = (mistakes as { id: string; title: string }
   keywords: 'error failure fix pallas',
 }))
 
-const drills: SearchEntry[] = [
+const drills: SearchEntry[] = ([
   { t: 'GYM·01 the dot_general decoder', k: 'dimension numbers contracting axes' },
   { t: 'GYM·02 the shape oracle', k: 'predict output shape dtype' },
   { t: 'GYM·03 spot the decision', k: 'upcast broadcast remat find line' },
@@ -89,7 +89,14 @@ const drills: SearchEntry[] = [
   { t: 'GYM·06 name the transform', k: 'grad vmap scan remat shard_map jaxpr quiz' },
   { t: 'GYM·07 the fusion x-ray', k: 'before after optimized hlo fusion spill' },
   { t: 'GYM·08 the timeline x-ray', k: 'xprof profile device plane online-softmax copies hidden' },
-].map((x) => ({ kind: 'drill' as const, title: x.t, href: '/gym/kernels#drills', hint: 'the gym', keywords: x.k }))
+  { t: 'GYM·14 place the artifact', k: 'unlabeled dump level side hourglass specimen cell drill', h: '/gym/kernels#place' },
+] as { t: string; k: string; h?: string }[]).map((x) => ({
+  kind: 'drill' as const,
+  title: x.t,
+  href: x.h ?? '/gym/kernels#drills',
+  hint: 'the gym',
+  keywords: x.k,
+}))
 
 const ops: SearchEntry[] = Object.keys(opCards as Record<string, string>).map((op) => ({
   kind: 'op',
