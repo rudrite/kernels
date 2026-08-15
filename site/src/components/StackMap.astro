@@ -3,7 +3,7 @@
 // the level it belongs to. Mastery state rides on the same data attributes
 // the path rows use, so ProgressKit paints this with no new code. The four
 // courses are routes drawn over the cells; picking one dims the rest.
-import { GAUGES, LEVELS, routesAt, unitsAt, type MapLevel, type MapSide } from '../data/map'
+import { GAUGES, LEVELS, crossListingsAt, routesAt, unitsAt, type MapLevel, type MapSide } from '../data/map'
 import { workshopAt } from '../data/workshop'
 import RouteCards from './RouteCards.astro'
 
@@ -87,6 +87,19 @@ const TAPER = ['0', '5%', '12%', '12%', '6%', '3%', '1%', '0']
                           </li>
                         ))}
                       </ul>
+                    ) : crossListingsAt(level.level, col.side).length > 0 ? (
+                      <>
+                        <span class="c-none">no unit lives here; taught from the other side</span>
+                        <ul class="cross">
+                          {crossListingsAt(level.level, col.side).map((c) => (
+                            <li>
+                              <a class="u" href={c.href}>
+                                <span class="u-t">{c.title}</span>
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </>
                     ) : (
                       <span class="c-none">nothing here yet</span>
                     )}
@@ -146,11 +159,11 @@ const TAPER = ['0', '5%', '12%', '12%', '6%', '3%', '1%', '0']
 
   /* the depth gauge: the progress model, read as floors rather than percent */
   .depth { display: flex; align-items: baseline; gap: 0.75rem 1.5rem; flex-wrap: wrap; padding: 0.7rem 0.95rem; margin-bottom: 1.25rem; }
-  .d-head { color: var(--accent); text-shadow: var(--bloom); }
+  .d-head { color: var(--accent-ink); text-shadow: var(--bloom); }
   .d-sides { list-style: none; margin: 0; padding: 0; display: flex; gap: 1.25rem; flex-wrap: wrap; }
   .d-sides li { display: flex; align-items: baseline; gap: 0.4rem; }
   .d-label { font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.06em; color: var(--ink-mute); }
-  .d-sides .meas { font-family: var(--mono); font-size: 0.9375rem; color: var(--accent); }
+  .d-sides .meas { font-family: var(--mono); font-size: 0.9375rem; color: var(--accent-ink); }
   .d-note { font-family: var(--mono); font-size: 0.6875rem; color: var(--ink-faint); margin-left: auto; }
   @media (max-width: 860px) { .d-note { margin-left: 0; } }
 
@@ -169,7 +182,7 @@ const TAPER = ['0', '5%', '12%', '12%', '6%', '3%', '1%', '0']
   .levels { list-style: none; margin: 0; padding: 0; position: relative; }
   .row { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: 1.25rem; align-items: start; padding-block: 0.55rem; }
   .lv { display: flex; flex-direction: column; gap: 0.2rem; }
-  .lv-n { font-family: var(--mono); font-size: 1.5rem; line-height: 1; color: var(--accent); }
+  .lv-n { font-family: var(--mono); font-size: 1.5rem; line-height: 1; color: var(--accent-ink); }
   .lv-t { font-family: var(--mono); font-size: 0.75rem; color: var(--ink-faint); }
 
   .cells { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; margin-inline: var(--taper, 0); }
@@ -179,11 +192,11 @@ const TAPER = ['0', '5%', '12%', '12%', '6%', '3%', '1%', '0']
   .cell.here { border-color: var(--accent); }
   .c-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; font-size: 0.625rem; letter-spacing: 0.12em; color: var(--ink-faint); }
   .c-frac { font-family: var(--mono); color: var(--ink-faint); text-shadow: none; }
-  .cell[data-side='waist'] .c-head { color: var(--accent); text-shadow: var(--bloom); }
+  .cell[data-side='waist'] .c-head { color: var(--accent-ink); text-shadow: var(--bloom); }
   .c-none { font-family: var(--mono); font-size: 0.6875rem; color: var(--ink-faint); }
   .cell ul { list-style: none; margin: 0.4rem 0 0; padding: 0; }
   .u { display: flex; align-items: baseline; gap: 0.5rem; padding: 0.1rem 0; text-decoration: none; color: var(--ink); font-size: 0.8125rem; }
-  .u:hover { color: var(--accent); }
+  .u:hover { color: var(--accent-ink); }
   .u-k { font-family: var(--mono); font-size: 0.625rem; color: var(--ink-faint); white-space: nowrap; }
   .u-t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .u-f { font-family: var(--mono); font-size: 0.625rem; color: var(--ink-faint); }
@@ -192,16 +205,18 @@ const TAPER = ['0', '5%', '12%', '12%', '6%', '3%', '1%', '0']
 
   /* the equipment on a floor: drills, exhibits and records, smaller than the
      units they serve because they are where the reader goes second */
+  .cross { list-style: none; margin: 0.45rem 0 0; padding: 0.4rem 0 0; border-top: 1px dashed var(--edge); }
+  .cross .u-t { color: var(--ink-mute); }
   .kit { list-style: none; margin: 0.45rem 0 0; padding: 0.4rem 0 0; border-top: 1px dashed var(--edge); }
   .k { display: flex; align-items: baseline; gap: 0.4rem; padding: 0.05rem 0; text-decoration: none; color: var(--ink-mute); font-size: 0.6875rem; }
-  .k:hover { color: var(--accent); }
+  .k:hover { color: var(--accent-ink); }
   .k-kind { font-family: var(--mono); font-size: 0.5625rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
   .k-t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .k-m { font-family: var(--mono); font-size: 0.5625rem; color: var(--ink-faint); white-space: nowrap; }
 
   /* the seam: a lit dashed bus with its indicator */
   .seam { display: flex; align-items: center; gap: 0.9rem; margin: 0.5rem 0 0.5rem 8.25rem; border-top: 2px dashed var(--accent-deep); padding-top: 0.55rem; }
-  .seam .mono-label { color: var(--accent); }
+  .seam .mono-label { color: var(--accent-ink); }
 
   /* the route overlay: one rule per course, the ids being a closed set */
   .map[data-route='kernels'] .cell:not(.gone):not([data-routes~='kernels']),

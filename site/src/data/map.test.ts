@@ -2,13 +2,13 @@
 // when a new chapter lands without one, or when a cell points at a level and
 // side the hourglass does not have, so this does.
 import { describe, expect, it } from 'vitest'
-import { CELL_UNITS, GAUGES, LEVELS, MAP_UNITS, ROUTES, UNIT_CELLS, cellOf, levelAt, unitsAt } from './map'
+import { CELL_UNITS, CROSS_LISTINGS, GAUGES, LEVELS, MAP_UNITS, ROUTES, UNIT_CELLS, cellOf, levelAt, unitsAt, type MapSide } from './map'
 import { STAGES } from './track'
 import { PATH } from '../lib/path'
 import { JAX_PATH } from './jax/track'
 import { XLA_PATH } from './xla/track'
 import { PT_PATH } from './pytorch/track'
-import { ALL_UNIT_LESSONS, lessonKey } from './lessons'
+import { ALL_UNIT_LESSONS, lessonHref, lessonKey } from './lessons'
 
 const ALL_KEYS = [...PATH, ...JAX_PATH, ...XLA_PATH, ...PT_PATH].map((c) => c.key)
 
@@ -135,6 +135,22 @@ describe('the voice rules', () => {
     for (const text of prose) {
       expect(text.includes('—'), text).toBe(false)
       expect(/\s--\s/.test(text), text).toBe(false)
+    }
+  })
+})
+
+describe('the cross-listings', () => {
+  it('resolve to real lessons on cells that hold no unit', () => {
+    for (const [cell, listings] of Object.entries(CROSS_LISTINGS)) {
+      const [levelStr, side] = cell.split('/') as [string, MapSide]
+      const level = Number(levelStr)
+      expect(unitsAt(level, side).length, cell).toBe(0)
+      for (const listing of listings) {
+        const hit = ALL_UNIT_LESSONS.some((u) =>
+          u.lessons.some((l) => lessonHref(u.unit, l.id) === listing.href),
+        )
+        expect(hit, `${cell} -> ${listing.href}`).toBe(true)
+      }
     }
   })
 })

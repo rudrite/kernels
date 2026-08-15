@@ -321,4 +321,27 @@ export const GAUGES: Gauge[] = (['torch', 'jax', 'gpu', 'tpu'] as MapSide[])
   .map(gaugeFor)
 
 /** Layer ids in map order, so the map and the descent agree. */
+/** Floors with no unit of their own whose subject the site teaches from a
+    unit pinned elsewhere. The cell links the lessons instead of standing
+    empty; navigation only, the lesson keeps the one telling. */
+export interface CrossListing {
+  title: string
+  href: string
+}
+export const CROSS_LISTINGS: Record<string, CrossListing[]> = {
+  '4/gpu': [{ title: 'Triton, end to end', href: '/xla/codegen/triton-end-to-end' }],
+  '5/gpu': [{ title: 'The ISA contract: PTX and SASS', href: '/s/machine/the-isa-contract' }],
+  '6/gpu': [
+    { title: 'The GPU chip', href: '/s/machine/gpu-chip' },
+    { title: 'Inside the SM, multiplied out', href: '/s/machine/inside-the-sm' },
+    { title: 'The die and the reticle', href: '/s/machine/die-and-reticle' },
+  ],
+  '7/gpu': [
+    { title: 'The scale-up domain', href: '/s/machine/scale-up' },
+    { title: 'The GPU fabric', href: '/l/ici/gpu-fabric' },
+  ],
+}
+export const crossListingsAt = (level: number, side: MapSide): CrossListing[] =>
+  CROSS_LISTINGS[`${level}/${side}`] ?? []
+
 export const LAYER_IDS: string[] = LAYERS.map((l) => l.id)
