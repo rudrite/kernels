@@ -112,9 +112,12 @@ Per-unit protocol as in `true-mastery-courses.md` §P3.
 - [x] Spec-sheet lab shipped: LAB·0.2 "Spec sheet from parts" (labs/stage-0/),
       executed end to end, carded on stage 0; the two non-closing vendor
       derivations print as findings
-- [ ] Die-shot applied item stays open on a licensing wall: no open-licensed
-      H100/TPU die photo exists (the sweep found CC0 only for consumer dies)
-      and the official block diagrams are vendor copyright. Revisit if a
-      quotable source appears; do not ship a redrawn approximation
+- [x] Die-shot applied item closed 2026-08-15 in the honest two-part shape
+      the sweep recommended: EX·22 "label the die" on the gpu-chip lesson
+      pairs a site-drawn schematic after the H100 whitepaper's own Figure 6
+      (vendor labels behind a picker, counts as published) with a real CC0
+      bare-die photograph, the GP102 top metal by Fritzchens Fritz, captioned
+      as a different chip and generation. The photograph stays unlabeled;
+      the licensing wall on H100/TPU photos stands and is stated on the page
 - [x] Hubs derive the lessons automatically; grade recorded in
       `true-mastery-courses.md` §P5

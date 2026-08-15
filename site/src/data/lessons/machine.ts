@@ -1141,6 +1141,7 @@ print(f"pairs / whole = {pairs / whole:.2f}")
         sections: [
           {
             h: "a hundred and thirty-two small machines",
+            exhibit: "die",
             ps: [
               "Count the independent compute units on each chip and the two designs separate on the first line. A TPU has at most two TensorCores. An H100 has `132` streaming multiprocessors and a B200 measures at `148` (a microbenchmark figure; NVIDIA publishes no count), each one independent of the others, so a GPU can run hundreds of separate tasks at once. Any single SM is much weaker than a TPU TensorCore. The chip as a whole is much more flexible.",
               "That independence has a ceiling, and the ceiling is the L2 cache. All `132` SMs share roughly `50 MB` of it, which means units that are architecturally independent still end up coordinating in practice, because they are competing for the same lines. You change a memory access pattern in one kernel and a different kernel's throughput moves. The scaling book's phrasing for this is action at a distance, and it is the reason GPU programmers talk about cache behavior the way TPU programmers talk about block sizes.",
@@ -1227,6 +1228,7 @@ print(f"pairs / whole = {pairs / whole:.2f}")
           work: [
             { id: 'sketch', label: 'sketch one SM from memory: four subpartitions and what each holds' },
             { id: 'occupancy', label: 'compute how many warps fit an SM at 256 registers per thread, then at 64' },
+            { id: 'die', label: 'label the die: place the six block families and score 6/6 against the key', href: '#a-hundred-and-thirty-two-small-machines' },
           ],
       },
       {

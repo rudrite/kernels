@@ -16,6 +16,7 @@ import Exhibit from './Exhibit.astro'
 import SystolicArray from '../exhibits/SystolicArray'
 import TorusHops from '../exhibits/TorusHops'
 import FabricCompare from '../exhibits/FabricCompare'
+import DieLabeler from '../exhibits/DieLabeler'
 import GuideSections from './GuideSections.astro'
 import { lessonAt, lessonHref, lessonKey } from '../data/lessons'
 import { LESSON_DIAGRAMS } from '../data/lessons/diagrams'
@@ -36,6 +37,11 @@ const INSTRUMENTS: Record<string, { d: string; t: string; p: string }> = {
     d: 'EX·21',
     t: 'two fabrics, one question',
     p: 'hop distance on a wrapped 4x4 torus against one switched 8-GPU node · egress constants from jax-ml.github.io/scaling-book (tpus, gpus)',
+  },
+  die: {
+    d: 'EX·22',
+    t: 'label the die',
+    p: 'schematic after H100 whitepaper Fig 6, counts as published · photograph: GP102 top metal by Fritzchens Fritz, CC0 1.0, Wikimedia Commons',
   },
 }
 
@@ -171,6 +177,7 @@ const guideHeads = lesson.guide
                   {sec.exhibit === 'systolic' && <SystolicArray client:visible />}
                   {sec.exhibit === 'torus' && <TorusHops client:visible />}
                   {sec.exhibit === 'fabric' && <FabricCompare client:visible />}
+                  {sec.exhibit === 'die' && <DieLabeler client:visible />}
                 </Exhibit>
               </div>
             )}
