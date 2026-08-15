@@ -32,21 +32,24 @@ const gateLabel = stage.gate ? { queued: 'QUEUED', active: 'OPEN', passed: 'PASS
   .tb {
     display: grid;
     grid-template-columns: auto 1fr auto auto;
-    border: 1px solid var(--ink);
-    background: var(--paper-high);
+    border: 2px solid var(--edge);
+    border-radius: 3px;
+    box-shadow: var(--stamp-sm);
+    background: var(--plate);
+    background-image: repeating-linear-gradient(to bottom, var(--scan) 0 1px, transparent 1px 3px);
     font-family: var(--mono);
   }
   .cell { padding: 0.625rem 1rem; display: flex; flex-direction: column; gap: 0.25rem; }
-  .cell + .cell { border-left: 1px solid var(--ink); }
+  .cell + .cell { border-left: 2px solid var(--edge); }
   .k { font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-mute); }
   .v { font-size: 0.8125rem; letter-spacing: 0.02em; white-space: nowrap; }
-  .big { font-size: 1.75rem; line-height: 1; font-weight: 500; color: var(--accent-deep); }
+  .big { font-size: 1.75rem; line-height: 1; font-weight: 500; color: var(--accent); text-shadow: var(--bloom); }
   .name { font-size: 1.125rem; font-weight: 500; white-space: normal; }
   .num { align-items: flex-start; }
   .gate { display: inline-flex; align-items: center; gap: 0.5rem; }
   @media (max-width: 640px) {
     .tb { grid-template-columns: auto 1fr; }
-    .cell:nth-child(3) { border-left: none; border-top: 1px solid var(--ink); }
-    .cell:nth-child(4) { border-top: 1px solid var(--ink); }
+    .cell:nth-child(3) { border-left: none; border-top: 2px solid var(--edge); }
+    .cell:nth-child(4) { border-top: 2px solid var(--edge); }
   }
 </style>

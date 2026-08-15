@@ -24,6 +24,9 @@
   --plate-2: #f2f0e9;
   --edge: #12141a;
   --edge-hi: #12141a;
+  /* the hairline: dividers inside a plate and between bands, where the 2px
+     edge would cut the block in half. Defined in both modes. */
+  --edge-soft: #cfccc3;
   --ink: #12141a;
   --ink-mute: #565c64;
   --ink-faint: #7e858d;
@@ -66,6 +69,7 @@
     --plate-2: #1d2025;
     --edge: #32363d;
     --edge-hi: #4b515a;
+    --edge-soft: #262a31;
     --ink: #e9e7e1;
     --ink-mute: #969ba2;
     --ink-faint: #6c727a;
@@ -235,7 +239,7 @@ pre { overflow-x: auto; }
 .toc ol { list-style: none; padding: 0; margin: 0; }
 .toc a {
   display: block; padding: 0.28rem 0 0.28rem 0.75rem;
-  border-left: 2px solid var(--rule-soft);
+  border-left: 2px solid var(--edge-soft);
   color: var(--ink-mute); text-decoration: none; letter-spacing: 0.02em;
 }
 .toc a:hover { color: var(--accent); }

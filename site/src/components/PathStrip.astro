@@ -52,24 +52,28 @@ const scoped = strip.id === 'kernels' ? '' : strip.id
 </div>
 
 <style>
-  .path-strip { background: var(--paper-high); border-bottom: 1px solid var(--rule); }
+  .path-strip {
+    background: var(--plate-2); border-bottom: 2px solid var(--edge);
+    background-image: repeating-linear-gradient(to bottom, var(--scan) 0 1px, transparent 1px 3px);
+  }
   .strip-row { display: flex; align-items: center; gap: 1.25rem; padding-block: 0.4rem; }
   .strip-label { text-decoration: none; color: var(--ink-mute); white-space: nowrap; }
-  .strip-label:hover { color: var(--accent-deep); }
+  .strip-label:hover { color: var(--accent); text-shadow: var(--bloom); }
 
   .ticks { display: flex; align-items: center; gap: 0.25rem; list-style: none; margin: 0; padding: 0; flex: 1; min-width: 0; }
   .ticks li { display: flex; }
   .ticks li.part-break { margin-left: 0.75rem; }
   .tick {
     display: block; width: 0.875rem; height: 0.5rem; border-radius: 1px;
-    border: 1px solid var(--rule); background: var(--paper);
+    border: 1px solid var(--edge); background: var(--ground);
   }
-  .tick:hover { border-color: var(--accent-deep); }
-  .tick.here { outline: 2px solid var(--accent-deep); outline-offset: 1px; }
-  :global(.tick.p-done) { background: var(--accent-deep); border-color: var(--accent-deep); }
+  .tick:hover { border-color: var(--accent); }
+  .tick.here { outline: 2px solid var(--accent); outline-offset: 1px; }
+  /* a finished chapter is a lit tick: the strip reads as a spine */
+  :global(.tick.p-done) { background: var(--accent); border-color: var(--accent); box-shadow: var(--bloom); }
 
   .strip-continue { text-decoration: none; color: var(--accent-deep); white-space: nowrap; }
-  .strip-continue:hover { text-decoration: underline; }
+  .strip-continue:hover { color: var(--accent); text-shadow: var(--bloom); }
 
   @media (max-width: 900px) {
     .strip-continue { display: none; }

@@ -147,13 +147,13 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
             )
           }
           if (b.kind === 'exercise') return (
-            <div class="exercise">
+            <div class="plate exercise">
               <span class="mono-label ex-tag">exercise</span>
               <span class="ex-text"><Rich text={b.text!} self={self} /></span>
             </div>
           )
           if (b.kind === 'callout') return (
-            <aside class="crossref">
+            <aside class="plate crossref">
               <span class="mono-label">{b.label}</span>
               {b.href ? (
                 <a href={b.href} target={b.href.startsWith('http') ? '_blank' : undefined} rel={b.href.startsWith('http') ? 'noopener' : undefined}>
@@ -182,12 +182,12 @@ const slug = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
   .codebody :global(pre) { margin: 0; padding: 0.875rem; overflow-x: auto; font-size: 0.8125rem; line-height: 1.65; background: transparent !important; }
   .errbody pre { color: #d4a09a; font-family: var(--mono); white-space: pre-wrap; }
 
-  .exercise { display: flex; flex-direction: column; gap: 0.375rem; border: 1px solid var(--rule); border-left: 3px solid var(--accent-deep); background: var(--paper-high); padding: 0.875rem 1.125rem; margin: 1rem 0; counter-increment: exercise; }
-  .exercise .ex-tag { color: var(--accent-deep); }
+  .plate.exercise { display: flex; flex-direction: column; gap: 0.375rem; border-left: 4px solid var(--accent); padding: 0.875rem 1.125rem; margin: 1rem 0; counter-increment: exercise; }
+  .exercise .ex-tag { color: var(--accent); text-shadow: var(--bloom); }
   .exercise .ex-tag::after { content: " · " counter(exercise, decimal-leading-zero); }
   .exercise .ex-text { font-size: 0.9375rem; line-height: 1.65; color: var(--ink); max-width: 68ch; }
 
-  .crossref { display: flex; flex-direction: column; gap: 0.25rem; border: 1px solid var(--rule); background: var(--paper-high); padding: 0.75rem 1rem; margin: 1rem 0; }
+  .crossref { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.75rem 1rem; margin: 1rem 0; }
   .crossref a, .crossref .crossref-text { font-family: var(--mono); font-size: 0.8125rem; color: var(--ink); text-decoration: none; }
-  .crossref a:hover { color: var(--accent-deep); text-decoration: underline; }
+  .crossref a:hover { color: var(--accent); text-decoration: underline; }
 </style>
