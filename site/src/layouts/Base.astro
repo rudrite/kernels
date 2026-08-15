@@ -58,7 +58,28 @@ const ogImage = new URL(`/og/${ogSlug}.png`, Astro.site)
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:image" content={ogImage} />
+    <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
+    <meta property="og:site_name" content="Rudrite Kernels" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#eceae3" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#101114" />
+    <link rel="sitemap" href="/sitemap.xml" />
+    {
+      path === '/' && (
+        <script
+          type="application/ld+json"
+          set:html={JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'Rudrite Kernels',
+            url: 'https://kernels.rudrite.com/',
+            description: 'A mastery course down the TPU kernel stack: courses on kernels, JAX, XLA, and PyTorch, with runnable labs and instruments.',
+          })}
+        />
+      )
+    }
   </head>
   <body>
     <header class="site-header">
