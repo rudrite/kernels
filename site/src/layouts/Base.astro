@@ -74,7 +74,15 @@ const ogImage = new URL(`/og/${ogSlug}.png`, Astro.site)
           <a href="/" class="mono-label">Map</a>
           <a href="/routes" class="mono-label">Routes</a>
           <a href="https://github.com/rudrite/kernels" rel="noopener" class="mono-label">GitHub</a>
-          <button type="button" class="mono-label mode-btn" id="mode-toggle" title="Switch color scheme" aria-label="Switch color scheme"></button>
+          <button type="button" class="mode-btn" id="mode-toggle" title="Switch color scheme" aria-label="Switch color scheme">
+            <svg class="mi mi-sun" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+              <circle cx="8" cy="8" r="3.1" />
+              <path d="M8 1.2v1.7M8 13.1v1.7M1.2 8h1.7M13.1 8h1.7M3.2 3.2l1.2 1.2M11.6 11.6l1.2 1.2M12.8 3.2l-1.2 1.2M4.4 11.6l-1.2 1.2" />
+            </svg>
+            <svg class="mi mi-moon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M13.2 9.6a5.6 5.6 0 1 1-6.8-6.8 4.4 4.4 0 1 0 6.8 6.8Z" />
+            </svg>
+          </button>
         </nav>
       </div>
     </header>
@@ -91,7 +99,12 @@ const ogImage = new URL(`/og/${ogSlug}.png`, Astro.site)
           return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
         }
         function paint() {
-          btn.textContent = effective() === 'dark' ? 'light' : 'dark'
+          // show the icon of the mode a click switches to
+          var dark = effective() === 'dark'
+          btn.querySelector('.mi-sun').style.display = dark ? 'block' : 'none'
+          btn.querySelector('.mi-moon').style.display = dark ? 'none' : 'block'
+          btn.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode')
+          btn.setAttribute('title', dark ? 'Switch to light mode' : 'Switch to dark mode')
         }
         btn.addEventListener('click', function () {
           var next = effective() === 'dark' ? 'light' : 'dark'
@@ -136,8 +149,10 @@ const ogImage = new URL(`/og/${ogSlug}.png`, Astro.site)
   nav a:hover { color: var(--accent); text-shadow: var(--bloom); }
   .search-btn { background: var(--plate-2); border: 1px solid var(--edge); border-radius: 3px; padding: 0.3rem 0.6rem; color: var(--ink-mute); cursor: pointer; display: inline-flex; gap: 0.5rem; align-items: center; }
   .search-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .mode-btn { background: var(--plate-2); border: 1px solid var(--edge); border-radius: 3px; padding: 0.3rem 0.6rem; color: var(--ink-mute); cursor: pointer; min-width: 4.5rem; }
-  .mode-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .mode-btn { background: var(--plate-2); border: 1px solid var(--edge); border-radius: 3px; padding: 0.35rem; color: var(--ink-mute); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .mode-btn svg { display: block; }
+  .mode-btn .mi-moon { display: none; }
+  .mode-btn:hover { border-color: var(--accent); color: var(--accent); filter: drop-shadow(var(--bloom)); }
   .search-btn kbd { font-family: var(--mono); font-size: 0.625rem; border: 1px solid var(--edge); border-radius: 3px; padding: 0.05rem 0.25rem; }
   @media (max-width: 900px) { .search-btn kbd { display: none; } }
   .site-footer { border-top: 2px solid var(--edge); margin-top: 5rem; background: var(--plate); }
