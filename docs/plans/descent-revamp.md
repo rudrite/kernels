@@ -130,7 +130,13 @@ additive data (`cell: { level, side }` per unit) plus new surfaces.
   3. *Artifact explorer v1.* The walk player generalized: scrub vertically
      through the specimen's levels, expand any level to the full dump. One
      component, fed by the captured artifacts.
-- **M3, depth.** The progress model and the surfaces that ride it.
+- **M3, depth.** The progress model and the surfaces that ride it. Shipped
+  2026-08-15: the depth gauge, the place-the-artifact station, the workshop
+  fold with its three-item nav, and the home reconcile. Two notes against
+  what the steps below asked for. No URL was retired, so `_redirects` stays
+  untouched. And the bench rows from the jax, xla and pytorch labs carry a
+  stage number no chapter claims, so the map lists the kernel-stage groups
+  only, while the bench page keeps every row.
   1. Mastery re-rollup by map cell; the depth gauge ("reads to L5, TPU
      side") as the headline number on home and profile surfaces; course
      bars remain inside route pages.

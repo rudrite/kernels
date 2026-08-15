@@ -5,16 +5,13 @@ import Exhibit from '../components/Exhibit.astro'
 import Choreographer from '../exhibits/Choreographer'
 import StackMap from '../components/StackMap.astro'
 import { flashTrace } from '../exhibits/flash'
-import { LAYERS, STAGES, stagesForLayer } from '../data/track'
-import irData from '../data/ir-attention.json'
-import chips from '../data/chips.json'
+import { STAGES } from '../data/track'
 import results from '../../../bench/results.json'
 
 const gated = STAGES.filter((s) => s.gate)
 const gatesTotal = gated.length
 const gatesPassed = gated.filter((s) => s.gate!.state === 'passed').length
 const heroTrace = flashTrace(4)
-const v5e = chips.chips.find((c) => c.id === 'v5e')!
 
 interface BenchRow {
   id: string
@@ -26,23 +23,6 @@ interface BenchRow {
 // the power rows: measured wins (and one honest loss) over the compiler
 const TEASER_IDS = ['M-013', 'M-015', 'M-023']
 const benchTeaser = TEASER_IDS.map((id) => (results as BenchRow[]).find((r) => r.id === id)!).filter(Boolean)
-
-// One real fragment of each layer, shown in its band. Nothing invented:
-// IR lines come from the generated dumps, constants from the chip table.
-const MOTIFS: Record<string, string[]> = {
-  source: [irData.source[1]!.trim(), irData.source[3]!.trim()],
-  jaxpr: [irData.jaxpr[1]!.trim(), irData.jaxpr[6]!.trim()],
-  stablehlo: [irData.stablehlo[3]!.trim().slice(0, 72) + '…'],
-  xla: ['fuses along dataflow edges: yes', 'restructures algorithms: no · the 268 MB spill'],
-  gap: ['∅ nothing lowers through here'],
-  pallas: ['o_ref[...] += jnp.dot(a_ref[...], b_ref[...])', 'pl.BlockSpec((bm, bk), lambda i, j, k: (i, k))'],
-  mosaic: ['(8, 128) register tiles · VLIW bundles', 'you read its errors; you never write it'],
-  tpu: [
-    `${(v5e.bf16FlopsPerSec / 1e12).toFixed(0)} bf16 TFLOP/s · ${(v5e.hbmBytesPerSec / 1e9).toFixed(0)} GB/s HBM`,
-    `ridge ${(v5e.bf16FlopsPerSec / v5e.hbmBytesPerSec).toFixed(0)} F/B · the GPU for contrast: warps, not pipelines`,
-  ],
-  ici: [`${(v5e.iciBytesPerSecOneWay / 1e9).toFixed(1)} GB/s per link, each way · chips form rings`],
-}
 
 const OUTCOMES = [
   { n: '01', h: 'Read any IR on sight', p: 'narrate unfamiliar dumps, decode any dot_general' },
@@ -58,39 +38,25 @@ const INSTRUMENTS = [
   { d: 'EX·10', t: 'the semaphore timeline', href: '/s/distributed#instruments', k: 'step into a deadlock on purpose' },
   { d: 'EX·11', t: 'the mesh, hop by hop', href: '/s/distributed#instruments', k: 'collectives over real link budgets' },
 ]
-
-const pad = (n: number) => String(n).padStart(2, '0')
-// bands 0-3 on paper, band 4 is the threshold, bands 5-8 descend into the dark
-const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'depth-5', 'depth-6', 'depth-7', 'depth-8']
 ---
 
 <Base
   title="Rudrite Kernels · learn to write fast TPU kernels"
   description="A mastery course down the TPU kernel stack: fifteen chapters, live instruments, runnable labs, and gates measured on real hardware, pass or fail in public."
 >
-  <section class="wrap front" id="map" aria-label="The map">
-    <p class="mono-label kicker">the whole stack · one map · four courses across it</p>
-    <h1>One program, all the way <em>down.</em></h1>
-    <p class="lede">
-      Two frameworks converge on one portable graph, cross the runtime seam under it, and come out
-      as code for two different machines. Every chapter on this site is a floor or a seam of that
-      descent, and this is where each one sits. Pick a course to light its route, or open any unit
-      from its cell.
-    </p>
-    <StackMap />
-  </section>
-
   <section class="wrap hero">
     <div class="hero-copy">
-      <p class="mono-label kicker">a mastery course · one path · down the stack</p>
-      <h2>Learn to write fast TPU kernels.</h2>
+      <p class="mono-label kicker">the whole stack · one map · four courses across it</p>
+      <h1>One program, all the way <em>down.</em></h1>
       <p class="lede">
-        This page is the stack. Scroll and you descend it: four layers of compiler land on paper, the
-        gap, then the shaded depths where kernels live. Each layer is a chapter with assigned mastery work;
-        the stages are pinned where they belong; your progress rides on every entry.
+        Two frameworks converge on one portable graph, cross the runtime seam under it, and come out
+        as code for two different machines. Every chapter on this site is a floor or a seam of that
+        descent. Walk far enough down and unfamiliar dumps stop being unfamiliar, which is the point:
+        the courses end with kernels you derived, tested, and measured against the compiler.
       </p>
       <div class="cta-row">
         <a class="cta primary" href="/l/source" data-continue><span data-continue-label>start the path → chapter 1</span></a>
+        <a class="cta" href="/routes">the four courses</a>
         <a class="cta" href="https://github.com/rudrite/kernels" rel="noopener">the repo</a>
       </div>
       <div class="plate statbox">
@@ -118,87 +84,21 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
     </div>
   </section>
 
-  <section class="wrap paths" aria-label="The mastery paths">
-    <div class="paths-row">
-      <div class="plate path-card here">
-        <span class="mono-label pc-k">path 01 · you are on it</span>
-        <span class="pc-t">TPU kernels</span>
-        <span class="pc-d">fifteen chapters down the stack · gates measured on real hardware</span>
-        <span class="pc-m meas"><span data-path-progress>0/15</span> chapters · descends below ↓</span>
-      </div>
-      <a class="plate path-card" href="/jax">
-        <span class="mono-label pc-k">path 02 · open</span>
-        <span class="pc-t">JAX mastery</span>
-        <span class="pc-d">twelve chapters across the language · a strict superset of the official tutorials</span>
-        <span class="pc-m meas"><span data-path-progress="jax">0/12</span> chapters · enter the path →</span>
-      </a>
-      <a class="plate path-card" href="/xla">
-        <span class="mono-label pc-k">path 03 · open</span>
-        <span class="pc-t">XLA mastery</span>
-        <span class="pc-d">fourteen chapters through the compiler · PJRT to Pathways, grounded in real dumps</span>
-        <span class="pc-m meas"><span data-path-progress="xla">0/14</span> chapters · enter the path →</span>
-      </a>
-      <a class="plate path-card" href="/pytorch">
-        <span class="mono-label pc-k">path 04 · open</span>
-        <span class="pc-t">PyTorch mastery</span>
-        <span class="pc-d">twelve chapters through the eager world, landing on TPU via torchax and torch_xla</span>
-        <span class="pc-m meas"><span data-path-progress="pytorch">0/12</span> chapters · enter the path →</span>
-      </a>
-    </div>
+  <section class="wrap front" id="map" aria-label="The map">
+    <p class="mono-label map-cue">
+      the map · each cell holds the units that live on that floor and the equipment that serves them ·
+      pick a course to light its route
+    </p>
+    <StackMap />
   </section>
-
-  <div class="descent-cue wrap">
-    <span class="mono-label">↓ the descent · nine layers · six stages pinned along the way</span>
-  </div>
-
-  <div class="descent" id="descent">
-    {
-      LAYERS.map((layer, li) => {
-        const pinned = stagesForLayer(layer.id)
-        const motif = MOTIFS[layer.id] ?? []
-        return (
-          <section class={`band ${BAND_CLASS[li]}`} data-band={layer.id} aria-label={`Chapter ${pad(li + 1)}: ${layer.label}`}>
-            <div class="wrap band-grid">
-              <div class="band-depth">
-                <span class="bd-ch">ch {pad(li + 1)}</span>
-                <span class="bd-frac meas" data-work-frac={`l:${layer.id}`}></span>
-              </div>
-              <div class="band-main">
-                <a class="band-title" href={`/l/${layer.id}`} data-chapter-key={`l:${layer.id}`}>
-                  <h2>{layer.label}</h2>
-                </a>
-                <p class="band-desc">{layer.desc}</p>
-                {pinned.length > 0 && (
-                  <div class="band-stages">
-                    {pinned.map((s) => (
-                      <a class="stage-chip" href={`/s/${s.id}`} data-chapter-key={`s:${s.id}`}>
-                        <span class="led" data-state={!s.gate || s.gate.state === 'queued' ? undefined : s.gate.state} />
-                        <span class="chip-num">ch {pad(10 + s.num)}</span>
-                        <span class="chip-title">{s.title}</span>
-                        <span class="chip-frac meas" data-work-frac={`s:${s.id}`}></span>
-                      </a>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div class="band-motif" aria-hidden="true">
-                {motif.map((line) => (
-                  <code>{line}</code>
-                ))}
-              </div>
-            </div>
-          </section>
-        )
-      })
-    }
-  </div>
 
   <section class="workshop">
     <div class="wrap">
-      <SectionHead id="instr" eyebrow="you have reached the floor" title="The workshop" />
+      <SectionHead id="instr" eyebrow="under every cell" title="The workshop" />
       <p class="ws-lede">
-        Below the stack sits the equipment: twelve instruments, eight gym stations, eight museum exhibits, eighteen
-        labs. Every one is assigned to a chapter above; press <span class="meas">⌘K</span> to jump anywhere.
+        Drills, reproduced failures and measured numbers all sit on the map now, under the floor they
+        serve. These six instruments are the ones to open first, and <span class="meas">⌘K</span> jumps
+        to anything else.
       </p>
       <div class="instr-grid">
         {
@@ -233,55 +133,18 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
       </div>
     </div>
   </section>
-
-  <aside class="gauge" aria-hidden="true">
-    <span class="g-head">depth</span>
-    <ol>
-      {LAYERS.map((l, i) => <li data-gauge={l.id}><i></i>{pad(i + 1)}</li>)}
-    </ol>
-  </aside>
-
-  <script>
-    // the depth gauge: quantized, driven by which band crosses mid-viewport
-    const bands = Array.from(document.querySelectorAll<HTMLElement>('[data-band]'))
-    const marks = new Map(
-      Array.from(document.querySelectorAll<HTMLElement>('[data-gauge]')).map((el) => [el.getAttribute('data-gauge')!, el]),
-    )
-    const gauge = document.querySelector<HTMLElement>('.gauge')
-    if (bands.length && gauge) {
-      const obs = new IntersectionObserver(
-        (entries) => {
-          for (const e of entries) {
-            const id = e.target.getAttribute('data-band')!
-            if (e.isIntersecting) {
-              for (const [k, el] of marks) el.classList.toggle('on', k === id)
-            }
-          }
-          gauge.classList.toggle('visible', bands.some((b) => b.getBoundingClientRect().top < innerHeight && b.getBoundingClientRect().bottom > 0))
-        },
-        { rootMargin: '-45% 0px -45% 0px' },
-      )
-      for (const b of bands) obs.observe(b)
-    }
-  </script>
 </Base>
 
 <style>
   .hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 3rem; align-items: center; padding-block: clamp(2.5rem, 6vw, 4rem) 1.5rem; }
   @media (max-width: 1100px) { .hero { grid-template-columns: minmax(0, 1fr); } }
   .kicker { display: block; margin-bottom: 1.1rem; color: var(--accent); text-shadow: var(--bloom); }
-  h1, .hero-copy h2 {
+  h1 {
     font-family: var(--grot); font-weight: 800;
     font-size: clamp(2.5rem, 6.4vw, 4.5rem); line-height: 0.98; letter-spacing: -0.035em;
   }
   h1 em { font-style: normal; color: var(--accent); text-shadow: var(--bloom); }
-  .hero-copy h2 { font-size: clamp(2rem, 4.4vw, 3rem); line-height: 1.02; }
-
-  /* the map: the front door */
-  .front { padding-block: clamp(2.25rem, 5vw, 3.5rem) 1rem; }
-  .front h1 { max-width: 16ch; }
-  .front .lede { max-width: 62ch; margin-bottom: 2.25rem; }
-  .lede { margin-top: 1.25rem; font-size: 1.125rem; max-width: 46ch; color: var(--ink-mute); }
+  .lede { margin-top: 1.25rem; font-size: 1.125rem; max-width: 48ch; color: var(--ink-mute); }
   .cta-row { display: flex; gap: 0.75rem; margin-top: 1.75rem; flex-wrap: wrap; }
   .cta {
     font-family: var(--mono); font-size: 0.8125rem; letter-spacing: 0.04em; text-decoration: none;
@@ -299,83 +162,12 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
   .outcome-strip .onum { color: var(--accent); font-size: 0.75rem; }
   .outcome-strip .op { color: var(--ink-mute); }
 
-  /* the paths: the course family, one card each */
-  .paths { padding-block: 0.5rem 0.25rem; }
-  .paths-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; border-top: 2px solid var(--edge); padding-top: 1.5rem; }
-  @media (max-width: 1180px) { .paths-row { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 700px) { .paths-row { grid-template-columns: minmax(0, 1fr); } }
-  .path-card { display: flex; flex-direction: column; gap: 0.3rem; padding: 0.8rem 0.95rem; text-decoration: none; color: inherit; }
-  .path-card.here { border-color: var(--accent); }
-  .path-card.here .pc-t { color: var(--accent); text-shadow: var(--bloom); }
-  a.path-card { transition: transform 110ms steps(2, jump-none); }
-  a.path-card:hover { transform: translate(-2px, -2px); border-color: var(--accent); }
-  a.path-card:hover .pc-t { color: var(--accent); }
-  .pc-k { color: var(--ink-faint); }
-  .pc-t { font-family: var(--grot); font-weight: 700; font-size: 1.0625rem; letter-spacing: -0.015em; }
-  .pc-d { font-size: 0.875rem; color: var(--ink-mute); }
-  .pc-m { font-family: var(--mono); font-size: 0.6875rem; color: var(--ink-faint); margin-top: 0.25rem; }
+  /* the map: the front door, and the only place the stack is told */
+  .front { padding-block: 1.5rem 1rem; border-top: 2px solid var(--edge); }
+  .map-cue { display: block; max-width: 78ch; margin-bottom: 1.75rem; color: var(--ink-faint); }
 
-  .descent-cue { padding-block: 1.25rem 0.75rem; }
-
-  /* the descent: paper above the gap, dark below it */
-  .band { border-top: 1px solid var(--rule-soft); }
-  .band-grid { display: grid; grid-template-columns: 7rem minmax(0, 1fr) minmax(14rem, 22rem); gap: 2rem; align-items: center; padding-block: 2.25rem; }
-  @media (max-width: 960px) { .band-grid { grid-template-columns: 5rem minmax(0, 1fr); } .band-motif { display: none; } }
-  @media (max-width: 700px) {
-    .band-grid { grid-template-columns: minmax(0, 1fr); gap: 0.75rem; padding-block: 1.75rem; }
-    .band-depth { flex-direction: row; align-items: baseline; gap: 0.75rem; }
-  }
-
-  /* the descent: each band mixes further toward the instrument dark, so the
-     ramp reads the same way in both modes */
-  .depth-0 { background: var(--ground); }
-  .depth-1 { background: color-mix(in srgb, var(--ground) 92%, var(--panel)); }
-  .depth-2 { background: color-mix(in srgb, var(--ground) 84%, var(--panel)); }
-  .depth-3 { background: color-mix(in srgb, var(--ground) 76%, var(--panel)); }
-  .depth-gap {
-    background: repeating-linear-gradient(
-      -45deg,
-      color-mix(in srgb, var(--ground) 68%, var(--panel)) 0 6px,
-      color-mix(in srgb, var(--ground) 58%, var(--panel)) 6px 7px
-    );
-  }
-  .depth-5, .depth-6, .depth-7, .depth-8 { color: var(--panel-ink); border-top-color: var(--panel-rule); }
-  .depth-5 { background: color-mix(in srgb, var(--ground) 26%, var(--panel)); }
-  .depth-6 { background: color-mix(in srgb, var(--ground) 18%, var(--panel)); }
-  .depth-7 { background: color-mix(in srgb, var(--ground) 10%, var(--panel)); }
-  .depth-8 { background: var(--panel); }
-
-  .band-depth { display: flex; flex-direction: column; gap: 0.375rem; font-family: var(--mono); }
-  .bd-ch { font-size: 0.6875rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--accent-deep); }
-  .depth-5 .bd-ch, .depth-6 .bd-ch, .depth-7 .bd-ch, .depth-8 .bd-ch { color: var(--accent-bright); text-shadow: var(--bloom); }
-  .bd-frac { font-size: 0.75rem; color: var(--ink-mute); }
-  .depth-5 .bd-frac, .depth-6 .bd-frac, .depth-7 .bd-frac, .depth-8 .bd-frac { color: var(--panel-mute); }
-  [data-chapter-key].p-done ~ * .bd-frac { color: var(--pass); }
-
-  .band-title { text-decoration: none; color: inherit; }
-  .band-title h2 { font-family: var(--grot); font-weight: 700; font-size: clamp(1.5rem, 3vw, 2.125rem); letter-spacing: -0.025em; }
-  .band-title:hover h2 { color: var(--accent-deep); }
-  .depth-5 .band-title:hover h2, .depth-6 .band-title:hover h2, .depth-7 .band-title:hover h2, .depth-8 .band-title:hover h2 { color: var(--accent-bright); }
-  .band-desc { margin-top: 0.4rem; font-size: 0.9375rem; color: var(--ink-mute); max-width: 52ch; }
-  .depth-5 .band-desc, .depth-6 .band-desc, .depth-7 .band-desc, .depth-8 .band-desc { color: var(--panel-mute); }
-  .depth-gap .band-title h2 { color: var(--accent-deep); }
-
-  .band-stages { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.875rem; }
-  .stage-chip { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--mono); font-size: 0.75rem; border: 2px solid var(--edge-hi); border-radius: 3px; padding: 0.375rem 0.625rem; text-decoration: none; background: var(--plate); color: var(--ink); }
-  .depth-5 .stage-chip, .depth-6 .stage-chip, .depth-7 .stage-chip, .depth-8 .stage-chip { background: var(--panel); border-color: var(--panel-edge); color: var(--panel-ink); }
-  .stage-chip:hover { border-color: var(--accent); color: var(--accent); }
-  .chip-num { font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent-deep); font-weight: 500; }
-  .depth-5 .chip-num, .depth-6 .chip-num, .depth-7 .chip-num, .depth-8 .chip-num { color: var(--accent-bright); }
-  .chip-frac { font-size: 0.6875rem; color: var(--ink-mute); }
-  [data-chapter-key].p-done .chip-frac { color: var(--pass); }
-
-  .band-motif { display: flex; flex-direction: column; gap: 0.3rem; font-family: var(--mono); font-size: 0.71875rem; color: var(--ink-mute); overflow: hidden; }
-  .band-motif code { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .depth-5 .band-motif, .depth-6 .band-motif, .depth-7 .band-motif, .depth-8 .band-motif { color: var(--panel-mute); }
-  .depth-gap .band-motif { color: var(--accent-deep); }
-
-  /* the workshop: the dark floor beneath the stack */
-  .workshop { background: var(--plate-2); border-top: 2px solid var(--edge); padding-block: 3rem 3.5rem; }
+  /* the workshop: the equipment, teased under the map it now sits on */
+  .workshop { background: var(--plate-2); border-top: 2px solid var(--edge); padding-block: 3rem 3.5rem; margin-top: 2.5rem; }
   .ws-lede { color: var(--ink-mute); max-width: 60ch; margin-bottom: 1.5rem; }
   .instr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
   @media (max-width: 900px) { .instr-grid { grid-template-columns: minmax(0, 1fr); } }
@@ -394,15 +186,4 @@ const BAND_CLASS = ['depth-0', 'depth-1', 'depth-2', 'depth-3', 'depth-gap', 'de
   .bt-k { color: var(--panel-mute); font-size: 0.6875rem; letter-spacing: 0.05em; }
   .bt-v { color: var(--accent-bright); font-size: 0.9375rem; overflow-wrap: break-word; text-shadow: var(--bloom); }
   .bench-teaser .provenance a { color: var(--accent); text-decoration: none; }
-
-  /* the depth gauge */
-  .gauge { position: fixed; right: 1.25rem; top: 50%; transform: translateY(-50%); z-index: 40; font-family: var(--mono); opacity: 0; transition: opacity 200ms steps(2, jump-none); pointer-events: none; }
-  .gauge.visible { opacity: 1; }
-  .g-head { display: block; font-size: 0.5625rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 0.375rem; }
-  .gauge ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; }
-  .gauge li { display: flex; align-items: center; gap: 0.375rem; font-size: 0.5625rem; color: var(--ink-mute); }
-  .gauge li i { display: inline-block; width: 8px; height: 1px; background: var(--ink-mute); }
-  .gauge li.on { color: var(--accent); font-weight: 500; text-shadow: var(--bloom); }
-  .gauge li.on i { width: 14px; height: 2px; background: var(--accent); box-shadow: var(--bloom); }
-  @media (max-width: 1240px) { .gauge { display: none; } }
 </style>

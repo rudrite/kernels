@@ -509,6 +509,4 @@ export const LAYERS: Layer[] = [
   { id: 'ici', label: 'ICI ⇄ chips', desc: 'The inter-chip links. Collectives are kernels here too.', kind: 'ici' },
 ]
 
-export const stagesForLayer = (layerId: string): Stage[] => STAGES.filter((s) => s.layer === layerId)
-
 export const TAGLINE = 'kernels, derived'
