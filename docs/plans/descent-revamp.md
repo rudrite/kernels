@@ -1,7 +1,9 @@
 # The descent revamp: one story, one spine
 
-Status: decided (2026-08-14, same day); decisions recorded in the last
-section, phases M1+ cleared to build. Supersedes the IA framing of
+Status: complete (2026-08-15). All four phases shipped: M1 the map, M2 the
+specimen and its explorer (per-unit slices remain a standing follow-up), M3
+the depth model with the workshop fold, M4 the Phosphor register across
+every surface. Decisions recorded in the last section. Supersedes the IA framing of
 `true-mastery-courses.md` where they conflict; the arc model (unit → lessons →
 practice → prove) survives unchanged, because it works.
 
@@ -148,7 +150,11 @@ additive data (`cell: { level, side }` per unit) plus new surfaces.
      GitHub. `_redirects` maps the retired URLs.
   4. Home reconcile: the old scroll-descent bands and path cards merge into
      the map surface so the stack is told once.
-- **M4, the register.** The founder-directed new theme: brutalist base,
+- **M4, the register.** Shipped in two passes: M4a 2026-08-14 (tokens,
+  home, map, lesson template, ADR 0003), M4b 2026-08-15 (the sweep over
+  chapter templates, course fronts, workshop surfaces, shared chrome, and
+  the legacy alias retirement, verified over a 264-load browser matrix
+  with zero overflow). The founder-directed new theme: brutalist base,
   retro-fitted morphisms, techish, aiming for beautiful.
   1. *Concept boards first.* Two or three full-page concepts (home + one
      lesson page each), built as static comps, presented for founder pick.
